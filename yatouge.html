@@ -55,7 +55,7 @@ button:focus-visible { outline: 2px solid var(--sodium); outline-offset: 2px; }
 
 .tools { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); display: flex; gap: 8px; width: max-content; pointer-events: auto; }
 .tools button { background: var(--panel); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; font-size: 12px; white-space: nowrap; }
-@media (max-width: 480px) { .tools { gap: 6px; top: calc(120px + env(safe-area-inset-top, 0px)); } .tools button { padding: 6px 8px; font-size: 11px; } .tools { flex-wrap: wrap; justify-content: center; left: 12px; right: 12px; transform: none; width: auto; max-width: none; } #btnBgm { max-width: 62vw; overflow: hidden; text-overflow: ellipsis; } }
+@media (max-width: 480px) { .tools { gap: 6px; top: calc(120px + env(safe-area-inset-top, 0px)); } .tools button { padding: 6px 8px; font-size: 11px; } .tools { flex-wrap: wrap; justify-content: center; left: 12px; right: 12px; transform: none; width: auto; max-width: none; } }
 @media (max-width: 480px) { .coarse .tools { top: calc(180px + env(safe-area-inset-top, 0px)); } }
 .tools button[hidden] { display: none; }
 
@@ -96,6 +96,11 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 .swatch { display: flex; align-items: center; gap: 6px; background: transparent; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px 4px 4px; font-size: 12px; color: var(--dim); }
 .swatch i { width: 18px; height: 18px; border-radius: 50%; border: 1px solid rgba(255,255,255,.25); }
 .swatch[aria-checked="true"] { border-color: var(--sodium); color: var(--ink); }
+.music { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.music button { background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; font-size: 13px; white-space: nowrap; }
+.music button:hover { border-color: var(--sodium); }
+.music button[hidden] { display: none; }
+.music .musicsel { flex: 1 1 100%; min-width: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; border-color: var(--sodium); background: rgba(255,162,58,.1); }
 @media (min-width: 900px) { #title, #lobby, #room { justify-items: start; padding-left: 6vw; background: linear-gradient(90deg, rgba(5,7,15,.9) 0 38%, rgba(5,7,15,.15) 70%); } }
 .go { background: var(--sodium); color: #1a0f02; border: 0; border-radius: 4px; padding: 14px 30px; font-size: 18px; font-weight: 700; letter-spacing: .12em; }
 .go:hover { filter: brightness(1.08); }
@@ -127,6 +132,23 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 .plst { grid-column: 2; grid-row: 1 / span 2; font-family: var(--mono); font-style: italic; font-size: 13px; color: var(--dim); text-align: right; }
 .plst.ok { color: var(--sodium); }
 .netnote { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); z-index: 9; max-width: calc(100% - 32px); padding: 8px 14px; border: 1px solid var(--tail); border-radius: 6px; background: rgba(90, 14, 24, .94); font-size: 13px; text-align: center; }
+.tools #btnIgm { min-width: 40px; min-height: 36px; font-size: 16px; line-height: 1; }
+.netnote.info { border-color: var(--sodium); background: rgba(9, 12, 26, .94); }
+/* in-game menu: the race keeps running behind a light backdrop */
+#igmenu { z-index: 7; background: rgba(5,7,15,.5); }
+.igsheet { width: min(360px, 100%); box-sizing: border-box; padding: 18px 18px 20px; background: rgba(9,12,26,.92); border: 1px solid var(--line); border-radius: 8px; }
+.igh { font-family: var(--display); font-size: 28px; margin: 0; }
+.igsheet .stripe { margin: 10px 0 14px; height: 4px; }
+.igview { display: grid; gap: 10px; }
+.igview .go, .igview .ghost { width: 100%; padding: 12px 16px; font-size: 16px; }
+.igrow { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 6px 12px; font-size: 14px; }
+.igrow label { color: var(--ink); }
+.igrow output { font-family: var(--mono); font-style: italic; color: var(--dim); min-width: 3.2em; text-align: right; }
+.igrow input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--sodium); }
+.igrow select, .igrow button { background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; font-size: 14px; color: var(--ink); }
+.igrow select option { background: var(--night); }
+.igrow button[aria-checked="true"] { border-color: var(--sodium); color: var(--sodium); }
+.igq { font-size: 18px; margin: 4px 0 6px; }
 </style>
 
 <canvas id="c" data-i18n-aria="canvas" aria-label="夜峠下坡 3D 畫面"></canvas>
@@ -144,11 +166,8 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div id="chain" class="chain"></div>
   </div>
   <div class="tools">
+    <button id="btnIgm" type="button" data-i18n-aria="igAria" aria-label="選單" aria-haspopup="dialog">☰</button>
     <button id="btnMusic" type="button">音樂：開</button>
-    <button id="btnBgm" type="button">曲目：原創</button>
-    <button id="btnPick" type="button" data-i18n="ownPick">選擇音樂</button>
-    <button id="btnOwnClear" type="button" data-i18n="ownClear" hidden>移除</button>
-    <input id="ownFile" type="file" accept="audio/*" hidden tabindex="-1" aria-hidden="true">
     <button id="btnReset" type="button" data-i18n="reset">回到路面</button>
     <button id="btnCam" type="button" data-i18n="cam" data-i18n-aria="camAria" aria-label="切換鏡頭">鏡頭</button>
     <button id="btnLeave" type="button" data-i18n="pvpLeaveMatch" hidden>離開對戰</button>
@@ -185,6 +204,13 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div class="lbl" style="margin-top:16px" data-i18n="pick">選擇你的車</div>
     <div class="pick" id="pick" role="radiogroup" data-i18n-aria="pickAria" aria-label="選擇車輛"></div>
     <div class="swatches" id="swatches" role="radiogroup" data-i18n-aria="paintAria" aria-label="車色"></div>
+    <div class="lbl" style="margin-top:16px" id="bgmLbl" data-i18n="bgmLbl">背景音樂</div>
+    <div class="music" role="group" aria-labelledby="bgmLbl">
+      <button id="btnBgm" class="musicsel" type="button">原創</button>
+      <button id="btnPick" type="button" data-i18n="ownPick">選擇音樂</button>
+      <button id="btnOwnClear" type="button" data-i18n="ownClear" hidden>移除</button>
+      <input id="ownFile" type="file" accept="audio/*" hidden tabindex="-1" aria-hidden="true">
+    </div>
     <div class="keys">
       <span><kbd>↑</kbd> <kbd>W</kbd></span><span data-i18n="kGas">油門</span>
       <span><kbd>↓</kbd> <kbd>S</kbd></span><span data-i18n="kBrake">煞車／倒車</span>
@@ -241,6 +267,31 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
   </div>
 </div>
 
+<div id="igmenu" class="screen" role="dialog" aria-modal="true" aria-labelledby="igTitle" hidden>
+  <div class="sheet igsheet">
+    <h2 id="igTitle" class="igh" data-i18n="igTitle">選單</h2>
+    <div class="stripe"></div>
+    <div id="igMain" class="igview">
+      <button class="go" id="igResume" type="button" data-i18n="igResume">繼續</button>
+      <button class="ghost" id="igSettings" type="button" data-i18n="igSettings">設定</button>
+      <button class="ghost" id="igForfeit" type="button" data-i18n="igForfeit">認輸</button>
+    </div>
+    <div id="igSet" class="igview" hidden>
+      <div class="igrow"><span id="igMusicL" data-i18n="igMusic">音樂</span><button id="igMusic" type="button" role="switch" aria-labelledby="igMusicL" aria-checked="true"></button></div>
+      <div class="igrow"><label for="igMusicVol" data-i18n="igMusicVol">音樂音量</label><output id="igMusicOut" for="igMusicVol"></output><input id="igMusicVol" type="range" min="0" max="100" step="5"></div>
+      <div class="igrow"><label for="igSfxVol" data-i18n="igSfxVol">音效音量</label><output id="igSfxOut" for="igSfxVol"></output><input id="igSfxVol" type="range" min="0" max="100" step="5"></div>
+      <div class="igrow"><label for="igCam" data-i18n="igCam">鏡頭</label><select id="igCam"></select></div>
+      <div class="igrow"><label for="igLang" data-i18n="igLang">語言</label><select id="igLang"><option value="zh">中文</option><option value="en">English</option></select></div>
+      <button class="ghost" id="igBack" type="button" data-i18n="igBack">返回</button>
+    </div>
+    <div id="igConf" class="igview" hidden>
+      <p class="igq" data-i18n="igConfirm">確定認輸？</p>
+      <button class="go" id="igYes" type="button" data-i18n="igYes">是，認輸</button>
+      <button class="ghost" id="igNo" type="button" data-i18n="igNo">否</button>
+    </div>
+  </div>
+</div>
+
 <div id="nick" class="screen" role="dialog" aria-modal="true" aria-labelledby="nickTitle" hidden>
   <div class="sheet">
     <h2 id="nickTitle" class="pvp-h" data-i18n="nickTitle">你的暱稱</h2>
@@ -253,6 +304,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 </div>
 
 <div id="netNote" class="netnote" role="status" hidden></div>
+<div id="forfeitNote" class="netnote info" role="status" hidden></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
@@ -283,10 +335,25 @@ function ownFromRecord(r) {
   return r && r.blob && r.blob.size > 0 && typeof r.name === 'string' ? { blob: r.blob, name: r.name } : null;
 }
 /* @own-music:end */
+/* @ingame-menu:start */
+const MUSIC_BASE = 0.32; // music gain at 100% volume (the level the game always used)
+// a missing or malformed saved value falls back to d (full volume)
+const clampVol = (v, d = 1) => {
+  if (typeof v !== 'number' && (typeof v !== 'string' || v.trim() === '')) return d;
+  const n = Number(v); return Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : d;
+};
+const volPct = v => Math.round(clampVol(v) * 100);
+const volFromPct = (p, d = 1) => { const n = typeof p === 'number' || (typeof p === 'string' && p.trim() !== '') ? Number(p) : NaN; return Number.isFinite(n) ? Math.min(100, Math.max(0, n)) / 100 : d; };
+const musicLevel = (on, vol) => on ? MUSIC_BASE * clampVol(vol) : 0;
+// the menu exists only while a race is counting down or running (no title / result screen, no nickname dialog)
+const menuCanOpen = (st, nickOpen) => !nickOpen && (st === 'count' || st === 'race');
+const menuEscAction = (open, view, st, nickOpen) => open ? (view === 'main' ? 'close' : 'back') : menuCanOpen(st, nickOpen) ? 'open' : 'none';
+const forfeitPlan = isPvp => ({ action: isPvp ? 'leave' : 'title', saveBest: false });
+/* @ingame-menu:end */
 /* ---------- language (zh = Traditional Chinese, en = English) ---------- */
 const I18N = {
   zh: {
-    canvas: '夜峠下坡 3D 畫面', time: '時間', score: '甩尾分數', musicOn: '音樂：開', musicOff: '音樂：關', bgmSynth: '曲目：原創', bgmOwn: n => `曲目：自選 — ${n}`, ownPick: '選擇音樂', ownClear: '移除', ownBad: '不是音訊檔', ownBig: '檔案超過 50 MB', reset: '回到路面',
+    canvas: '夜峠下坡 3D 畫面', time: '時間', score: '甩尾分數', musicOn: '音樂：開', musicOff: '音樂：關', bgmLbl: '背景音樂', bgmSynth: '原創', bgmOwn: n => `自選 — ${n}`, ownPick: '選擇音樂', ownClear: '移除', ownBad: '不是音訊檔', ownBig: '檔案超過 50 MB', reset: '回到路面',
     steerL: '左轉', steerR: '右轉', hb: '手煞', brake: '煞車', gas: '油門',
     course: (name, km, n) => `${name} · 下坡 ${km} km${n ? ` · ${n} 個髮夾彎` : ''}`, trackSub: (km, n) => `${km} km${n ? ` · ${n} 個髮夾彎` : ''}`, logo2: '下坡',
     lead: name => `凌晨兩點的${name}，路上只剩你和前面那台對手車。跟緊它，在彎道甩尾超車，先衝到山腳的人贏。`,
@@ -314,10 +381,12 @@ const I18N = {
     pvpLine: '衝線！', pvpOppDone: '對手已完賽', pvpWaitOpp: '等待對手衝線…', pvpTie: '平手', pvpDnf: '對手未完賽',
     pvpOppTime: '對手完賽時間', pvpBackRoom: '回房間再來一場', pvpLeaveEnd: '離開並回主畫面',
     nickTitle: '你的暱稱', nickLbl: '暱稱', nickHint: '1 到 16 個字，只在這次線上對戰使用，不會被記住；其他玩家看得到。', nickOk: '確定', nickCancel: '取消',
-    pvpPlayer: '玩家', pvpYouTag: n => `${n}（你）`, pvpNickIs: n => `你的暱稱：${n}。`, pvpTimeOf: n => `${n} 完賽時間`
+    pvpPlayer: '玩家', pvpYouTag: n => `${n}（你）`, pvpNickIs: n => `你的暱稱：${n}。`, pvpTimeOf: n => `${n} 完賽時間`,
+    igAria: '選單', igTitle: '選單', igResume: '繼續', igSettings: '設定', igForfeit: '認輸', igBack: '返回', igMusic: '音樂', igMusicVol: '音樂音量', igSfxVol: '音效音量', igCam: '鏡頭', igLang: '語言',
+    igOn: '開', igOff: '關', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸'
   },
   en: {
-    canvas: 'Night Pass Downhill 3D view', time: 'TIME', score: 'DRIFT SCORE', musicOn: 'Music: on', musicOff: 'Music: off', bgmSynth: 'Track: Original', bgmOwn: n => `Track: Mine — ${n}`, ownPick: 'Choose music', ownClear: 'Remove', ownBad: 'Not an audio file', ownBig: 'File over 50 MB', reset: 'Back on road',
+    canvas: 'Night Pass Downhill 3D view', time: 'TIME', score: 'DRIFT SCORE', musicOn: 'Music: on', musicOff: 'Music: off', bgmLbl: 'Music', bgmSynth: 'Original', bgmOwn: n => `Mine — ${n}`, ownPick: 'Choose music', ownClear: 'Remove', ownBad: 'Not an audio file', ownBig: 'File over 50 MB', reset: 'Back on road',
     steerL: 'Steer left', steerR: 'Steer right', hb: 'E-brake', brake: 'Brake', gas: 'Gas',
     course: (name, km, n) => `${name} · Downhill ${km} km${n ? ` · ${n} hairpins` : ''}`, trackSub: (km, n) => `${km} km${n ? ` · ${n} hairpins` : ''}`, logo2: 'Downhill',
     lead: name => `2 a.m. on ${name}. The road is empty except for you and the rival car ahead. Stay on its tail, drift past it in the corners, and be first to the bottom.`,
@@ -345,7 +414,9 @@ const I18N = {
     pvpLine: 'Across the line!', pvpOppDone: 'Opponent finished', pvpWaitOpp: 'Waiting for your opponent…', pvpTie: 'Tie', pvpDnf: 'Opponent did not finish',
     pvpOppTime: "Opponent's time", pvpBackRoom: 'Back to the room', pvpLeaveEnd: 'Leave and go to title',
     nickTitle: 'Your nickname', nickLbl: 'Nickname', nickHint: '1 to 16 characters. Used for this online session only and never saved; other players can see it.', nickOk: 'Confirm', nickCancel: 'Cancel',
-    pvpPlayer: 'Player', pvpYouTag: n => `${n} (you)`, pvpNickIs: n => `Your nickname: ${n}.`, pvpTimeOf: n => `${n} · finish time`
+    pvpPlayer: 'Player', pvpYouTag: n => `${n} (you)`, pvpNickIs: n => `Your nickname: ${n}.`, pvpTimeOf: n => `${n} · finish time`,
+    igAria: 'Menu', igTitle: 'Menu', igResume: 'Resume', igSettings: 'Settings', igForfeit: 'Forfeit', igBack: 'Back', igMusic: 'Music', igMusicVol: 'Music volume', igSfxVol: 'Sound effects volume', igCam: 'Camera', igLang: 'Language',
+    igOn: 'On', igOff: 'Off', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited'
   }
 };
 let lang = store.get('yatouge-lang') || ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
@@ -1569,6 +1640,7 @@ const car = {};
 const rival = {};
 let state = 'title', raceT = 0, countT = 0, camOrbit = 0, shake = 0, lastGapSign = 1, finishTimer = -1;
 let playerWon = false, driftTotal = 0, driftChain = 0, driftIdle = 0, rivalFinishT = null, playerFinishT = null;
+let menuOpen = false, menuView = 'main'; // in-game menu (never pauses the race)
 let pvp = null, startLat = 2.2, onlineUI = false; // pvp: the online match in progress (null = single player); startLat: grid slot, + right of the centreline
 
 function locate(o) {
@@ -1750,6 +1822,7 @@ function rivalUpdate(dt) {
 
 /* ---------- audio (all synthesized) ---------- */
 let ac = null, master, musicGain, sqG, gutG, noiseBuf, musicTimer = null, musicOn = true, engines = null;
+let musicVol = clampVol(store.get('yatouge-vol-music')), sfxVol = clampVol(store.get('yatouge-vol-sfx')); // 0..1; music and effects have separate buses
 const midi = m => 440 * Math.pow(2, (m - 69) / 12);
 function shaperCurve(k) { const n = 1024, c = new Float32Array(n); for (let i = 0; i < n; i++) { const x = i / (n - 1) * 2 - 1; c[i] = Math.tanh(k * x) / Math.tanh(k); } return c; }
 /* hatch: high-revving NA inline-4 — raspy sawtooth stack plus an intake-howl resonance that climbs with revs.
@@ -1808,8 +1881,9 @@ function initAudio() {
   if (ac) { ac.resume(); return; }
   const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return;
   ac = new AC();
-  master = ac.createGain(); master.gain.value = 0.8; master.connect(ac.destination);
-  musicGain = ac.createGain(); musicGain.gain.value = 0.32; musicGain.connect(master);
+  const outG = ac.createGain(); outG.gain.value = 0.8; outG.connect(ac.destination);
+  master = ac.createGain(); master.gain.value = sfxVol; master.connect(outG); // master = the effects / engine bus
+  musicGain = ac.createGain(); musicGain.gain.value = musicLevel(musicOn, musicVol); musicGain.connect(outG);
   noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
   const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
   engines = { hatch: buildEngine('hatch'), coupe: buildEngine('coupe'), gtr: buildEngine('gtr') };
@@ -1897,7 +1971,7 @@ function applyBgm() {
 function ownUse(blob, name, persist) {
   ownBlob = blob; ownName = name; ownSetSrc();
   if (persist) ownIdb('readwrite', s => s.put({ blob, name }, 'bgmFile'));
-  bgm = 'own'; store.set('yatouge-bgm', 'own'); initAudio(); applyBgm();
+  bgm = 'own'; store.set('yatouge-bgm', 'own'); applyBgm(); // no initAudio: the title screen has no audio yet; initAudio picks the file up when the race starts
 }
 function ownClear() {
   ownBlob = null; ownName = ''; ownSetSrc(); ownIdb('readwrite', s => s.delete('bgmFile'));
@@ -1930,7 +2004,12 @@ function playStep(st, t) {
 }
 function setMusic(on) {
   musicOn = on; $('#btnMusic').textContent = T(on ? 'musicOn' : 'musicOff');
-  if (musicGain) musicGain.gain.setTargetAtTime(on ? 0.32 : 0, ac.currentTime, 0.1);
+  if (musicGain) musicGain.gain.setTargetAtTime(musicLevel(on, musicVol), ac.currentTime, 0.1);
+}
+function setVolume(kind, v) {
+  v = clampVol(v);
+  if (kind === 'music') { musicVol = v; store.set('yatouge-vol-music', String(v)); if (musicGain) musicGain.gain.setTargetAtTime(musicLevel(musicOn, v), ac.currentTime, 0.05); }
+  else { sfxVol = v; store.set('yatouge-vol-sfx', String(v)); if (master) master.gain.setTargetAtTime(v, ac.currentTime, 0.05); }
 }
 function beep(f, dur) { if (!ac) return; tone('square', f, ac.currentTime, dur, 0.18, 4000, master); }
 function sfxHit(v) { if (!ac) return; noise(ac.currentTime, 0.25, 0.25 + v * 0.4, 'lowpass', 900, master); }
@@ -2175,13 +2254,15 @@ const COCKPIT_CARS = {
   hatch: { eye: { fwd: -0.1, right: 0.34, up: 1.12 }, fov: 76, hdr: { y: 1.46, z: 0.45 }, dashTop: 0.9, dashZ: 1.0, layout: 'box', gauges: 'twin',
     wheel: { r: 0.18, tube: 0.015, y: 0.76, z: 0.5, spokes: [Math.PI, 0, -Math.PI / 2] }, mirrorX: 0.8, hood: [0.9, 0.72],
     col: { dash: 0x2b2e34, trim: 0x44474f, roof: 0x1c1d21 } },
-  coupe: { eye: { fwd: -0.2, right: 0.34, up: 1.0 }, fov: 78, hdr: { y: 1.35, z: 0.4 }, dashTop: 0.86, dashZ: 1.0, layout: 'wrap', gauges: 'bigTach',
-    wheel: { r: 0.175, tube: 0.017, y: 0.7, z: 0.46, spokes: [Math.PI + 0.45, -0.45, -Math.PI / 2] }, mirrorX: 0.84, hood: [0.84, 0.62],
+  coupe: { eye: { fwd: -0.2, right: 0.34, up: 1.0 }, fov: 78, hdr: { y: 1.35, z: 0.4 }, dashTop: 0.78, clusterY: 0.72, dashZ: 1.0, layout: 'wrap', gauges: 'bigTach',
+    wheel: { r: 0.175, tube: 0.017, y: 0.66, z: 0.46, spokes: [Math.PI + 0.45, -0.45, -Math.PI / 2] }, mirrorX: 0.84, hood: [0.78, 0.6],
     col: { dash: 0x24262d, trim: 0x5a2a30, roof: 0x18191d } },
   gtr: { eye: { fwd: -0.12, right: 0.34, up: 1.06 }, fov: 76, hdr: { y: 1.4, z: 0.42 }, dashTop: 0.88, dashZ: 1.0, layout: 'box', gauges: 'twinAux',
     wheel: { r: 0.175, tube: 0.019, y: 0.72, z: 0.48, spokes: [0, Math.PI / 2, Math.PI, -Math.PI / 2] }, mirrorX: 0.82, hood: [0.88, 0.7],
     col: { dash: 0x25272d, trim: 0x34373e, roof: 0x16171b } },
 };
+// 儀表群中心高度（預設在儀表板頂面上方 3 cm；clusterY 可覆寫，讓大型錶不擋住引擎蓋線以上的視野）
+const clusterY = P => P.clusterY ?? P.dashTop + 0.03;
 /* @cockpit:end */
 let camMode = camModeFromStore(store.get('yatouge-cam'));
 const hudEl = $('#hud');
@@ -2251,10 +2332,10 @@ function dialTex(kind) {
   });
 }
 function makeInterior(style, paintHex) {
-  const P = COCKPIT_CARS[style], e = P.eye, ex = -e.right, dt = P.dashTop, dz = P.dashZ, pz = 0.74, hw = CAR_BOX[style].hw;
+  const P = COCKPIT_CARS[style], e = P.eye, ex = -e.right, dt = P.dashTop, dz = P.dashZ, pz = 0.74, hw = CAR_BOX[style].hw, FLOOR = 0.1;
   const grp = new THREE.Group(); grp.visible = false;
   const lam = c => new THREE.MeshLambertMaterial({ color: c });
-  const mDash = lam(P.col.dash), mTrim = lam(P.col.trim), mRoof = lam(P.col.roof), mBlack = lam(0x0b0c0f), mSpoke = lam(0x70747e), mPaint = lam(paintHex);
+  const mDash = lam(P.col.dash), mTrim = lam(P.col.trim), mRoof = lam(P.col.roof), mBlack = lam(0x0b0c0f), mFloor = lam(0x0e0f12), mSpoke = lam(0x70747e), mPaint = lam(paintHex);
   const add = (geo, mat, x, y, z, parent = grp) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); parent.add(m); return m; };
   const box = (w, h, d) => new THREE.BoxGeometry(w, h, d);
   // side profile [z, y] extruded across x, centred on x = 0
@@ -2269,14 +2350,16 @@ function makeInterior(style, paintHex) {
     m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d.normalize()); return m;
   };
   // dashboard: driver-facing panel at z = pz, shoulder, then the top surface running out to the windscreen base
-  const prof = [[pz, 0.4], [pz, dt - 0.06], [pz + 0.1, dt - 0.01], [dz, dt], [dz + 0.1, dt - 0.04], [dz + 0.1, 0.4]];
+  // (the panel runs down to the floor so the footwell is closed; the real body is hidden in cockpit view)
+  const prof = [[pz, FLOOR], [pz, dt - 0.06], [pz + 0.1, dt - 0.01], [dz, dt], [dz + 0.1, dt - 0.04], [dz + 0.1, FLOOR]];
   if (P.layout === 'wrap') {
     add(slab(prof, 0.9), mDash, 0, 0, 0);
-    for (const sx of [1, -1]) { const w = add(slab(prof, 0.6), mDash, sx * 0.66, 0, 0); w.rotation.y = sx * 0.3; }
+    // the wings turn about their own centre line (z = 0.9), otherwise the yaw swings them outward and leaves a gap beside the centre panel
+    for (const sx of [1, -1]) { const wg = slab(prof, 0.6); wg.translate(0, 0, -0.9); const w = add(wg, mDash, sx * 0.66, 0, 0.9); w.rotation.y = sx * 0.3; }
   } else add(slab(prof, 1.7), mDash, 0, 0, 0);
   add(box(1.5, 0.03, 0.01), mTrim, 0, 0.6, pz - 0.006);
   // instrument binnacle with a brow over the dials, and the dials themselves (needles are children of the dial face)
-  const bY = dt + 0.03, bw = P.gauges === 'bigTach' ? 0.6 : 0.52;
+  const bY = clusterY(P), bw = P.gauges === 'bigTach' ? 0.6 : 0.52;
   add(slab([[pz, bY - 0.1], [pz + 0.01, bY + 0.09], [pz + 0.12, bY + 0.1], [pz + 0.2, bY], [pz + 0.2, bY - 0.1]], bw), mDash, ex, 0, 0);
   add(box(bw + 0.04, 0.012, 0.08), mDash, ex, bY + 0.093, pz - 0.02);
   const needleMat = new THREE.MeshBasicMaterial({ color: 0xff5a1e }), needles = {};
@@ -2305,14 +2388,15 @@ function makeInterior(style, paintHex) {
   bar([ex, W.y - 0.03, W.z + 0.05], [ex, W.y - 0.17, pz], 0.07, mDash);
   // centre console and the H-pattern gear lever (rubber boot, stick, knob)
   const lx = -0.02, lz = 0.52;
-  add(box(0.22, 0.6, 1.0), mDash, 0, 0.32, 0.3);
+  add(box(0.26, 0.54, 1.6), mDash, 0, 0.35, 0.1); // transmission tunnel, floor to console top
+  add(box(2 * hw - 0.06, 0.03, 2.2), mFloor, 0, FLOOR + 0.005, 0.2); // floor pan under the whole cabin
   add(new THREE.CylinderGeometry(0.03, 0.055, 0.05, 12), mBlack, lx, 0.645, lz);
   const stick = new THREE.Group(); stick.position.set(lx, 0.65, lz); grp.add(stick);
   add(new THREE.CylinderGeometry(0.007, 0.009, 0.2, 8), mSpoke, 0, 0.1, 0, stick);
   add(new THREE.SphereGeometry(0.023, 12, 8), mBlack, 0, 0.21, 0, stick);
   // door cards, pillars, header, headliner, sun visors
   for (const sx of [1, -1]) {
-    add(box(0.12, 0.4, 1.7), mDash, sx * (hw - 0.09), 0.7, 0);
+    add(box(0.12, 0.8, 1.7), mDash, sx * (hw - 0.09), 0.5, 0); // door card from the sill line down to the floor
     add(box(0.13, 0.02, 1.7), mTrim, sx * (hw - 0.09), 0.905, 0);
     bar([sx * P.mirrorX, dt - 0.03, dz - 0.02], [sx * 0.7, P.hdr.y, P.hdr.z], 0.075, mDash);
   }
@@ -2321,7 +2405,7 @@ function makeInterior(style, paintHex) {
   for (const x of [ex, 0.34]) add(box(0.36, 0.012, 0.17), mRoof, x, P.hdr.y - 0.04, P.hdr.z - 0.12).rotation.x = 0.1;
   // the real body is hidden in cockpit view, so the back of the hood is part of the interior
   const hl = 1.3, h0 = P.hood[0], h1 = P.hood[1];
-  add(box(1.5, 0.03, hl), mPaint, 0, (h0 + h1) / 2 - 0.015, dz + 0.6).rotation.x = Math.atan((h0 - h1) / hl);
+  add(box(2 * hw - 0.06, 0.03, hl), mPaint, 0, (h0 + h1) / 2 - 0.015, dz + 0.6).rotation.x = Math.atan((h0 - h1) / hl);
   // door mirrors: housing + a face showing a render target; the UVs are flipped so the image is a mirror image
   const mirrors = [];
   [1, -1].forEach((sx, i) => {
@@ -2516,6 +2600,7 @@ function applyLang() {
   $('#btnMusic').textContent = T(musicOn ? 'musicOn' : 'musicOff');
   ownRelabel();
   renderTrackPicker(); renderPicker();
+  menuRelabel();
   pvpRelabel();
 }
 $('#langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'zh'; store.set('yatouge-lang', lang); applyLang(); });
@@ -2965,6 +3050,7 @@ let last = performance.now(), acc = 0;
 const FIX = 1 / 120;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  if (menuOpen && !menuCanOpen(state, nickOpen)) closeMenu(); // the race ended or the match was left under the open menu
   if (pvp) pvpFrame();
   if (state === 'count') {
     const before = Math.ceil(countT); countT = pvp ? countdownLeft(pvp.goAt, performance.now()) : countT - dt; const after = Math.ceil(countT);
@@ -3000,11 +3086,26 @@ window.addEventListener('resize', resize); resize();
 const KEYMAP = { ArrowUp: 'gas', KeyW: 'gas', ArrowDown: 'brake', KeyS: 'brake', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'hb' };
 window.addEventListener('keydown', e => {
   if (nickOpen) return; // typing a nickname must not drive the car or start a race
+  if (e.key === 'Escape') {
+    if (e.repeat) return;
+    const a = menuEscAction(menuOpen, menuView, state, nickOpen);
+    if (a === 'none') return;
+    e.preventDefault();
+    if (a === 'open') openMenu(); else if (a === 'close') closeMenu(); else showMenuView('main', menuView === 'settings' ? '#igSettings' : '#igForfeit');
+    return;
+  }
+  if (menuOpen) { // the menu owns the keyboard: nothing below may drive the car
+    if (e.key === 'Tab') {
+      const f = [...$('#igmenu').querySelectorAll('button, input, select')].filter(el => !el.disabled && !el.closest('[hidden]')), n = f.length, i = f.indexOf(document.activeElement);
+      e.preventDefault(); if (n) f[i < 0 ? (e.shiftKey ? n - 1 : 0) : (i + (e.shiftKey ? n - 1 : 1)) % n].focus();
+    } else if (e.code === 'KeyM' && !e.repeat && e.target.tagName !== 'SELECT') { setMusic(!musicOn); syncMenuUI(); }
+    return;
+  }
   if (KEYMAP[e.code]) { input[KEYMAP[e.code]] = true; if (state !== 'title' || e.code !== 'Space') e.preventDefault(); }
   if (e.code === 'KeyR' && (state === 'race')) resetCar();
   if (e.code === 'KeyM') setMusic(!musicOn);
   if (e.code === 'KeyC' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && !hudEl.hidden) setCamMode(nextCam(camMode), true);
-  if (e.code === 'Enter' && state === 'title' && !onlineUI) startRace();
+  if (e.code === 'Enter' && state === 'title' && !onlineUI && !e.target.closest('.music')) startRace(); // Enter on a music button activates it, not the race
 });
 window.addEventListener('keyup', e => { if (KEYMAP[e.code]) input[KEYMAP[e.code]] = false; });
 window.addEventListener('blur', () => { for (const k in input) input[k] = false; });
@@ -3024,20 +3125,69 @@ for (const b of document.querySelectorAll('#touch button')) {
 }
 $('#btnStart').addEventListener('click', startRace);
 $('#btnAgain').addEventListener('click', () => pvp ? pvpBackToRoom() : startRace());
-$('#btnMenu').addEventListener('click', () => { if (pvp) { pvpLeave(); return; } resetRace(); camOrbit = 0; $('#result').hidden = true; $('#hud').hidden = true; $('#title').hidden = false; renderPicker(); $('#btnStart').focus(); });
+function returnToTitle() {
+  resetRace(); camOrbit = 0; $('#count').textContent = ''; $('#pop').classList.remove('show');
+  $('#result').hidden = true; $('#hud').hidden = true; $('#title').hidden = false; renderPicker(); $('#btnStart').focus();
+}
+$('#btnMenu').addEventListener('click', () => { if (pvp) { pvpLeave(); return; } returnToTitle(); });
 $('#btnMusic').addEventListener('click', e => { setMusic(!musicOn); e.currentTarget.blur(); });
 $('#btnBgm').addEventListener('click', e => {
-  initAudio();
   if (bgm === 'own') { bgm = 'synth'; store.set('yatouge-bgm', 'synth'); applyBgm(); }
   else if (ownBlob) { bgm = 'own'; store.set('yatouge-bgm', 'own'); applyBgm(); }
   else $('#ownFile').click();
-  e.currentTarget.blur();
 });
-$('#btnPick').addEventListener('click', e => { $('#ownFile').click(); e.currentTarget.blur(); });
-$('#btnOwnClear').addEventListener('click', e => { ownClear(); e.currentTarget.blur(); });
+$('#btnPick').addEventListener('click', () => $('#ownFile').click());
+$('#btnOwnClear').addEventListener('click', ownClear);
 $('#ownFile').addEventListener('change', e => { const f = e.currentTarget.files && e.currentTarget.files[0]; e.currentTarget.value = ''; if (f) ownPicked(f); });
 $('#btnCam').addEventListener('click', e => { setCamMode(nextCam(camMode), true); e.currentTarget.blur(); });
 $('#btnReset').addEventListener('click', e => { if (state === 'race') resetCar(); e.currentTarget.blur(); });
+
+/* ---------- in-game menu: Esc or the ☰ button; the race keeps running behind it ---------- */
+const igViews = { main: '#igMain', settings: '#igSet', confirm: '#igConf' }, igFirst = { main: '#igResume', settings: '#igMusic', confirm: '#igNo' };
+let forfeitT = 0;
+function menuRelabel() {
+  const sel = $('#igCam'); sel.innerHTML = '';
+  for (const m of CAM_MODES) sel.append(new Option(T('camM_' + m), m));
+  syncMenuUI();
+}
+function syncMenuUI() {
+  const mb = $('#igMusic'); mb.setAttribute('aria-checked', String(musicOn)); mb.textContent = T(musicOn ? 'igOn' : 'igOff');
+  $('#igMusicVol').value = volPct(musicVol); $('#igMusicOut').textContent = volPct(musicVol) + '%';
+  $('#igSfxVol').value = volPct(sfxVol); $('#igSfxOut').textContent = volPct(sfxVol) + '%';
+  $('#igCam').value = camMode; $('#igLang').value = lang;
+}
+function showMenuView(v, focus) {
+  menuView = v;
+  for (const k in igViews) $(igViews[k]).hidden = k !== v;
+  $(focus || igFirst[v]).focus();
+}
+function openMenu() {
+  if (menuOpen || !menuCanOpen(state, nickOpen)) return;
+  menuOpen = true;
+  for (const k in input) input[k] = false; // release held keys / touch buttons so the car does not keep driving
+  for (const b of document.querySelectorAll('#touch button')) b.classList.remove('on');
+  syncMenuUI(); $('#igmenu').hidden = false; showMenuView('main');
+}
+function closeMenu() { if (!menuOpen) return; menuOpen = false; $('#igmenu').hidden = true; if (document.activeElement) document.activeElement.blur(); }
+function forfeit() {
+  const plan = forfeitPlan(!!pvp); // never saves a best time
+  closeMenu();
+  if (plan.action === 'leave') pvpLeave(); else returnToTitle();
+  const n = $('#forfeitNote'); n.textContent = T('igForfeited'); n.hidden = false;
+  clearTimeout(forfeitT); forfeitT = setTimeout(() => { n.hidden = true; }, 2500);
+}
+$('#btnIgm').addEventListener('click', e => { e.currentTarget.blur(); if (menuOpen) closeMenu(); else openMenu(); });
+$('#igResume').addEventListener('click', closeMenu);
+$('#igSettings').addEventListener('click', () => showMenuView('settings'));
+$('#igBack').addEventListener('click', () => showMenuView('main', '#igSettings'));
+$('#igForfeit').addEventListener('click', () => showMenuView('confirm'));
+$('#igNo').addEventListener('click', () => showMenuView('main', '#igForfeit'));
+$('#igYes').addEventListener('click', forfeit);
+$('#igMusic').addEventListener('click', () => { setMusic(!musicOn); syncMenuUI(); });
+$('#igMusicVol').addEventListener('input', e => { setVolume('music', volFromPct(e.target.value)); syncMenuUI(); });
+$('#igSfxVol').addEventListener('input', e => { setVolume('sfx', volFromPct(e.target.value)); syncMenuUI(); });
+$('#igCam').addEventListener('change', e => { if (CAM_MODES.includes(e.target.value)) setCamMode(e.target.value, true); });
+$('#igLang').addEventListener('change', e => { if (!I18N[e.target.value]) return; lang = e.target.value; store.set('yatouge-lang', lang); applyLang(); });
 requestAnimationFrame(frame);
 })();
 </script>

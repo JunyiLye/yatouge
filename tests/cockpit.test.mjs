@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const html = readFileSync(new URL('../yatouge.html', import.meta.url), 'utf8');
-const NAMES = 'GEARS, gearFor, gearLabel, wheelAngle, needleAngle, smoothTo, gatePos, shifterPath, shifterStep, cockpitMotion, newCockpitMotion, CK_LIM, COCKPIT_CARS';
+const NAMES = 'GEARS, gearFor, gearLabel, wheelAngle, needleAngle, smoothTo, gatePos, shifterPath, shifterStep, cockpitMotion, newCockpitMotion, CK_LIM, COCKPIT_CARS, clusterY';
 function load() {
   const open = '/* @cockpit:start */', s = html.indexOf(open), e = html.indexOf('/* @cockpit:end */');
   assert.ok(s >= 0 && e > s, '找不到 @cockpit 區塊');
@@ -155,4 +155,18 @@ test('COCKPIT_CARS：涵蓋每台車，眼睛在 CAR_BOX 內、右駕，FOV 70�
     assert.ok(['twin', 'bigTach', 'twinAux'].includes(c.gauges) && ['box', 'wrap'].includes(c.layout), k);
   }
   assert.equal(new Set(Object.values(COCKPIT_CARS).map(c => c.layout + c.gauges)).size, 3, '三台車的內裝風格各不相同');
+});
+
+// 從眼睛看向引擎蓋後緣的視線：儀表板頂面不能高過它；SR-7 的大轉速表群也不能高過它（容許 2 cm），否則會擋住前方路面
+test('COCKPIT_CARS：儀表板頂面低於眼睛到引擎蓋後緣的視線；SR-7 的儀表群也是', () => {
+  const { COCKPIT_CARS, clusterY } = load();
+  const sight = (c, z) => c.eye.up + (c.hood[0] - c.eye.up) / (c.dashZ - c.eye.fwd) * (z - c.eye.fwd);
+  for (const k in COCKPIT_CARS) {
+    const c = COCKPIT_CARS[k];
+    assert.ok(c.dashTop <= sight(c, c.dashZ) + 0.01, `${k} 儀表板頂 ${c.dashTop} vs 視線 ${sight(c, c.dashZ).toFixed(3)}`);
+    assert.ok(Math.abs(c.hood[0] - c.dashTop) < 0.03, `${k} 引擎蓋後緣要貼齊儀表板頂，不留縫`);
+  }
+  const c = COCKPIT_CARS.coupe, top = clusterY(c) + 0.1; // 大轉速表半徑 0.1，儀表罩頂與錶頂同高
+  assert.ok(top <= sight(c, 0.86) + 0.02, `coupe 儀表群頂 ${top} vs 視線 ${sight(c, 0.86).toFixed(3)}`);
+  assert.ok(clusterY(COCKPIT_CARS.hatch) > COCKPIT_CARS.hatch.dashTop, '預設儀表群在儀表板頂面上方');
 });
