@@ -1,0 +1,13 @@
+# Copyrighted track — never publish
+goldenage.mp3
+
+# Local browser-test output
+.playwright-mcp/
+
+# Work notes: keep only the Markdown plans / reviews / reports
+docs/**
+!docs/
+!docs/runs/
+!docs/runs/*/
+!docs/runs/*/*.md
+docs/runs/*/samples-raw/
