@@ -1,4 +1,5 @@
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <title>夜峠下坡</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -59,15 +60,34 @@ button:focus-visible { outline: 2px solid var(--sodium); outline-offset: 2px; }
 @media (max-width: 480px) { .coarse .tools { top: calc(180px + env(safe-area-inset-top, 0px)); } }
 .tools button[hidden] { display: none; }
 
-#touch { position: absolute; inset: auto 0 0 0; padding: 0 calc(14px + env(safe-area-inset-right, 0px)) calc(14px + env(safe-area-inset-bottom, 0px)) calc(14px + env(safe-area-inset-left, 0px)); display: flex; justify-content: space-between; align-items: flex-end; pointer-events: none; }
+/* touch controls: left thumb = analog steering zone (bottom 45% of the left 40%), right thumb = pedals. Pointer events, so both work at once. */
+#touch { position: absolute; inset: 0; pointer-events: none; -webkit-touch-callout: none; }
 #touch[hidden] { display: none !important; }
-#touch .grp { display: flex; gap: 10px; pointer-events: auto; align-items: flex-end; }
-#touch button { width: 70px; height: 70px; border-radius: 50%; border: 1px solid var(--line); background: rgba(9,12,26,.55); font-size: 15px; touch-action: none; }
-#touch button.on { background: rgba(255,162,58,.35); border-color: var(--sodium); }
-#touch button[data-k="gas"] { width: 84px; height: 84px; }
+#steerZone { position: absolute; left: 0; bottom: 0; width: 40%; height: 45%; pointer-events: auto; touch-action: none; }
+#steerZone .trk { position: absolute; left: 50%; width: 266px; margin-left: -133px; bottom: calc(22px + env(safe-area-inset-bottom, 0px)); height: 68px; border-radius: 34px; border: 1px solid var(--line); background: rgba(9,12,26,.4); transition: opacity .15s; opacity: .7; }
+#steerZone .trk::before, #steerZone .trk::after { content: '◀'; position: absolute; top: 50%; left: 14px; transform: translateY(-50%); font-size: 14px; color: var(--dim); }
+#steerZone .trk::after { content: '▶'; left: auto; right: 14px; }
+#steerZone .knob { position: absolute; top: 2px; left: 50%; width: 62px; height: 62px; margin-left: -31px; border-radius: 50%; border: 1px solid var(--line); background: rgba(236,238,246,.22); }
+#steerZone.on .trk { opacity: 1; border-color: var(--sodium); }
+#steerZone.on .knob { background: rgba(255,162,58,.5); border-color: var(--sodium); }
+.pedals { position: absolute; right: calc(14px + env(safe-area-inset-right, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); display: grid; grid-template-columns: auto auto; gap: 12px; align-items: end; }
+.pedals button { pointer-events: auto; touch-action: none; border-radius: 50%; border: 1px solid var(--line); background: rgba(9,12,26,.55); font-size: 16px; font-weight: 700; padding: 0; width: 78px; height: 78px; transition: transform .06s; }
+.pedals button[data-k="gas"] { grid-column: 2; grid-row: 2; width: 104px; height: 104px; font-size: 18px; border-color: rgba(255,162,58,.6); }
+.pedals button[data-k="brake"] { grid-column: 1; grid-row: 2; border-color: rgba(255,59,74,.55); }
+.pedals button[data-k="hb"] { grid-column: 1 / 3; grid-row: 1; justify-self: center; width: 72px; height: 72px; font-size: 14px; }
+.pedals button.on { background: rgba(255,162,58,.4); border-color: var(--sodium); transform: scale(.93); }
 .coarse .speedo { bottom: auto; top: calc(96px + env(safe-area-inset-top, 0px)); }
 .coarse .spd { font-size: 44px; }
 .coarse .rpm { width: 130px; }
+.coarse .keys { display: none; } /* keyboard hints mean nothing on a phone */
+
+/* asks a phone held upright to turn sideways; it covers the page but pauses nothing */
+.rotate { position: fixed; inset: 0; z-index: 30; display: grid; place-content: center; justify-items: center; gap: 20px; padding: 24px; text-align: center; background: rgba(5,7,15,.96); touch-action: none; }
+.rotate svg { width: 96px; height: 96px; animation: rotphone 2.4s ease-in-out infinite; }
+.rotate p { margin: 0; font-size: 20px; line-height: 1.5; font-weight: 700; }
+@keyframes rotphone { 0%, 25% { transform: rotate(0); } 65%, 100% { transform: rotate(-90deg); } }
+@media (prefers-reduced-motion: reduce) { .rotate svg { animation: none; transform: rotate(-90deg); } }
+
 
 .screen { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px max(16px, env(safe-area-inset-right, 0px)) 24px max(16px, env(safe-area-inset-left, 0px)); background: radial-gradient(ellipse at 50% 120%, rgba(255,162,58,.18), transparent 60%), linear-gradient(180deg, rgba(5,7,15,.35), rgba(5,7,15,.82)); overflow-y: auto; }
 .sheet { width: min(520px, 100%); }
@@ -149,6 +169,46 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 .igrow select option { background: var(--night); }
 .igrow button[aria-checked="true"] { border-color: var(--sodium); color: var(--sodium); }
 .igq { font-size: 18px; margin: 4px 0 6px; }
+/* short landscape screens (phones on their side): compact HUD, scrollable pages, two-column settings */
+@media (orientation: landscape) and (max-height: 500px) {
+  .pick { grid-template-columns: repeat(3, 1fr); }
+  .pick > .carcard:last-child:nth-child(odd) { grid-column: auto; }
+  .screen { align-items: start; padding-top: 12px; padding-bottom: 12px; }
+  .screen > .sheet { margin: auto; }
+  .logo { font-size: clamp(44px, 14vh, 72px); }
+  .stripe { margin: 8px 0 10px; }
+  .lead { font-size: 14px; line-height: 1.6; }
+  .res-title, .pvp-h { font-size: clamp(30px, 10vh, 48px); }
+  .stats { margin: 10px 0 14px; }
+  .sheet { width: min(640px, 100%); }
+  .go { padding: 10px 24px; }
+  .igsheet { width: min(560px, 100%); padding: 12px 18px 14px; }
+  .igh { font-size: 22px; }
+  .igsheet .stripe { margin: 6px 0 10px; }
+  #igSet { grid-template-columns: 1fr 1fr; gap: 8px 22px; }
+  #igSet #igBack { grid-column: 1 / -1; }
+  .count { top: 24%; font-size: clamp(56px, 26vh, 110px); }
+  .pop { top: 20%; font-size: clamp(22px, 9vh, 40px); }
+  .coarse .hud-tl, .coarse .hud-tr { top: calc(6px + env(safe-area-inset-top, 0px)); padding: 4px 10px; min-width: 0; }
+  .coarse .hud-tl { left: calc(8px + env(safe-area-inset-left, 0px)); min-width: 118px; }
+  .coarse .hud-tr { right: calc(8px + env(safe-area-inset-right, 0px)); min-width: 96px; }
+  .coarse .lbl { font-size: 9px; }
+  .coarse .num { font-size: 19px; }
+  .coarse .gap { font-size: 11px; margin-top: 1px; }
+  .coarse .prog { margin-top: 5px; }
+  .coarse .chain { font-size: 11px; min-height: 13px; }
+  .coarse .tools { top: calc(6px + env(safe-area-inset-top, 0px)); left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: calc(100% - 290px); flex-wrap: wrap; justify-content: center; gap: 6px; }
+  .coarse .tools button { padding: 5px 9px; font-size: 11px; }
+  .coarse .tools #btnIgm { min-height: 32px; }
+  .coarse .speedo { top: auto; bottom: calc(8px + env(safe-area-inset-bottom, 0px)); }
+  .coarse .spd { font-size: 40px; }
+  .coarse .rpm { width: 120px; margin-top: 4px; }
+}
+@media (orientation: landscape) and (max-height: 340px) {
+  .pedals button[data-k="gas"] { width: 88px; height: 88px; }
+  .pedals button { width: 68px; height: 68px; }
+  .pedals button[data-k="hb"] { width: 64px; height: 64px; }
+}
 </style>
 
 <canvas id="c" data-i18n-aria="canvas" aria-label="夜峠下坡 3D 畫面"></canvas>
@@ -180,11 +240,8 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
   <div id="pop" class="pop"></div>
   <div id="count" class="count"></div>
   <div id="touch" hidden>
-    <div class="grp">
-      <button type="button" data-k="left" data-i18n-aria="steerL" aria-label="左轉">◀</button>
-      <button type="button" data-k="right" data-i18n-aria="steerR" aria-label="右轉">▶</button>
-    </div>
-    <div class="grp">
+    <div id="steerZone" data-i18n-aria="steerZone" aria-label="轉向：左右拖曳"><div class="trk"><i class="knob"></i></div></div>
+    <div class="pedals">
       <button type="button" data-k="hb" data-i18n="hb">手煞</button>
       <button type="button" data-k="brake" data-i18n="brake">煞車</button>
       <button type="button" data-k="gas" data-i18n="gas">油門</button>
@@ -303,6 +360,11 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
   </div>
 </div>
 
+<div id="rotate" class="rotate" role="alert" hidden>
+  <svg viewBox="0 0 96 96" fill="none" stroke="#ffa23a" stroke-width="4" stroke-linecap="round" aria-hidden="true"><rect x="26" y="8" width="44" height="80" rx="8"/><path d="M42 16h12"/><circle cx="48" cy="78" r="3"/></svg>
+  <p data-i18n="rotate">請將手機轉為橫向</p>
+</div>
+
 <div id="netNote" class="netnote" role="status" hidden></div>
 <div id="forfeitNote" class="netnote info" role="status" hidden></div>
 
@@ -354,13 +416,13 @@ const forfeitPlan = isPvp => ({ action: isPvp ? 'leave' : 'title', saveBest: fal
 const I18N = {
   zh: {
     canvas: '夜峠下坡 3D 畫面', time: '時間', score: '甩尾分數', musicOn: '音樂：開', musicOff: '音樂：關', bgmLbl: '背景音樂', bgmSynth: '原創', bgmOwn: n => `自選 — ${n}`, ownPick: '選擇音樂', ownClear: '移除', ownBad: '不是音訊檔', ownBig: '檔案超過 50 MB', reset: '回到路面',
-    steerL: '左轉', steerR: '右轉', hb: '手煞', brake: '煞車', gas: '油門',
+    steerZone: '轉向：左右拖曳', rotate: '請將手機轉為橫向', hb: '手煞', brake: '煞車', gas: '油門',
     course: (name, km, n) => `${name} · 下坡 ${km} km${n ? ` · ${n} 個髮夾彎` : ''}`, trackSub: (km, n) => `${km} km${n ? ` · ${n} 個髮夾彎` : ''}`, logo2: '下坡',
     lead: name => `凌晨兩點的${name}，路上只剩你和前面那台對手車。跟緊它，在彎道甩尾超車，先衝到山腳的人贏。`,
     pickTrack: '選擇賽道', pickTrackAria: '選擇賽道', pick: '選擇你的車', pickAria: '選擇車輛', paintAria: '車色',
     kGas: '油門', kBrake: '煞車／倒車', kSteer: '轉向', kHb: '手煞車，轉彎時拉一下讓車尾滑出去', kMisc: '回到路面／音樂開關',
     start: '開始下坡',
-    note: '不拉手煞車時輪胎會抓地，轉太快只會推頭。入彎先減速，轉向的同時點一下手煞就能甩起來，反打方向盤可以收住車尾。手機上用畫面下方的按鈕操作。',
+    note: '不拉手煞車時輪胎會抓地，轉太快只會推頭。入彎先減速，轉向的同時點一下手煞就能甩起來，反打方向盤可以收住車尾。手機請橫著握：左手在左下角左右拖曳轉向，右手按油門、煞車、手煞。',
     resEyebrow: '山腳終點', win: '你贏了', lose: '被甩開了', resTime: '完賽時間', resGap: '與對手差距', resScore: '甩尾分數', resBest: '個人最佳',
     menu: '回主畫面選車', again: '同一台再跑', lang: 'English',
     wall: '撞牆', wallPen: s => `${s.toFixed(1)} 秒內幾乎無法加速`, wallScore: '甩尾分數歸零',
@@ -387,13 +449,13 @@ const I18N = {
   },
   en: {
     canvas: 'Night Pass Downhill 3D view', time: 'TIME', score: 'DRIFT SCORE', musicOn: 'Music: on', musicOff: 'Music: off', bgmLbl: 'Music', bgmSynth: 'Original', bgmOwn: n => `Mine — ${n}`, ownPick: 'Choose music', ownClear: 'Remove', ownBad: 'Not an audio file', ownBig: 'File over 50 MB', reset: 'Back on road',
-    steerL: 'Steer left', steerR: 'Steer right', hb: 'E-brake', brake: 'Brake', gas: 'Gas',
+    steerZone: 'Steering: drag left or right', rotate: 'Rotate your phone to landscape', hb: 'E-brake', brake: 'Brake', gas: 'Gas',
     course: (name, km, n) => `${name} · Downhill ${km} km${n ? ` · ${n} hairpins` : ''}`, trackSub: (km, n) => `${km} km${n ? ` · ${n} hairpins` : ''}`, logo2: 'Downhill',
     lead: name => `2 a.m. on ${name}. The road is empty except for you and the rival car ahead. Stay on its tail, drift past it in the corners, and be first to the bottom.`,
     pickTrack: 'Choose a course', pickTrackAria: 'Choose a course', pick: 'Choose your car', pickAria: 'Choose your car', paintAria: 'Paint',
     kGas: 'Throttle', kBrake: 'Brake / reverse', kSteer: 'Steer', kHb: 'Handbrake: tap it in a corner to kick the tail out', kMisc: 'Back on road / music on-off',
     start: 'Start the run',
-    note: 'Without the handbrake the tyres grip, and turning too hard just pushes the nose wide. Slow down before the corner, tap the handbrake as you turn in to start a drift, and counter-steer to catch the tail. On phones, use the buttons at the bottom of the screen.',
+    note: 'Without the handbrake the tyres grip, and turning too hard just pushes the nose wide. Slow down before the corner, tap the handbrake as you turn in to start a drift, and counter-steer to catch the tail. On a phone, hold it sideways: drag left or right in the bottom-left corner to steer, and use the pedals on the right.',
     resEyebrow: 'Finish at the foot of the mountain', win: 'You win', lose: 'Left behind', resTime: 'Finish time', resGap: 'Gap to rival', resScore: 'Drift score', resBest: 'Personal best',
     menu: 'Back to car select', again: 'Race again', lang: '中文',
     wall: 'Wall hit', wallPen: s => `Almost no power for ${s.toFixed(1)} s`, wallScore: 'Drift chain lost',
@@ -1390,6 +1452,19 @@ function rrect(w, h, r, depth, bevel) {
   const geo = new THREE.ExtrudeGeometry(s, { depth: depth - 2 * bevel, bevelEnabled: bevel > 0, bevelThickness: bevel, bevelSize: bevel, bevelSegments: 1, curveSegments: 3 });
   geo.translate(0, 0, -(depth - 2 * bevel) / 2); return geo;
 }
+/* @dispose:start */
+// release a subtree's GPU resources, skipping anything in `shared`; a Sprite's geometry is shared inside three.js
+function disposeTree(root, shared) {
+  root.traverse(o => {
+    if (o.geometry && !o.isSprite) o.geometry.dispose();
+    for (const m of [].concat(o.material || [])) {
+      if (shared.has(m)) continue;
+      if (m.map && !shared.has(m.map)) m.map.dispose();
+      m.dispose();
+    }
+  });
+}
+/* @dispose:end */
 // GT-32 trunk badge (own name, no real marque): created once, shared by every GT-32 on screen
 let badgeTex = null;
 function gtBadgeTex() {
@@ -1594,8 +1669,7 @@ head.position.set(0, 0.9, 2.0);
 const headTarget = new THREE.Object3D(); headTarget.position.set(0, 0, 24); head.target = headTarget;
 function buildCars() {
   if (playerInterior) { disposeInterior(playerInterior); playerInterior = null; }
-  if (playerCar) scene.remove(playerCar.g);
-  if (rivalCar) scene.remove(rivalCar.g);
+  for (const c of [playerCar, rivalCar]) if (c) { scene.remove(c.g); disposeCar(c); } // the cabin is already detached above
   playerCar = makeCar(choice.car, choice.color);
   const rv = rivalFor(trackId, choice.car);
   rivalCar = makeCar(rv.car, rv.color);
@@ -1635,7 +1709,19 @@ function updateSmoke(dt) {
 
 /* ---------- state ---------- */
 const P = { maxV: 61, engine: 13.5, brake: 24, drag: 0.0008, roll: 0.3, grip: 7, gripLimit: 17, drift: 1, lag: 0, slide: 0.18, hb: 5 };
-const input = { left: false, right: false, gas: false, brake: false, hb: false };
+const input = { left: false, right: false, gas: false, brake: false, hb: false, steerAxis: null }; // steerAxis: analog touch steering -1..1, null = keys decide
+/* @touch:start */
+// Left-thumb steering: drag distance from the touch-start point -> -1..1. DEAD is a fraction of the full-lock range.
+const TOUCH = { DEAD: 0.1, MIN_RANGE: 64, MAX_RANGE: 120, RANGE_FRAC: 0.3 };
+const steerRange = zoneW => clamp(Number.isFinite(zoneW) ? zoneW * TOUCH.RANGE_FRAC : 0, TOUCH.MIN_RANGE, TOUCH.MAX_RANGE);
+function touchSteer(dx, range, dead = TOUCH.DEAD) {
+  if (typeof dx !== 'number' || !(range > 0) || Number.isNaN(dx)) return 0;
+  const n = clamp(dx / range, -1, 1), m = Math.abs(n);
+  return m <= dead ? 0 : Math.sign(n) * (m - dead) / (1 - dead);
+}
+// where to draw the track so the whole of it stays inside a zone of width zoneW (a zone narrower than the track centres it)
+const trackCenter = (x, zoneW, range) => zoneW <= 2 * range ? zoneW / 2 : clamp(x, range, zoneW - range);
+/* @touch:end */
 const car = {};
 const rival = {};
 let state = 'title', raceT = 0, countT = 0, camOrbit = 0, shake = 0, lastGapSign = 1, finishTimer = -1;
@@ -1686,7 +1772,7 @@ function driftFollow(diff, s, gas, counter, Pdrift) {
 // Pure motion core of physics(), split in two so the gutter logic can run between them. c: { steer, h, w, vx, vz, drift, penalty }
 // u: { sIn, gas, brake, hb }; loc: { grade, h } of the road under the car. Mutates c; no DOM / globals besides clamp, wrap, engineForce, driftFollow.
 function vehicleAccel(c, P, u, loc, dt) {
-  const rate = (u.sIn === 0 || Math.sign(u.sIn) !== Math.sign(c.steer)) ? 7 : 4.5;
+  const rate = u.analog ? 14 : (u.sIn === 0 || Math.sign(u.sIn) !== Math.sign(c.steer)) ? 7 : 4.5; // a finger is already smooth: follow it closely
   c.steer += clamp(u.sIn - c.steer, -rate * dt, rate * dt);
   const fx = Math.sin(c.h), fz = Math.cos(c.h), vf = c.vx * fx + c.vz * fz;
   let a = 0;
@@ -1739,8 +1825,9 @@ function physics(dt) {
   const c = car, loc = c.loc;
   const auto = state === 'done';
   const gas = !auto && input.gas, brake = auto || input.brake, hb = !auto && input.hb;
-  const sIn = auto ? 0 : (input.right ? 1 : 0) - (input.left ? 1 : 0);
-  const u = { sIn, gas, brake, hb };
+  const analog = !auto && input.steerAxis !== null;
+  const sIn = auto ? 0 : analog ? input.steerAxis : (input.right ? 1 : 0) - (input.left ? 1 : 0);
+  const u = { sIn, gas, brake, hb, analog };
   const a = vehicleAccel(c, P, u, loc, dt);
 
   // Gutter run: hooked cars are re-aimed after the normal step below; the first hook of a pass costs drift points.
@@ -1792,7 +1879,7 @@ let lastHit = 0;
 function wallHit(v) {
   shake = Math.min(0.6, v * 0.06);
   const now = performance.now();
-  if (now - lastHit > 180) { sfxHit(Math.min(1, v / 12)); lastHit = now; }
+  if (now - lastHit > 180) { sfxHit(Math.min(1, v / 12)); lastHit = now; if (v > 4 && navigator.vibrate) navigator.vibrate(Math.min(60, 15 + v * 4)); }
   if (driftChain > 200 && v > 5) { driftChain = 0; driftIdle = 0; showPop(T('wall'), T('wallScore')); }
 }
 
@@ -2790,13 +2877,8 @@ function courseBox(id) {
   }
   return boxCache[id];
 }
-// free the GPU side of an opponent car we are done with (textures are shared with other cars and stay)
-function disposeCar(c) {
-  c.g.traverse(o => {
-    if (o.geometry && !o.isSprite) o.geometry.dispose();
-    for (const m of [].concat(o.material || [])) m.dispose(); // the shared badge texture is not owned by the car
-  });
-}
+// free the GPU side of a car we are done with (the shared glow / badge textures stay)
+function disposeCar(c) { disposeTree(c.g, new Set([glowTex, badgeTex])); }
 const pvpCheck = pres => validatePeerState(pres, courseBox(pres && NET.TRACKS.includes(pres.trk) ? pres.trk : trackId));
 function pvpPublish(extra) {
   const p = pvp; if (!p) return;
@@ -2844,7 +2926,6 @@ function renderRoom() {
 function pvpLeave() {
   const p = pvp; if (!p) return;
   pvp = null; clearInterval(p.hbT); if (p.unsub) p.unsub(); if (p.unsubConn) p.unsubConn();
-  disposeCar(rivalCar);
   p.rm.leave().catch(() => {});
   room.presence({ lobby: null }).catch(netFail);
   startLat = 2.2;
@@ -3050,6 +3131,7 @@ let last = performance.now(), acc = 0;
 const FIX = 1 / 120;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
+  syncRotate();
   if (menuOpen && !menuCanOpen(state, nickOpen)) closeMenu(); // the race ended or the match was left under the open menu
   if (pvp) pvpFrame();
   if (state === 'count') {
@@ -3108,7 +3190,7 @@ window.addEventListener('keydown', e => {
   if (e.code === 'Enter' && state === 'title' && !onlineUI && !e.target.closest('.music')) startRace(); // Enter on a music button activates it, not the race
 });
 window.addEventListener('keyup', e => { if (KEYMAP[e.code]) input[KEYMAP[e.code]] = false; });
-window.addEventListener('blur', () => { for (const k in input) input[k] = false; });
+window.addEventListener('blur', () => { for (const k in input) input[k] = k === 'steerAxis' ? null : false; releaseTouch(); });
 function resetCar() {
   const L = car.loc, p = pts[L.i];
   Object.assign(car, { x: p.x, z: p.z, h: p.h, vx: 0, vz: 0, w: 0, steer: 0, drift: false, idx: L.i, railAgo: Infinity, gutSide: 0, gutT: 0, gutCool: 0, gutDrop: 0 });
@@ -3116,13 +3198,57 @@ function resetCar() {
 }
 const coarse = window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 if (coarse) { document.body.classList.add('coarse'); $('#touch').hidden = false; }
+// Every touch control tracks its own pointer ids, so steering and pedals work at once; each releases on up / cancel / lost capture.
+const touchRelease = [];
+function releaseTouch() { for (const f of touchRelease) f(); }
 for (const b of document.querySelectorAll('#touch button')) {
-  const k = b.dataset.k;
-  const on = e => { e.preventDefault(); input[k] = true; b.classList.add('on'); try { b.setPointerCapture(e.pointerId); } catch (_) {} };
-  const off = e => { e.preventDefault(); input[k] = false; b.classList.remove('on'); };
+  const k = b.dataset.k, ids = new Set();
+  const on = e => { e.preventDefault(); ids.add(e.pointerId); input[k] = true; b.classList.add('on'); try { b.setPointerCapture(e.pointerId); } catch (_) {} };
+  const off = e => { e.preventDefault(); ids.delete(e.pointerId); if (!ids.size) { input[k] = false; b.classList.remove('on'); } };
   b.addEventListener('pointerdown', on); b.addEventListener('pointerup', off); b.addEventListener('pointercancel', off); b.addEventListener('lostpointercapture', off);
   b.addEventListener('contextmenu', e => e.preventDefault());
+  touchRelease.push(() => { ids.clear(); input[k] = false; b.classList.remove('on'); });
 }
+{
+  const zone = $('#steerZone'), trk = zone.querySelector('.trk'), knob = zone.querySelector('.knob');
+  let pid = null, x0 = 0, range = TOUCH.MIN_RANGE;
+  const idle = () => { pid = null; input.steerAxis = null; zone.classList.remove('on'); trk.style.cssText = ''; knob.style.transform = ''; }; // idle: CSS centres the track in the zone
+  zone.addEventListener('pointerdown', e => {
+    e.preventDefault(); if (pid !== null || menuOpen) return;
+    pid = e.pointerId; try { zone.setPointerCapture(pid); } catch (_) {}
+    const r = zone.getBoundingClientRect();
+    range = steerRange(r.width); x0 = e.clientX; input.steerAxis = 0; zone.classList.add('on');
+    trk.style.left = (trackCenter(x0 - r.left, r.width, range + 31) - range - 31) + 'px'; trk.style.width = (2 * range + 62) + 'px'; trk.style.marginLeft = '0';
+  });
+  zone.addEventListener('pointermove', e => {
+    if (e.pointerId !== pid) return;
+    e.preventDefault(); input.steerAxis = touchSteer(e.clientX - x0, range);
+    knob.style.transform = `translateX(${clamp(e.clientX - x0, -range, range)}px)`;
+  });
+  const up = e => { if (e.pointerId === pid) idle(); };
+  zone.addEventListener('pointerup', up); zone.addEventListener('pointercancel', up); zone.addEventListener('lostpointercapture', up);
+  zone.addEventListener('contextmenu', e => e.preventDefault());
+  touchRelease.push(idle);
+}
+document.addEventListener('contextmenu', e => { if (coarse && !e.target.closest('input')) e.preventDefault(); }); // no long-press menu on a phone
+
+// A phone held upright gets a rotate prompt; the lock below is a courtesy that browsers often refuse (iOS Safari, iframes without fullscreen permission).
+const phone = window.matchMedia('(pointer: coarse)').matches;
+const portraitMQ = window.matchMedia('(orientation: portrait)');
+// Not on the title screen: there Start / Online is the user gesture that may lock landscape for us. Countdown and race only.
+const rotateEl = $('#rotate');
+function syncRotate() { rotateEl.hidden = !(phone && portraitMQ.matches && (state === 'count' || state === 'race')); }
+portraitMQ.addEventListener('change', syncRotate); window.addEventListener('resize', syncRotate);
+function tryLandscape() {
+  if (!phone) return;
+  try {
+    const lock = () => { try { const o = screen.orientation; if (o && o.lock) Promise.resolve(o.lock('landscape')).catch(() => {}); } catch (_) {} };
+    const de = document.documentElement;
+    if (de.requestFullscreen && !document.fullscreenElement) Promise.resolve(de.requestFullscreen()).then(lock, lock); else lock();
+  } catch (_) { /* refused: the rotate prompt still covers a portrait phone */ }
+}
+$('#btnStart').addEventListener('click', tryLandscape);
+$('#btnOnline').addEventListener('click', tryLandscape);
 $('#btnStart').addEventListener('click', startRace);
 $('#btnAgain').addEventListener('click', () => pvp ? pvpBackToRoom() : startRace());
 function returnToTitle() {
@@ -3164,8 +3290,8 @@ function showMenuView(v, focus) {
 function openMenu() {
   if (menuOpen || !menuCanOpen(state, nickOpen)) return;
   menuOpen = true;
-  for (const k in input) input[k] = false; // release held keys / touch buttons so the car does not keep driving
-  for (const b of document.querySelectorAll('#touch button')) b.classList.remove('on');
+  for (const k in input) input[k] = k === 'steerAxis' ? null : false; // release held keys / touch controls so the car does not keep driving
+  releaseTouch();
   syncMenuUI(); $('#igmenu').hidden = false; showMenuView('main');
 }
 function closeMenu() { if (!menuOpen) return; menuOpen = false; $('#igmenu').hidden = true; if (document.activeElement) document.activeElement.blur(); }
