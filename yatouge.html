@@ -30,6 +30,7 @@ button, label, select, input[type="range"], input[type="checkbox"] { -webkit-use
 input[type="text"], input:not([type]) { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible { outline: 2px solid var(--sodium); outline-offset: 2px; }
+body.gp :is(button, input, select):focus { outline: 2px solid var(--sodium); outline-offset: 2px; } /* focus moved by a game controller */
 
 .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 10px 14px; backdrop-filter: blur(6px); }
 .lbl { font-size: 11px; letter-spacing: .14em; color: var(--dim); }
@@ -369,6 +370,9 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <div class="igrow"><span id="tKxChimeL" data-i18n="kxChime">時速警示音</span><button id="tKxChime" type="button" role="switch" aria-labelledby="tKxChimeL" aria-checked="true"></button></div>
       <div class="igrow"><span id="tKxLetterL" data-i18n="kxLetter">車門字樣</span><button id="tKxLetter" type="button" role="switch" aria-labelledby="tKxLetterL" aria-checked="true"></button></div>
     </div>
+    <div class="tctl">
+      <div class="igrow"><span id="tVibeL" data-i18n="vibe">震動</span><button id="tVibe" type="button" role="switch" aria-labelledby="tVibeL" aria-checked="true"></button></div>
+    </div>
     <div id="tCtl" class="tctl" hidden>
       <div class="lbl" style="margin-top:16px" data-i18n="ctlLbl">操作設定</div>
       <div class="igrow" id="tSteerRow"><span id="tSteerL" data-i18n="igSteer">轉向方式</span><div class="igseg" role="radiogroup" aria-labelledby="tSteerL"><button type="button" role="radio" data-m="drag" data-i18n="stDrag">拖曳</button><button type="button" role="radio" data-m="tilt" data-i18n="stTilt">傾斜</button><button type="button" role="radio" data-m="zones" data-i18n="stZones">分區</button></div></div>
@@ -383,6 +387,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <span><kbd>R</kbd> <kbd>M</kbd></span><span data-i18n="kMisc">回到路面／音樂開關</span>
       <span><kbd>C</kbd></span><span data-i18n="kCam">切換鏡頭（追蹤／近距離／車內）</span>
       <span><kbd>Shift</kbd> <kbd>Z</kbd></span><span data-i18n="kShift">手排：升檔／降檔</span>
+      <span><kbd>RT</kbd> <kbd>LT</kbd></span><span data-i18n="kPad">手把：左搖桿轉向、RT 油門、LT 煞車、Y 手煞車、LB／RB 降／升檔、十字鍵上 鏡頭、Menu 選單</span>
     </div>
     <button class="go" id="btnStart" type="button" data-i18n="start">開始下坡</button><button class="ghost" id="btnOnline" type="button" data-i18n="pvpOnline" aria-disabled="true">線上對戰</button><div class="onl-info"><span id="onlineNote" role="status"></span><button class="ghost" id="btnOnlineAct" type="button" hidden></button></div>
     <p class="note" data-i18n="note">不拉手煞車時輪胎會抓地，轉太快只會推頭。入彎先減速，轉向的同時點一下手煞就能甩起來，反打方向盤可以收住車尾。手機上用畫面下方的按鈕操作。</p>
@@ -451,6 +456,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <div class="igrow"><span id="igMusicL" data-i18n="igMusic">音樂</span><button id="igMusic" type="button" role="switch" aria-labelledby="igMusicL" aria-checked="true"></button></div>
       <div class="igrow"><label for="igMusicVol" data-i18n="igMusicVol">音樂音量</label><output id="igMusicOut" for="igMusicVol"></output><input id="igMusicVol" type="range" min="0" max="100" step="5"></div>
       <div class="igrow"><label for="igSfxVol" data-i18n="igSfxVol">音效音量</label><output id="igSfxOut" for="igSfxVol"></output><input id="igSfxVol" type="range" min="0" max="100" step="5"></div>
+      <div class="igrow"><span id="igVibeL" data-i18n="vibe">震動</span><button id="igVibe" type="button" role="switch" aria-labelledby="igVibeL" aria-checked="true"></button></div>
       <div class="igrow" id="igKxChimeRow" hidden><span id="igKxChimeL" data-i18n="kxChime">時速警示音</span><button id="igKxChime" type="button" role="switch" aria-labelledby="igKxChimeL" aria-checked="true"></button></div>
       <div class="igrow" id="igKxLetterRow" hidden><span id="igKxLetterL" data-i18n="kxLetter">車門字樣</span><button id="igKxLetter" type="button" role="switch" aria-labelledby="igKxLetterL" aria-checked="true"></button></div>
       <div class="igrow" id="igGhostRow" hidden><span id="igGhostL" data-i18n="taGhost">幽靈車</span><button id="igGhost" type="button" role="switch" aria-labelledby="igGhostL" aria-checked="true"></button></div>
@@ -732,10 +738,10 @@ const I18N = {
     nickTitle: '你的暱稱', nickLbl: '暱稱', nickHint: '1 到 16 個字，只在這次線上對戰使用，不會被記住；其他玩家看得到。', nickOk: '確定', nickCancel: '取消',
     pvpPlayer: '玩家', pvpYouTag: n => `${n}（你）`, pvpNickIs: n => `你的暱稱：${n}。`, pvpTimeOf: n => `${n} 完賽時間`,
     igAria: '選單', igTitle: '選單', igResume: '繼續', igSettings: '設定', igForfeit: '認輸', igBack: '返回', igMusic: '音樂', igMusicVol: '音樂音量', igSfxVol: '音效音量', igCam: '鏡頭', igLang: '語言',
-    igOn: '開', igOff: '關', kxChime: '時速警示音', kxLetter: '車門字樣', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
+    igOn: '開', igOff: '關', kxChime: '時速警示音', kxLetter: '車門字樣', vibe: '震動', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
     ctlLbl: '操作設定', igSteer: '轉向方式', stDrag: '拖曳', stTilt: '傾斜', stZones: '分區', igTiltSens: '傾斜靈敏度', recenter: '回正', zoneBrake: '煞車 + 手煞', tiltFail: '此環境無法使用傾斜轉向，已改回拖曳',
     transTitle: '選擇變速箱', transAT: '自排 AT', transATd: '自動換檔，專心過彎。', transMT: '手排 MT', transMTd: '自己換檔：Shift 升檔、Z 降檔。換得好比自排快。', transHint: '手機會多出 ▲ ▼ 換檔鈕。每次開賽前都會再問一次。', transKeys: 'Enter 或點一下確認，Esc 取消。',
-    kShift: '手排：升檔／降檔', shiftUp: '升檔', shiftDown: '降檔',
+    kShift: '手排：升檔／降檔', kPad: '手把：左搖桿轉向、RT 油門、LT 煞車、Y 手煞車、LB／RB 降／升檔、十字鍵上 鏡頭、Menu 選單', shiftUp: '升檔', shiftDown: '降檔',
     modeLbl: '模式', modeRace: '比賽', modeRaceD: '跟對手車比誰先衝到山腳。', modeTa: '計時賽', modeTaD: '沒有對手，挑戰自己的最佳時間與幽靈車。',
     leadTa: name => `凌晨兩點的${name}，整條路只屬於你。沒有對手，只有碼表和上一次最快的自己。`,
     taGhost: '幽靈車', taBestIs: t => `最佳 ${t}`, taFirst: '第一次計時', taVsBest: d => `與最佳 ${d} 秒`,
@@ -786,10 +792,10 @@ const I18N = {
     nickTitle: 'Your nickname', nickLbl: 'Nickname', nickHint: '1 to 16 characters. Used for this online session only and never saved; other players can see it.', nickOk: 'Confirm', nickCancel: 'Cancel',
     pvpPlayer: 'Player', pvpYouTag: n => `${n} (you)`, pvpNickIs: n => `Your nickname: ${n}.`, pvpTimeOf: n => `${n} · finish time`,
     igAria: 'Menu', igTitle: 'Menu', igResume: 'Resume', igSettings: 'Settings', igForfeit: 'Forfeit', igBack: 'Back', igMusic: 'Music', igMusicVol: 'Music volume', igSfxVol: 'Sound effects volume', igCam: 'Camera', igLang: 'Language',
-    igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
+    igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', vibe: 'Vibration', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
     ctlLbl: 'Controls', igSteer: 'Steering', stDrag: 'Drag', stTilt: 'Tilt', stZones: 'Zones', igTiltSens: 'Tilt sensitivity', recenter: 'Re-center', zoneBrake: 'BRAKE + E-BRAKE', tiltFail: 'Tilt steering is unavailable here; switched back to drag.',
     transTitle: 'Choose a gearbox', transAT: 'Automatic AT', transATd: 'Shifts for you. Focus on the corners.', transMT: 'Manual MT', transMTd: 'Shift yourself: Shift = up, Z = down. Shift well and you beat the automatic.', transHint: 'On a phone, ▲ ▼ shift buttons appear. You are asked again before every race.', transKeys: 'Enter or a tap confirms, Esc cancels.',
-    kShift: 'Manual: shift up / down', shiftUp: 'Shift up', shiftDown: 'Shift down',
+    kShift: 'Manual: shift up / down', kPad: 'Controller: left stick steer, RT gas, LT brake, Y handbrake, LB / RB shift down / up, D-pad up camera, Menu menu', shiftUp: 'Shift up', shiftDown: 'Shift down',
     modeLbl: 'Mode', modeRace: 'Race', modeRaceD: 'Beat the rival car to the bottom.', modeTa: 'Time attack', modeTaD: 'No rival. Chase your best time and your ghost car.',
     leadTa: name => `2 a.m. on ${name}, and the road is all yours. No rival, just the clock and the ghost of your fastest run.`,
     taGhost: 'Ghost car', taBestIs: t => `Best ${t}`, taFirst: 'First timed run', taVsBest: d => `${d} s vs best`,
@@ -2157,6 +2163,7 @@ function savedChoice() {
 }
 let choice = store.get('yatouge-mode') === 'sake' ? { ...SAKE_CAR } : savedChoice();
 let kxChimeOn = kxOn(store.get('yatouge-kx-chime')), kxLetterOn = kxOn(store.get('yatouge-kx-letter')); // KX-2 options, both default on
+let vibeOn = kxOn(store.get('yatouge-vibe')); // shift buzz + jolt and pad wall-hit rumble, default on (the phone's wall-hit buzz predates it and stays)
 let playerCar, rivalCar, playerInterior = null; // the 3D cabin is built lazily the first time cockpit view is shown
 // time attack: mode is the title choice; taRun is the run in progress (null otherwise, always null online); ghostCar exists only while that run has a saved ghost
 let mode = ['ta', 'sake'].includes(store.get('yatouge-mode')) ? store.get('yatouge-mode') : 'race', taRun = null, ghostCar = null, ghostOn = taGhostOn(store.get('yatouge-ta-ghost'));
@@ -2432,7 +2439,7 @@ let lastHit = 0;
 function wallHit(v) {
   shake = Math.min(0.6, v * 0.06);
   const now = performance.now();
-  if (now - lastHit > 180) { sfxHit(Math.min(1, v / 12)); lastHit = now; if (v > 4 && navigator.vibrate) navigator.vibrate(Math.min(60, 15 + v * 4)); }
+  if (now - lastHit > 180) { sfxHit(Math.min(1, v / 12)); lastHit = now; if (v > 4 && navigator.vibrate) navigator.vibrate(Math.min(60, 15 + v * 4)); if (v > 4 && vibeOn) gpRumble(Math.min(120, 30 + v * 8), Math.min(1, v / 12), Math.min(1, v / 8)); }
   if (driftChain > 200 && v > 5) { driftChain = 0; driftIdle = 0; showPop(T('wall'), T('wallScore')); }
 }
 
@@ -3457,7 +3464,7 @@ for (const id of ['#tGhost', '#igGhost']) $(id).addEventListener('click', () => 
 function syncKxUI() {
   const kx = choice.car === 'hatch';
   $('#tKx').hidden = !kx; $('#igKxChimeRow').hidden = $('#igKxLetterRow').hidden = !kx;
-  for (const [ids, on] of [[['#tKxChime', '#igKxChime'], kxChimeOn], [['#tKxLetter', '#igKxLetter'], kxLetterOn]])
+  for (const [ids, on] of [[['#tKxChime', '#igKxChime'], kxChimeOn], [['#tKxLetter', '#igKxLetter'], kxLetterOn], [['#tVibe', '#igVibe'], vibeOn]]) // + the vibration switch (any car)
     for (const id of ids) { const b = $(id); b.setAttribute('aria-checked', String(on)); b.textContent = T(on ? 'igOn' : 'igOff'); }
 }
 function setKx(kind, on) {
@@ -3467,6 +3474,7 @@ function setKx(kind, on) {
 }
 for (const [id, kind] of [['#tKxChime', 'chime'], ['#igKxChime', 'chime'], ['#tKxLetter', 'letter'], ['#igKxLetter', 'letter']])
   $(id).addEventListener('click', () => setKx(kind, !(kind === 'chime' ? kxChimeOn : kxLetterOn)));
+for (const id of ['#tVibe', '#igVibe']) $(id).addEventListener('click', () => { vibeOn = !vibeOn; store.set('yatouge-vibe', vibeOn ? '1' : '0'); syncKxUI(); });
 function renderTrackPicker() {
   const el = $('#trackPick'); el.innerHTML = '';
   for (const id in TRACKS) {
@@ -4405,7 +4413,7 @@ let last = performance.now(), acc = 0;
 const FIX = 1 / 120;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  syncRotate(); controlsTick(dt);
+  syncRotate(); controlsTick(dt); gamepadTick(now);
   if (menuOpen && !menuCanOpen(state, nickOpen)) closeMenu(); // the race ended or the match was left under the open menu
   if (pvp) pvpFrame();
   if (state === 'count') {
@@ -4447,8 +4455,7 @@ window.addEventListener('keydown', e => {
     if (e.repeat) return;
     const a = menuEscAction(menuOpen, menuView, state, nickOpen);
     if (a === 'none') return;
-    e.preventDefault();
-    if (a === 'open') openMenu(); else if (a === 'close') closeMenu(); else showMenuView('main', menuView === 'settings' ? '#igSettings' : '#igForfeit');
+    e.preventDefault(); menuEsc(a);
     return;
   }
   if (menuOpen) { // the menu owns the keyboard: nothing below may drive the car
@@ -4469,12 +4476,16 @@ window.addEventListener('keydown', e => {
 });
 window.addEventListener('keyup', e => { if (KEYMAP[e.code]) input[KEYMAP[e.code]] = false; });
 window.addEventListener('blur', () => { for (const k in input) input[k] = k === 'steerAxis' ? null : false; releaseTouch(); });
+function menuEsc(a) { if (a === 'open') openMenu(); else if (a === 'close') closeMenu(); else if (a === 'back') showMenuView('main', menuView === 'settings' ? '#igSettings' : '#igForfeit'); }
 // Manual only, countdown or race, menu closed. A refused downshift (it would over-rev) is told to the player.
 function shiftGear(dir) {
   if (trans !== 'manual' || menuOpen || transOpen || (state !== 'count' && state !== 'race')) return;
-  const r = gbShift(choice.car, car.gear, dir, Math.max(0, car.vx * Math.sin(car.h) + car.vz * Math.cos(car.h)));
+  const vf = Math.max(0, car.vx * Math.sin(car.h) + car.vz * Math.cos(car.h)), r = gbShift(choice.car, car.gear, dir, vf);
   if (!r.ok) return;
   car.gear = r.gear;
+  const bz = shiftBuzz({ on: vibeOn, ok: r.ok, dir, vf, top: gbRedlineSpeed(choice.car, r.gear) });
+  if (bz) shake = Math.max(shake, bz.shake);
+  buzz(bz);
   if (state === 'race') car.shiftT = GB.SHIFT_CUT;
 }
 function resetCar() {
@@ -4487,6 +4498,138 @@ function resetCar() {
 const TAPGUARD = { GAP_MS: 350 };
 const blockDoubleTap = (prevEnd, now, interactive) => !interactive && prevEnd !== null && now > prevEnd && now - prevEnd < TAPGUARD.GAP_MS;
 /* @tapguard:end */
+/* @gamepad:start */
+// Xbox-style pad, browser "standard" mapping. Pedals are on / off past TRIG (the physics takes booleans); the stick feeds the analog steering path.
+const GP = { DEAD: 0.18, TRIG: 0.3, REPEAT_DELAY: 400, REPEAT_MS: 200, N: 16, BTN: { A: 0, B: 1, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, VIEW: 8, MENU: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 } };
+const gpAxis = v => {
+  if (typeof v !== 'number' || !Number.isFinite(v)) return 0;
+  const a = Math.abs(v);
+  return a <= GP.DEAD ? 0 : Math.sign(v) * Math.min(1, (a - GP.DEAD) / (1 - GP.DEAD));
+};
+const gpPick = pads => {
+  const live = Array.from(pads || []).filter(p => p && p.connected !== false);
+  return live.find(p => p.mapping === 'standard') || live[0] || null;
+};
+const gpButtons = pad => Array.from({ length: GP.N }, (_, i) => {
+  const b = pad && pad.buttons && pad.buttons[i];
+  return !!b && (b.pressed === true || (typeof b.value === 'number' && b.value > GP.TRIG));
+});
+const gpRises = (prev, cur) => cur.reduce((r, on, i) => (on && !prev[i] ? [...r, i] : r), []);
+// held time before / after this frame (-1 = not held): fires on the press, then every REPEAT_MS once held REPEAT_DELAY
+const gpRepeat = (prevMs, ms) => {
+  const n = t => (t < 0 ? -1 : t < GP.REPEAT_DELAY ? 0 : 1 + Math.floor((t - GP.REPEAT_DELAY) / GP.REPEAT_MS));
+  return n(ms) > n(prevMs);
+};
+const gpDrive = (b, x) => { const s = gpAxis(x); return { gas: b[GP.BTN.RT], brake: b[GP.BTN.LT], hb: b[GP.BTN.Y], steer: s === 0 ? null : s }; };
+const gpContext = ({ spec, overlay, hud }) => (spec ? 'spec' : overlay ? 'ui' : hud ? 'drive' : 'ui');
+const GP_ACTIONS = {
+  drive: { 12: 'cam', 4: 'shiftDown', 5: 'shiftUp', 9: 'menu', 8: 'music' },
+  ui: { 12: 'up', 13: 'down', 14: 'left', 15: 'right', 0: 'ok', 1: 'back', 9: 'menu', 8: 'music' },
+  spec: { 14: 'viewPrev', 15: 'viewNext', 13: 'down', 0: 'ok' },
+};
+const gpAction = (i, ctx) => (GP_ACTIONS[ctx] && GP_ACTIONS[ctx][i]) || null;
+const gpCycle = (i, n, d) => (((i < 0 ? (d > 0 ? -1 : 0) : i) + d) % n + n) % n;
+// Nearest rect in a direction (its centre beyond ours): the edge gap along it plus 3x the gap across it (0 when they overlap across),
+// so a wide card in the next row does not beat the neighbour in this one. Nothing that way: wrap to the far end.
+const gpNearest = (from, rects, dir) => {
+  if (!from) return rects.length ? 0 : -1;
+  const v = dir === 'up' || dir === 'down', sg = dir === 'down' || dir === 'right' ? 1 : -1;
+  const c = r => (v ? (r.top + r.bottom) / 2 : (r.left + r.right) / 2);
+  const gap = r => (v ? Math.max(0, r.left - from.right, from.left - r.right) : Math.max(0, r.top - from.bottom, from.top - r.bottom));
+  const along = r => Math.max(0, v ? (sg > 0 ? r.top - from.bottom : from.top - r.bottom) : (sg > 0 ? r.left - from.right : from.left - r.right));
+  let best = -1, bestS = Infinity, wrap = -1, wrapS = Infinity;
+  rects.forEach((r, i) => {
+    if (r === from || (r.left === from.left && r.top === from.top && r.right === from.right && r.bottom === from.bottom)) return;
+    const d = (c(r) - c(from)) * sg, g = gap(r) * 3;
+    if (d > 1) { const sc = along(r) + g + d * 0.001; if (sc < bestS) { bestS = sc; best = i; } }
+    else if (d < -1 && c(r) * sg + g < wrapS) { wrapS = c(r) * sg + g; wrap = i; }
+  });
+  return best >= 0 ? best : wrap;
+};
+// A manual shift that happened (ok) buzzes the pad and the phone and jolts the camera (far below a wall hit); a downshift above the new gear's top speed (engine braking) a bit harder.
+const shiftBuzz = ({ on, ok, dir, vf, top }) => {
+  if (!on || !ok) return null;
+  return dir < 0 && vf > top ? { ms: 90, strong: 0.7, weak: 0.6, phone: 40, shake: 0.11 } : { ms: 70, strong: 0.45, weak: 0.5, phone: 35, shake: 0.08 };
+};
+/* @gamepad:end */
+// Polled once per frame. Writes input only on change (like the touch controls), so the keyboard keeps working alongside.
+const GP_IDLE = { gas: false, brake: false, hb: false, steer: null }, GP_DPAD = [12, 13, 14, 15], SPEC_VIEWS = ['a', 'b', 'top'];
+const gp = { btn: Array(GP.N).fill(false), down: {}, held: {}, last: { ...GP_IDLE }, pad: null };
+function gpScope() {
+  if (transOpen) return $('#trans'); if (nickOpen) return $('#nick'); if (menuOpen) return $('#igmenu'); if (spec) return $('#spec');
+  return ['#result', '#room', '#lobby', '#title'].map(s => $(s)).find(el => !el.hidden) || null;
+}
+const gpFocusables = root => [...root.querySelectorAll('button, input, select')].filter(el => !el.disabled && el.getAttribute('aria-disabled') !== 'true' && el.tabIndex >= 0 && !el.closest('[hidden], [inert]') && el.getClientRects().length);
+function gpNav(dir) {
+  const root = gpScope(); if (!root) return;
+  document.body.classList.add('gp');
+  const f = gpFocusables(root), a = document.activeElement, at = f.indexOf(a);
+  if (at >= 0 && (dir === 'left' || dir === 'right')) { // sliders and drop-downs take left / right as a value change
+    const d = dir === 'right' ? 1 : -1;
+    if (a.type === 'range') { const v = clamp(Number(a.value) + d * (Number(a.step) || 1), Number(a.min), Number(a.max)); if (String(v) !== a.value) { a.value = v; a.dispatchEvent(new Event('input', { bubbles: true })); } return; }
+    if (a.tagName === 'SELECT' && a.options.length) { a.selectedIndex = gpCycle(a.selectedIndex, a.options.length, d); a.dispatchEvent(new Event('change', { bubbles: true })); return; }
+  }
+  const t = at >= 0 ? f[gpNearest(f[at].getBoundingClientRect(), f.map(el => el.getBoundingClientRect()), dir)] : (f.find(el => el.id === 'btnStart') || f[0]);
+  if (t) t.focus();
+}
+function gpOk() {
+  const root = gpScope(), a = document.activeElement; if (!root) return;
+  if (gpFocusables(root).includes(a)) {
+    document.body.classList.add('gp');
+    if (a.tagName !== 'BUTTON') return;
+    const box = a.parentElement, i = box ? [...box.children].indexOf(a) : -1;
+    a.click();
+    if (!a.isConnected && box && box.isConnected && box.children[i]) box.children[i].focus(); // a picker re-rendered under the press: keep the place
+  }
+  else gpNav('down'); // nothing focused yet: the first press only shows where focus is
+}
+function gpBack() {
+  if (transOpen) transCancel(); else if (nickOpen) nickCancel();
+  else if (menuOpen) menuEsc(menuEscAction(menuOpen, menuView, state, nickOpen));
+  else if (!$('#lobby').hidden) closeLobby();
+}
+function gpDo(act) {
+  switch (act) {
+    case 'up': case 'down': case 'left': case 'right': gpNav(act); break;
+    case 'ok': gpOk(); break;
+    case 'back': gpBack(); break;
+    case 'menu': if (menuOpen) closeMenu(); else if (!transOpen && !nickOpen) openMenu(); break;
+    case 'music': if (!transOpen && !nickOpen) { setMusic(!musicOn); if (menuOpen) syncMenuUI(); } break;
+    case 'cam': if (!hudEl.hidden) setCamMode(nextCam(camMode), true); break;
+    case 'shiftUp': shiftGear(1); break;
+    case 'shiftDown': shiftGear(-1); break;
+    case 'viewPrev': case 'viewNext': if (spec) specView(SPEC_VIEWS[gpCycle(SPEC_VIEWS.indexOf(spec.view), SPEC_VIEWS.length, act === 'viewNext' ? 1 : -1)]); break;
+  }
+}
+const gpCtx = () => gpContext({ spec: !!spec, overlay: menuOpen || transOpen || nickOpen, hud: !hudEl.hidden });
+function gamepadTick(now) {
+  let pad = null;
+  try { pad = gpPick(navigator.getGamepads ? navigator.getGamepads() : null); } catch (_) { pad = null; } // blocked by permissions policy (e.g. an iframe): no pad
+  gp.pad = pad;
+  const b = gpButtons(pad), live = gpCtx() === 'drive' && (state === 'count' || state === 'race');
+  const want = live ? gpDrive(b, pad && pad.axes ? pad.axes[0] : 0) : GP_IDLE;
+  for (const k of ['gas', 'brake', 'hb']) if (want[k] !== gp.last[k]) { input[k] = want[k]; gp.last[k] = want[k]; }
+  if (want.steer !== gp.last.steer) { input.steerAxis = want.steer; gp.last.steer = want.steer; }
+  const fire = gpRises(gp.btn, b).filter(i => !GP_DPAD.includes(i));
+  for (const i of GP_DPAD) { // the d-pad repeats while held, for moving focus only
+    const prev = gp.held[i] ?? -1;
+    if (b[i] && !gp.btn[i]) gp.down[i] = now;
+    const ms = b[i] ? now - gp.down[i] : -1; gp.held[i] = ms;
+    if (gpRepeat(prev, ms) && (prev < 0 || ['up', 'down', 'left', 'right'].includes(gpAction(i, gpCtx())))) fire.push(i);
+  }
+  gp.btn = b;
+  for (const i of fire) gpDo(gpAction(i, gpCtx()));
+}
+function gpRumble(ms, strong, weak) {
+  try { const a = gp.pad && gp.pad.vibrationActuator; if (a && typeof a.playEffect === 'function') Promise.resolve(a.playEffect('dual-rumble', { duration: ms, strongMagnitude: strong, weakMagnitude: weak })).catch(() => {}); } catch (_) {}
+}
+// Pad rumble plus a phone buzz (touch devices only, after a tap: Chrome refuses vibrate() before any user activation; iOS ignores it)
+function buzz(b) {
+  if (!b) return;
+  gpRumble(b.ms, b.strong, b.weak);
+  try { if (coarse && typeof navigator.vibrate === 'function' && !(navigator.userActivation && !navigator.userActivation.hasBeenActive)) navigator.vibrate(b.phone); } catch (_) {}
+}
+window.addEventListener('pointerdown', () => document.body.classList.remove('gp'), true);
 const coarse = window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
 if (coarse) {
   document.body.classList.add('coarse'); $('#touch').hidden = false;
