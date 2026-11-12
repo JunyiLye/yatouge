@@ -735,7 +735,7 @@ const I18N = {
     igOn: '開', igOff: '關', kxChime: '時速警示音', kxLetter: '車門字樣', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
     ctlLbl: '操作設定', igSteer: '轉向方式', stDrag: '拖曳', stTilt: '傾斜', stZones: '分區', igTiltSens: '傾斜靈敏度', recenter: '回正', zoneBrake: '煞車 + 手煞', tiltFail: '此環境無法使用傾斜轉向，已改回拖曳',
     transTitle: '選擇變速箱', transAT: '自排 AT', transATd: '自動換檔，專心過彎。', transMT: '手排 MT', transMTd: '自己換檔：Shift 升檔、Z 降檔。換得好比自排快。', transHint: '手機會多出 ▲ ▼ 換檔鈕。每次開賽前都會再問一次。', transKeys: 'Enter 或點一下確認，Esc 取消。',
-    kShift: '手排：升檔／降檔', shiftUp: '升檔', shiftDown: '降檔', shiftRpm: '轉速過高',
+    kShift: '手排：升檔／降檔', shiftUp: '升檔', shiftDown: '降檔',
     modeLbl: '模式', modeRace: '比賽', modeRaceD: '跟對手車比誰先衝到山腳。', modeTa: '計時賽', modeTaD: '沒有對手，挑戰自己的最佳時間與幽靈車。',
     leadTa: name => `凌晨兩點的${name}，整條路只屬於你。沒有對手，只有碼表和上一次最快的自己。`,
     taGhost: '幽靈車', taBestIs: t => `最佳 ${t}`, taFirst: '第一次計時', taVsBest: d => `與最佳 ${d} 秒`,
@@ -789,7 +789,7 @@ const I18N = {
     igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
     ctlLbl: 'Controls', igSteer: 'Steering', stDrag: 'Drag', stTilt: 'Tilt', stZones: 'Zones', igTiltSens: 'Tilt sensitivity', recenter: 'Re-center', zoneBrake: 'BRAKE + E-BRAKE', tiltFail: 'Tilt steering is unavailable here; switched back to drag.',
     transTitle: 'Choose a gearbox', transAT: 'Automatic AT', transATd: 'Shifts for you. Focus on the corners.', transMT: 'Manual MT', transMTd: 'Shift yourself: Shift = up, Z = down. Shift well and you beat the automatic.', transHint: 'On a phone, ▲ ▼ shift buttons appear. You are asked again before every race.', transKeys: 'Enter or a tap confirms, Esc cancels.',
-    kShift: 'Manual: shift up / down', shiftUp: 'Shift up', shiftDown: 'Shift down', shiftRpm: 'RPM too high',
+    kShift: 'Manual: shift up / down', shiftUp: 'Shift up', shiftDown: 'Shift down',
     modeLbl: 'Mode', modeRace: 'Race', modeRaceD: 'Beat the rival car to the bottom.', modeTa: 'Time attack', modeTaD: 'No rival. Chase your best time and your ghost car.',
     leadTa: name => `2 a.m. on ${name}, and the road is all yours. No rival, just the clock and the ghost of your fastest run.`,
     taGhost: 'Ghost car', taBestIs: t => `Best ${t}`, taFirst: 'First timed run', taVsBest: d => `${d} s vs best`,
@@ -1109,7 +1109,7 @@ function engineForce(engine, lagF, vf, maxV, pen) {
 // 手排變速箱（純函式）。推力 = 自排的 engineForce × gbMul；自排完全不經過這裡。
 // K：各檔紅線車速占 6 檔的比例；BOOST × gain = 低檔的額外拉力（6 檔為 0，所以極速與自排相同）；v6 = 6 檔紅線車速 (m/s)
 const GB = {
-  IDLE: 1000, LAUNCH_RPM: 4500, SHIFT_CUT: 0.12, TOP: 6,
+  IDLE: 1000, LAUNCH_RPM: 4500, SHIFT_CUT: 0.12, TOP: 6, ENGINE_BRAKE: 25, // ENGINE_BRAKE: m/s² of slowing while above the gear's top speed
   K: [0.20, 0.34, 0.48, 0.62, 0.80, 1],
   BOOST: [0.20, 0.12, 0.07, 0.03, 0.01, 0],
   TORQUE: [[0, 0.15], [1000, 0.15], [2000, 0.4], [3000, 0.7], [4500, 1], [7000, 1], [8000, 0.9]], // rpm -> 扭力係數
@@ -1133,15 +1133,16 @@ function gbMul(car, g, spd, shiftT) {
   const rpm = gbRpm(car, g, spd);
   return gbGearFactor(car, g) * gbTorque(g === 1 ? Math.max(rpm, GB.LAUNCH_RPM) : rpm);
 }
-// dir: +1 升檔、-1 降檔。降檔後轉速會超過紅線就拒絕（why: 'rpm'）
+// dir: +1 升檔、-1 降檔。高速降檔也允許，超出的車速由 gbOverSpeed 用引擎煞車降下來
 function gbShift(car, g, dir, spd) {
   g = gbGear(g);
   const to = g + dir;
   if (to > GB.TOP) return { gear: g, ok: false, why: 'top' };
   if (to < 1) return { gear: g, ok: false, why: 'bottom' };
-  if (dir < 0 && gbCutting(car, to, spd)) return { gear: g, ok: false, why: 'rpm' };
   return { gear: to, ok: true };
 }
+// 前進車速 vf 超過該檔極速時，以 ENGINE_BRAKE 減速，停在極速；沒超速或倒車不變
+const gbOverSpeed = (car, g, vf, dt) => { const max = gbRedlineSpeed(car, g); return vf > max ? Math.max(max, vf - GB.ENGINE_BRAKE * dt) : vf; };
 const gbStep = (t, dt) => Math.max(0, t - dt);
 /* @gearbox:end */
 /* @collision:start */
@@ -2391,6 +2392,10 @@ function physics(dt) {
   Object.assign(c, { gutSide: tick.gutSide, gutT: tick.gutT, gutLat: tick.gutLat, gutCool: tick.gutCool, vx: tick.vx, vz: tick.vz });
   if (tick.thud) shake = Math.max(shake, 0.3); // the thud of dropping in
   if (gut) { Object.assign(c, gutterStep(pre, loc, pts[loc.i].ks, a, dt, c.gutLat)); c.drift = false; shake = Math.max(shake, 0.05); }
+  if (trans === 'manual') { // above this gear's top speed (e.g. after a downshift): engine braking down to it
+    const sh = Math.sin(c.h), ch = Math.cos(c.h), f = c.vx * sh + c.vz * ch, d = f - gbOverSpeed(choice.car, c.gear, f, dt);
+    if (d > 0) { c.vx -= sh * d; c.vz -= ch * d; }
+  }
   c.x += c.vx * dt; c.z += c.vz * dt;
 
   const L = c.loc = locate(c);
@@ -4468,7 +4473,7 @@ window.addEventListener('blur', () => { for (const k in input) input[k] = k === 
 function shiftGear(dir) {
   if (trans !== 'manual' || menuOpen || transOpen || (state !== 'count' && state !== 'race')) return;
   const r = gbShift(choice.car, car.gear, dir, Math.max(0, car.vx * Math.sin(car.h) + car.vz * Math.cos(car.h)));
-  if (!r.ok) { if (r.why === 'rpm') showPop(T('shiftRpm')); return; }
+  if (!r.ok) return;
   car.gear = r.gear;
   if (state === 'race') car.shiftT = GB.SHIFT_CUT;
 }

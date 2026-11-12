@@ -11,8 +11,8 @@ function block(name) {
 }
 const G = new Function(`const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 ${block('course-geometry')}\n${block('engine')}\n${block('gearbox')}\n${block('drift-follow')}\n${block('vehicle')}\n${block('collision')}\n${block('cars')}
-return { GB, CARS, engineForce, vehicleAccel, gbRedlineSpeed, gbRpm, gbTorque, gbGearFactor, gbMul, gbShift, gbStep, gbCutting };`)();
-const { GB, CARS, engineForce, vehicleAccel, gbRedlineSpeed, gbRpm, gbTorque, gbGearFactor, gbMul, gbShift, gbStep, gbCutting } = G;
+return { GB, CARS, engineForce, vehicleAccel, gbRedlineSpeed, gbRpm, gbTorque, gbGearFactor, gbMul, gbShift, gbStep, gbCutting, gbOverSpeed };`)();
+const { GB, CARS, engineForce, vehicleAccel, gbRedlineSpeed, gbRpm, gbTorque, gbGearFactor, gbMul, gbShift, gbStep, gbCutting, gbOverSpeed } = G;
 const KEYS = ['hatch', 'coupe', 'gtr'];
 const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `${a} vs ${b}`);
 
@@ -87,11 +87,9 @@ test('換檔與降檔保護', () => {
   assert.deepEqual(gbShift(k, 3, -1, 10), { gear: 2, ok: true });
   assert.deepEqual(gbShift(k, 6, 1, 40), { gear: 6, ok: false, why: 'top' });
   assert.deepEqual(gbShift(k, 1, -1, 5), { gear: 1, ok: false, why: 'bottom' });
-  // 高速降檔會超過紅線：拒絕
-  const fast = gbRedlineSpeed(k, 4) * 0.9; // 5 檔降 4 檔前，4 檔轉速已 90% 紅線
-  assert.equal(gbShift(k, 5, -1, fast).ok, true);
-  const tooFast = gbRedlineSpeed(k, 4) * 1.05;
-  assert.deepEqual(gbShift(k, 5, -1, tooFast), { gear: 5, ok: false, why: 'rpm' });
+  // 高速降檔也允許（之後由 gbOverSpeed 把車速降到該檔極速）
+  assert.deepEqual(gbShift(k, 5, -1, gbRedlineSpeed(k, 4) * 0.9), { gear: 4, ok: true });
+  assert.deepEqual(gbShift(k, 5, -1, gbRedlineSpeed(k, 2) * 3), { gear: 4, ok: true });
   assert.equal(gbShift(k, 99, 1, 10).gear, 6); // 非法檔位被夾住
   assert.equal(gbShift(k, 0, 1, 10).gear, 2);
 });
@@ -167,4 +165,16 @@ test('自排：vehicleAccel 的值與改動前逐值相同（未傳 mul 或 mul 
 test('自排：engineForce 與 2/3 規格逐值相同', () => {
   for (const [engine, maxV] of [[11.5, 54], [14, 61], [18.5, 70]]) for (const vf of [0, 3, 10, 30, 50]) for (const lagF of [1, 0.42])
     near(engineForce(engine, lagF, vf, maxV, 1), (2 / 3) * ((engine * lagF * (1 - Math.max(0, vf) / maxV) + (vf < 6 ? 2 : 0))));
+});
+
+test('超過該檔極速：引擎煞車把車速快速降到該檔極速，不會低於它', () => {
+  const k = 'hatch', max2 = gbRedlineSpeed(k, 2);
+  assert.equal(gbOverSpeed(k, 2, max2 - 1, 1 / 120), max2 - 1, '沒超速不變');
+  let v = 40; // 從高速直接降到 2 檔
+  const v1 = gbOverSpeed(k, 2, v, 1 / 120);
+  assert.ok(v1 < v && v1 > max2, '一步只降一點，不是瞬間');
+  let t = 0; while (v > max2 && t < 5) { v = gbOverSpeed(k, 2, v, 1 / 120); t += 1 / 120; }
+  assert.equal(v, max2, '最後剛好停在該檔極速');
+  assert.ok(t < 1.5, `約 1 秒內降到（實際 ${t.toFixed(2)} 秒）`);
+  assert.equal(gbOverSpeed(k, 3, -5, 1 / 120), -5, '倒車不受影響');
 });
