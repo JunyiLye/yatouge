@@ -96,6 +96,20 @@ button:focus-visible { outline: 2px solid var(--sodium); outline-offset: 2px; }
 #zones .zb { left: 0; bottom: 0; width: 100%; height: 30%; place-items: center start; padding-left: 24px; font-size: 15px; font-weight: 700; letter-spacing: .08em; }
 #zones .zn.on { background: rgba(255,162,58,.16); border-color: var(--sodium); color: var(--sodium); }
 .igseg { display: flex; gap: 6px; } .igrow[hidden], .igq[hidden] { display: none; }
+/* manual gearbox: up / down buttons for the right thumb (phones, manual only). Drag mode: above the gas pedal; tilt / zones: below the score panel, top right */
+#shiftPad { display: none; position: absolute; right: calc(14px + env(safe-area-inset-right, 0px)); bottom: calc(130px + env(safe-area-inset-bottom, 0px)); flex-direction: column; gap: 6px; }
+.coarse.manual #shiftPad { display: flex; }
+.m-tilt #shiftPad, .m-zones #shiftPad { bottom: auto; top: calc(108px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); }
+#shiftPad button { pointer-events: auto; touch-action: none; width: 56px; height: 44px; padding: 0; font-size: 20px; border-radius: 10px; border: 1px solid var(--line); background: rgba(9,12,26,.55); }
+#shiftPad button.on { background: rgba(255,162,58,.4); border-color: var(--sodium); }
+#trans { background: rgba(5,7,15,.97); }
+.transopts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.transbtn { text-align: left; background: rgba(9,12,26,.55); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; }
+.transbtn:hover { border-color: var(--sodium); } .transbtn.sel { border-color: var(--sodium); background: rgba(255,162,58,.16); }
+.transbtn b { display: block; font-family: var(--display); font-size: 30px; letter-spacing: .06em; }
+.transbtn small { display: block; margin-top: 6px; font-size: 12px; line-height: 1.5; color: var(--dim); }
+@media (max-width: 480px) { .transopts { grid-template-columns: 1fr; } }
+.coarse .nokb { display: none; }
 
 /* asks a phone held upright to turn sideways; it covers the page but pauses nothing */
 .rotate { position: fixed; inset: 0; z-index: 30; display: grid; place-content: center; justify-items: center; gap: 20px; padding: 24px; text-align: center; background: rgba(5,7,15,.96); touch-action: none; }
@@ -277,6 +291,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     </div>
   </div>
   <button id="btnRecenter" type="button" data-i18n="recenter">回正</button>
+  <div id="shiftPad"><button type="button" data-s="1" data-i18n-aria="shiftUp" aria-label="升檔">▲</button><button type="button" data-s="-1" data-i18n-aria="shiftDown" aria-label="降檔">▼</button></div>
 </div>
 
 <div id="title" class="screen">
@@ -315,6 +330,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <span><kbd>Space</kbd></span><span data-i18n="kHb">手煞車，轉彎時拉一下讓車尾滑出去</span>
       <span><kbd>R</kbd> <kbd>M</kbd></span><span data-i18n="kMisc">回到路面／音樂開關</span>
       <span><kbd>C</kbd></span><span data-i18n="kCam">切換鏡頭（追蹤／近距離／車內）</span>
+      <span><kbd>Shift</kbd> <kbd>Z</kbd></span><span data-i18n="kShift">手排：升檔／降檔</span>
     </div>
     <button class="go" id="btnStart" type="button" data-i18n="start">開始下坡</button><button class="ghost" id="btnOnline" type="button" data-i18n="pvpOnline" aria-disabled="true">線上對戰</button><div class="onl-info"><span id="onlineNote" role="status"></span><button class="ghost" id="btnOnlineAct" type="button" hidden></button></div>
     <p class="note" data-i18n="note">不拉手煞車時輪胎會抓地，轉太快只會推頭。入彎先減速，轉向的同時點一下手煞就能甩起來，反打方向盤可以收住車尾。手機上用畫面下方的按鈕操作。</p>
@@ -407,6 +423,20 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <input id="nickInput" class="nickinput" type="text" maxlength="16" autocomplete="off" autocapitalize="off" spellcheck="false" aria-describedby="nickHint">
     <p id="nickHint" class="note" data-i18n="nickHint"></p>
     <div class="actions"><button class="go" id="nickOk" type="button" data-i18n="nickOk" disabled>確定</button><button class="ghost" id="nickCancel" type="button" data-i18n="nickCancel">取消</button></div>
+  </div>
+</div>
+
+<div id="trans" class="screen" role="dialog" aria-modal="true" aria-labelledby="transTitle" hidden>
+  <div class="sheet">
+    <h2 id="transTitle" class="pvp-h" data-i18n="transTitle">選擇變速箱</h2>
+    <div class="stripe"></div>
+    <div class="transopts">
+      <button class="transbtn" id="transAT" type="button" data-t="auto"><b data-i18n="transAT">自排 AT</b><small data-i18n="transATd">自動換檔，專心過彎。</small></button>
+      <button class="transbtn" id="transMT" type="button" data-t="manual"><b data-i18n="transMT">手排 MT</b><small data-i18n="transMTd">自己換檔：Shift 升檔、Z 降檔。換得好比自排快。</small></button>
+    </div>
+    <p class="note" data-i18n="transHint">手機會多出 ▲ ▼ 換檔鈕。每次開賽前都會再問一次。</p>
+    <p class="note nokb" data-i18n="transKeys">Enter 或點一下確認，Esc 取消。</p>
+    <div class="actions" style="margin-top:12px"><button class="ghost" id="transCancel" type="button" data-i18n="nickCancel">取消</button></div>
   </div>
 </div>
 
@@ -510,7 +540,9 @@ const I18N = {
     pvpPlayer: '玩家', pvpYouTag: n => `${n}（你）`, pvpNickIs: n => `你的暱稱：${n}。`, pvpTimeOf: n => `${n} 完賽時間`,
     igAria: '選單', igTitle: '選單', igResume: '繼續', igSettings: '設定', igForfeit: '認輸', igBack: '返回', igMusic: '音樂', igMusicVol: '音樂音量', igSfxVol: '音效音量', igCam: '鏡頭', igLang: '語言',
     igOn: '開', igOff: '關', kxChime: '時速警示音', kxLetter: '車門字樣', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
-    ctlLbl: '操作設定', igSteer: '轉向方式', stDrag: '拖曳', stTilt: '傾斜', stZones: '分區', igTiltSens: '傾斜靈敏度', recenter: '回正', zoneBrake: '煞車 + 手煞', tiltFail: '此環境無法使用傾斜轉向，已改回拖曳'
+    ctlLbl: '操作設定', igSteer: '轉向方式', stDrag: '拖曳', stTilt: '傾斜', stZones: '分區', igTiltSens: '傾斜靈敏度', recenter: '回正', zoneBrake: '煞車 + 手煞', tiltFail: '此環境無法使用傾斜轉向，已改回拖曳',
+    transTitle: '選擇變速箱', transAT: '自排 AT', transATd: '自動換檔，專心過彎。', transMT: '手排 MT', transMTd: '自己換檔：Shift 升檔、Z 降檔。換得好比自排快。', transHint: '手機會多出 ▲ ▼ 換檔鈕。每次開賽前都會再問一次。', transKeys: 'Enter 或點一下確認，Esc 取消。',
+    kShift: '手排：升檔／降檔', shiftUp: '升檔', shiftDown: '降檔', shiftRpm: '轉速過高'
   },
   en: {
     canvas: 'Night Pass Downhill 3D view', time: 'TIME', score: 'DRIFT SCORE', musicOn: 'Music: on', musicOff: 'Music: off', bgmLbl: 'Music', bgmSynth: 'Original', bgmOwn: n => `Mine — ${n}`, ownPick: 'Choose music', ownClear: 'Remove', ownBad: 'Not an audio file', ownBig: 'File over 50 MB', reset: 'Back on road',
@@ -547,7 +579,9 @@ const I18N = {
     pvpPlayer: 'Player', pvpYouTag: n => `${n} (you)`, pvpNickIs: n => `Your nickname: ${n}.`, pvpTimeOf: n => `${n} · finish time`,
     igAria: 'Menu', igTitle: 'Menu', igResume: 'Resume', igSettings: 'Settings', igForfeit: 'Forfeit', igBack: 'Back', igMusic: 'Music', igMusicVol: 'Music volume', igSfxVol: 'Sound effects volume', igCam: 'Camera', igLang: 'Language',
     igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
-    ctlLbl: 'Controls', igSteer: 'Steering', stDrag: 'Drag', stTilt: 'Tilt', stZones: 'Zones', igTiltSens: 'Tilt sensitivity', recenter: 'Re-center', zoneBrake: 'BRAKE + E-BRAKE', tiltFail: 'Tilt steering is unavailable here; switched back to drag.'
+    ctlLbl: 'Controls', igSteer: 'Steering', stDrag: 'Drag', stTilt: 'Tilt', stZones: 'Zones', igTiltSens: 'Tilt sensitivity', recenter: 'Re-center', zoneBrake: 'BRAKE + E-BRAKE', tiltFail: 'Tilt steering is unavailable here; switched back to drag.',
+    transTitle: 'Choose a gearbox', transAT: 'Automatic AT', transATd: 'Shifts for you. Focus on the corners.', transMT: 'Manual MT', transMTd: 'Shift yourself: Shift = up, Z = down. Shift well and you beat the automatic.', transHint: 'On a phone, ▲ ▼ shift buttons appear. You are asked again before every race.', transKeys: 'Enter or a tap confirms, Esc cancels.',
+    kShift: 'Manual: shift up / down', shiftUp: 'Shift up', shiftDown: 'Shift down', shiftRpm: 'RPM too high'
   }
 };
 let lang = store.get('yatouge-lang') || ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
@@ -848,6 +882,45 @@ function engineForce(engine, lagF, vf, maxV, pen) {
   return (engine * lagF * (1 - Math.max(0, vf) / maxV) + (vf < 6 ? 2 : 0)) * pen * ACCEL_SCALE;
 }
 /* @engine:end */
+/* @gearbox:start */
+// 手排變速箱（純函式）。推力 = 自排的 engineForce × gbMul；自排完全不經過這裡。
+// K：各檔紅線車速占 6 檔的比例；BOOST × gain = 低檔的額外拉力（6 檔為 0，所以極速與自排相同）；v6 = 6 檔紅線車速 (m/s)
+const GB = {
+  IDLE: 1000, LAUNCH_RPM: 4500, SHIFT_CUT: 0.12, TOP: 6,
+  K: [0.20, 0.34, 0.48, 0.62, 0.80, 1],
+  BOOST: [0.20, 0.12, 0.07, 0.03, 0.01, 0],
+  TORQUE: [[0, 0.15], [1000, 0.15], [2000, 0.4], [3000, 0.7], [4500, 1], [7000, 1], [8000, 0.9]], // rpm -> 扭力係數
+  CARS: { hatch: { redline: 8000, v6: 58, gain: 1.25 }, coupe: { redline: 8000, v6: 67, gain: 0.75 }, gtr: { redline: 7600, v6: 78, gain: 0.8 } }
+};
+const gbGear = g => Math.min(GB.TOP, Math.max(1, Math.round(Number(g)) || 1));
+const gbRedlineSpeed = (car, g) => GB.CARS[car].v6 * GB.K[gbGear(g) - 1];
+const gbRpm = (car, g, spd) => Math.max(GB.IDLE, Math.abs(spd) / gbRedlineSpeed(car, g) * GB.CARS[car].redline);
+function gbTorque(rpm) {
+  const T = GB.TORQUE;
+  if (!(rpm > T[0][0])) return T[0][1];
+  for (let i = 1; i < T.length; i++) if (rpm <= T[i][0]) return T[i - 1][1] + (T[i][1] - T[i - 1][1]) * (rpm - T[i - 1][0]) / (T[i][0] - T[i - 1][0]);
+  return T[T.length - 1][1];
+}
+const gbGearFactor = (car, g) => 1 + GB.BOOST[gbGear(g) - 1] * GB.CARS[car].gain;
+const gbCutting = (car, g, spd) => gbRpm(car, g, spd) >= GB.CARS[car].redline;
+// 推力倍率：換檔空檔與紅線斷油為 0；1 檔起步時離合器半連動，轉速不低於 LAUNCH_RPM；其他檔位轉速太低就拖檔（扭力曲線低端）
+function gbMul(car, g, spd, shiftT) {
+  g = gbGear(g);
+  if (shiftT > 0 || gbCutting(car, g, spd)) return 0;
+  const rpm = gbRpm(car, g, spd);
+  return gbGearFactor(car, g) * gbTorque(g === 1 ? Math.max(rpm, GB.LAUNCH_RPM) : rpm);
+}
+// dir: +1 升檔、-1 降檔。降檔後轉速會超過紅線就拒絕（why: 'rpm'）
+function gbShift(car, g, dir, spd) {
+  g = gbGear(g);
+  const to = g + dir;
+  if (to > GB.TOP) return { gear: g, ok: false, why: 'top' };
+  if (to < 1) return { gear: g, ok: false, why: 'bottom' };
+  if (dir < 0 && gbCutting(car, to, spd)) return { gear: g, ok: false, why: 'rpm' };
+  return { gear: to, ok: true };
+}
+const gbStep = (t, dt) => Math.max(0, t - dt);
+/* @gearbox:end */
 /* @collision:start */
 /* Wall and car-vs-car collision: oriented body boxes (hl = half length, hw = half width, a little inside the visible body).
    Frame matches locate(): forward (sin h, cos h), right (-cos h, sin h); lat > 0 is right of the centreline. */
@@ -1918,6 +1991,7 @@ let state = 'title', raceT = 0, countT = 0, camOrbit = 0, shake = 0, lastGapSign
 let playerWon = false, driftTotal = 0, driftChain = 0, driftIdle = 0, rivalFinishT = null, playerFinishT = null;
 let menuOpen = false, menuView = 'main'; // in-game menu (never pauses the race)
 let steerMode = 'drag', tiltSens = TILT.SENS_DEF, tiltNoteKey = '', steerTok = 0; // 'drag' | 'tilt' | 'zones'; the touch-control code is in the controls section
+let trans = store.get('yatouge-trans') === 'manual' ? 'manual' : 'auto', transOpen = false; // 'auto' | 'manual': the last choice, asked again before every race; gear / shift-cut state lives on `car`
 let pvp = null, startLat = 2.2, onlineUI = false; // pvp: the online match in progress (null = single player); startLat: grid slot, + right of the centreline
 
 function locate(o) {
@@ -1943,7 +2017,7 @@ function samplePos(s, lat) {
 }
 function resetRace() {
   const p = pts[8];
-  Object.assign(car, { x: p.x - Math.cos(p.h) * startLat, z: p.z + Math.sin(p.h) * startLat, h: p.h, vx: 0, vz: 0, w: 0, steer: 0, drift: false, idx: 8, rpm: 1000, penalty: 0, gutSide: 0, gutT: 0, gutLat: 0, gutCool: 0, gutDrop: 0, gutDropSide: 1, railAgo: Infinity, toll: { paid: [], warned: [] } });
+  Object.assign(car, { x: p.x - Math.cos(p.h) * startLat, z: p.z + Math.sin(p.h) * startLat, h: p.h, vx: 0, vz: 0, w: 0, steer: 0, drift: false, idx: 8, rpm: 1000, gear: 1, shiftT: 0, penalty: 0, gutSide: 0, gutT: 0, gutLat: 0, gutCool: 0, gutDrop: 0, gutDropSide: 1, railAgo: Infinity, toll: { paid: [], warned: [] } });
   car.loc = locate(car);
   Object.assign(rival, { s: pts[24].s, v: 0, lat: -2.2, latV: 0, i: 0, vis: 0 });
   state = 'title'; raceT = 0; driftTotal = 0; driftChain = 0; driftIdle = 0; rivalFinishT = null; playerFinishT = null; finishTimer = -1; lastGapSign = 1;
@@ -1970,7 +2044,7 @@ function vehicleAccel(c, P, u, loc, dt) {
   // lag = 1: power builds with speed (strong on straights, slow out of corners)
   const lagF = P.lag ? clamp(0.42 + Math.max(0, vf) / 36, 0.42, 1.15) : 1;
   const pen = c.penalty > 0 ? 0.1 : 1;
-  if (u.gas && vf < P.maxV) a += engineForce(P.engine, lagF, vf, P.maxV, pen);
+  if (u.gas && vf < P.maxV) a += engineForce(P.engine, lagF, vf, P.maxV, pen) * (u.mul ?? 1); // u.mul: manual-gearbox multiplier (gbMul); absent = automatic
   if (u.brake) { if (vf > 0.5) a -= P.brake; else if (!u.gas && vf > -6) a -= 5; }
   if (u.hb) a -= Math.sign(vf) * P.hb;
   a -= P.drag * vf * Math.abs(vf) + (Math.abs(vf) > 0.3 ? Math.sign(vf) * P.roll : 0);
@@ -2019,6 +2093,7 @@ function physics(dt) {
   const analog = !auto && input.steerAxis !== null;
   const sIn = auto ? 0 : analog ? input.steerAxis : (input.right ? 1 : 0) - (input.left ? 1 : 0);
   const u = { sIn, gas, brake, hb, analog };
+  if (trans === 'manual') { c.shiftT = gbStep(c.shiftT, dt); u.mul = gbMul(choice.car, c.gear, Math.max(0, c.vx * Math.sin(c.h) + c.vz * Math.cos(c.h)), c.shiftT); }
   const a = vehicleAccel(c, P, u, loc, dt);
 
   // Gutter run: hooked cars are re-aimed after the normal step below; the first hook of a pass costs drift points.
@@ -2344,7 +2419,7 @@ function updateEngineAudio(dt) {
     } else if (k === 'gtr') {
       const gas = car.gas && state !== 'title', brake = car.brakeOn && spd > 15 && state !== 'title';
       const vf = car.vx * Math.sin(car.h) + car.vz * Math.cos(car.h);
-      const g = gearFor(spd); // same gear rule as hud()
+      const g = gearNow(spd); // same gear rule as hud()
       const gear = spd < 0.5 || vf < -0.3 ? 0 : g, shift = shiftEvent(e.gear, gear, vf);
       e.gear = gear; e.bovCd = cooldownStep(e.bovCd, dt);
       const fire = bovTrigger(e.gasWas, gas, brake, e.boost, e.bovCd, e.brakeWas);
@@ -2390,9 +2465,17 @@ function hud(dt) {
   let rpmT = 1000 + clamp((spd - GEARS[g - 1]) / (GEARS[g] - GEARS[g - 1]), 0, 1) * 6400 + (g > 1 ? 1200 : 0);
   if (state === 'count' || spd < 1) rpmT = input.gas ? 7600 : 1000;
   if (car.drift && car.gas) rpmT = Math.min(8000, rpmT + 900);
+  if (trans === 'manual') { // real gear: rpm follows the chosen gear; the limiter bounces it at the redline
+    const rl = GB.CARS[choice.car].redline;
+    rpmT = gbRpm(choice.car, car.gear, Math.max(0, vf));
+    if (state === 'count' || spd < 1) rpmT = input.gas ? GB.LAUNCH_RPM : GB.IDLE;
+    else if (car.gear === 1 && input.gas) rpmT = Math.max(rpmT, GB.LAUNCH_RPM); // clutch slip
+    if (car.drift && car.gas) rpmT += 900;
+    if (rpmT >= rl) rpmT = input.gas ? rl - (Math.floor(performance.now() / 45) % 2) * 350 : rl;
+  }
   car.rpm += (rpmT - car.rpm) * Math.min(1, 10 * dt);
   $('#spd').textContent = Math.round(spd * 3.6);
-  $('#gear').textContent = gearLabel(spd, vf);
+  $('#gear').textContent = gearLabelNow(spd, vf);
   $('#rpm').style.width = (car.rpm / 8000 * 100).toFixed(1) + '%';
   $('#time').textContent = fmtT(playerFinishT ?? raceT);
   $('#score').textContent = Math.round(driftTotal).toLocaleString('zh-TW');
@@ -2548,6 +2631,9 @@ const COCKPIT_CARS = {
 // 儀表群中心高度（預設在儀表板頂面上方 3 cm；clusterY 可覆寫，讓大型錶不擋住引擎蓋線以上的視野）
 const clusterY = P => P.clusterY ?? P.dashTop + 0.03;
 /* @cockpit:end */
+// the gear the player is really in: chosen in manual, derived from speed in automatic (a manual car at a standstill shows its gear, not N)
+const gearNow = spd => trans === 'manual' ? car.gear : gearFor(spd);
+const gearLabelNow = (spd, vf) => trans === 'manual' ? (spd >= 0.5 && vf < -0.3 ? 'R' : car.gear) : gearLabel(spd, vf);
 let camMode = camModeFromStore(store.get('yatouge-cam'));
 const hudEl = $('#hud');
 let fovSnap = false; // a mode change jumps the FOV instead of easing it
@@ -2758,7 +2844,7 @@ function cockpitCamera(dt) {
   camera.lookAt(camLook); camera.rotateZ(m.roll);
   mirrorCam.position.copy(g.localToWorld(_a.set(cp.mirrorLocal.x, cp.mirrorLocal.y, cp.mirrorLocal.z)));
   mirrorCam.lookAt(g.localToWorld(_a.set(cp.mirrorLocal.x, cp.mirrorLocal.y, -30)));
-  if (playerInterior) playerInterior.update(dt, spd, c.rpm, c.steer, gearLabel(spd, c.vx * sh + c.vz * ch));
+  if (playerInterior) playerInterior.update(dt, spd, c.rpm, c.steer, gearLabelNow(spd, c.vx * sh + c.vz * ch));
 }
 function easeFov(dt, fov) {
   if (fovSnap) { fovSnap = false; camera.fov = fov; camera.updateProjectionMatrix(); return; }
@@ -2905,6 +2991,7 @@ function applyLang() {
 $('#langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'zh'; store.set('yatouge-lang', lang); applyLang(); renderOnline(); });
 applyLang();
 function startRace() {
+  document.body.classList.toggle('manual', trans === 'manual');
   initAudio(); resetRace(); Object.assign(P, CARS[choice.car].phys); camera.clearViewOffset();
   state = 'count'; countT = 3.999;
   $('#title').hidden = true; $('#result').hidden = true; $('#hud').hidden = false; $('#lobby').hidden = true; $('#room').hidden = true; onlineUI = false;
@@ -3377,6 +3464,7 @@ function renderRoom() {
 }
 function pvpLeave() {
   const p = pvp; if (!p) return;
+  if (transOpen) closeTrans();
   pvp = null; clearInterval(p.hbT); if (p.unsub) p.unsub(); if (p.unsubConn) p.unsubConn();
   p.rm.leave().catch(() => {});
   room.presence({ lobby: null }).catch(netFail);
@@ -3618,6 +3706,31 @@ $('#nick').addEventListener('keydown', e => {
     e.preventDefault(); f[(i + (e.shiftKey ? n - 1 : 1)) % n].focus();
   }
 });
+/* gearbox question: asked before every race (single-player Start / Again, online Ready). `trans` is the preselected last choice. */
+let transCb = null, transBack = null;
+const TRANS_SCREENS = ['#title', '#result', '#room'];
+function askTrans(cb, back = '#btnStart') {
+  if (transOpen) return;
+  transCb = cb; transBack = back; transOpen = true;
+  for (const id of TRANS_SCREENS) $(id).inert = true;
+  for (const b of document.querySelectorAll('#trans .transbtn')) b.classList.toggle('sel', b.dataset.t === trans);
+  $('#trans').hidden = false; $(trans === 'manual' ? '#transMT' : '#transAT').focus();
+}
+function closeTrans() { transOpen = false; transCb = transBack = null; $('#trans').hidden = true; for (const id of TRANS_SCREENS) $(id).inert = false; }
+function transPick(m) { trans = m; store.set('yatouge-trans', m); const cb = transCb; closeTrans(); if (cb) cb(); }
+function transCancel() { const b = transBack; closeTrans(); if (b) $(b).focus(); }
+for (const b of document.querySelectorAll('#trans .transbtn')) b.addEventListener('click', () => transPick(b.dataset.t));
+$('#transCancel').addEventListener('click', transCancel);
+$('#trans').addEventListener('keydown', e => {
+  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); transCancel(); return; }
+  const f = [...$('#trans').querySelectorAll('button')], i = f.indexOf(document.activeElement), n = f.length;
+  if (e.key === 'Tab' || e.key.startsWith('Arrow')) { e.preventDefault(); const back = e.key === 'ArrowLeft' || e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey); f[(i + (back ? n - 1 : 1)) % n].focus(); }
+});
+for (const b of document.querySelectorAll('#shiftPad button')) {
+  b.addEventListener('pointerdown', e => { e.preventDefault(); shiftGear(Number(b.dataset.s)); b.classList.add('on'); });
+  for (const t of ['pointerup', 'pointercancel', 'pointerleave']) b.addEventListener(t, () => b.classList.remove('on'));
+  b.addEventListener('contextmenu', e => e.preventDefault());
+}
 $('#btnLobbyBack').addEventListener('click', closeLobby);
 $('#btnCreate').addEventListener('click', createRoom);
 $('#btnCreatePriv').addEventListener('click', createPrivateRoom);
@@ -3627,7 +3740,8 @@ $('#btnRoomLeave').addEventListener('click', pvpLeave);
 $('#btnLeave').addEventListener('click', pvpLeave);
 $('#btnReady').addEventListener('click', () => {
   const p = pvp; if (!p || !p.opp || !p.oppPeer) return;
-  initAudio(); pvpSetSt(p.st === 'ready' ? 'waiting' : 'ready'); pvpPoll();
+  const flip = () => { const q = pvp; if (q !== p || !q.opp || !q.oppPeer) return; initAudio(); pvpSetSt(q.st === 'ready' ? 'waiting' : 'ready'); pvpPoll(); };
+  if (p.st === 'ready') flip(); else askTrans(flip); // ready is sent only after the gearbox is chosen; un-ready needs no question
 });
 initOnline();
 
@@ -3672,7 +3786,7 @@ window.addEventListener('resize', resize); resize();
 /* ---------- controls ---------- */
 const KEYMAP = { ArrowUp: 'gas', KeyW: 'gas', ArrowDown: 'brake', KeyS: 'brake', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'hb' };
 window.addEventListener('keydown', e => {
-  if (nickOpen || e.target.id === 'codeInput') return; // typing a nickname or a room code must not drive the car, toggle music or start a race
+  if (nickOpen || transOpen || e.target.id === 'codeInput') return; // typing a nickname or a room code must not drive the car, toggle music or start a race
   if (e.key === 'Escape') {
     if (e.repeat) return;
     const a = menuEscAction(menuOpen, menuView, state, nickOpen);
@@ -3688,14 +3802,24 @@ window.addEventListener('keydown', e => {
     } else if (e.code === 'KeyM' && !e.repeat && e.target.tagName !== 'SELECT') { setMusic(!musicOn); syncMenuUI(); }
     return;
   }
+  if (!e.repeat && (e.code === 'ShiftLeft' || e.code === 'ShiftRight')) shiftGear(1);
+  if (!e.repeat && e.code === 'KeyZ' && !e.ctrlKey && !e.metaKey && !e.altKey) shiftGear(-1);
   if (KEYMAP[e.code]) { input[KEYMAP[e.code]] = true; if (state !== 'title' || e.code !== 'Space') e.preventDefault(); }
   if (e.code === 'KeyR' && (state === 'race')) resetCar();
   if (e.code === 'KeyM') setMusic(!musicOn);
   if (e.code === 'KeyC' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && !hudEl.hidden) setCamMode(nextCam(camMode), true);
-  if (e.code === 'Enter' && state === 'title' && !onlineUI && !e.target.closest('.music, #tKx')) startRace(); // Enter on a music button or a KX-2 option activates it, not the race
+  if (e.code === 'Enter' && state === 'title' && !onlineUI && !e.target.closest('.music, #tKx')) { e.preventDefault(); askTrans(startRace); } // Enter on a music button or a KX-2 option activates it, not the race
 });
 window.addEventListener('keyup', e => { if (KEYMAP[e.code]) input[KEYMAP[e.code]] = false; });
 window.addEventListener('blur', () => { for (const k in input) input[k] = k === 'steerAxis' ? null : false; releaseTouch(); });
+// Manual only, countdown or race, menu closed. A refused downshift (it would over-rev) is told to the player.
+function shiftGear(dir) {
+  if (trans !== 'manual' || menuOpen || transOpen || (state !== 'count' && state !== 'race')) return;
+  const r = gbShift(choice.car, car.gear, dir, Math.max(0, car.vx * Math.sin(car.h) + car.vz * Math.cos(car.h)));
+  if (!r.ok) { if (r.why === 'rpm') showPop(T('shiftRpm')); return; }
+  car.gear = r.gear;
+  if (state === 'race') car.shiftT = GB.SHIFT_CUT;
+}
 function resetCar() {
   const L = car.loc, p = pts[L.i];
   Object.assign(car, { x: p.x, z: p.z, h: p.h, vx: 0, vz: 0, w: 0, steer: 0, drift: false, idx: L.i, railAgo: Infinity, gutSide: 0, gutT: 0, gutCool: 0, gutDrop: 0 });
@@ -3864,8 +3988,8 @@ function tryLandscape() {
 }
 $('#btnStart').addEventListener('click', tryLandscape);
 $('#btnOnline').addEventListener('click', () => { if ($('#btnOnline').getAttribute('aria-disabled') !== 'true') tryLandscape(); });
-$('#btnStart').addEventListener('click', startRace);
-$('#btnAgain').addEventListener('click', () => pvp ? pvpBackToRoom() : startRace());
+$('#btnStart').addEventListener('click', () => askTrans(startRace));
+$('#btnAgain').addEventListener('click', () => pvp ? pvpBackToRoom() : askTrans(startRace));
 function returnToTitle() {
   resetRace(); camOrbit = 0; $('#count').textContent = ''; $('#pop').classList.remove('show');
   $('#result').hidden = true; $('#hud').hidden = true; $('#title').hidden = false; renderPicker(); $('#btnStart').focus();
