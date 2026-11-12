@@ -300,7 +300,12 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div class="eyebrow" id="courseInfo">黑鷺山 · 下坡</div>
     <h1 class="logo">夜峠<span data-i18n="logo2">下坡</span></h1>
     <div class="stripe"></div>
-    <p class="lead" data-i18n="lead">凌晨兩點的黑鷺山，路上只剩你和前面那台對手車。跟緊它，在彎道甩尾超車，先衝到山腳的人贏。</p>
+    <p class="lead" id="lead" data-i18n="lead">凌晨兩點的黑鷺山，路上只剩你和前面那台對手車。跟緊它，在彎道甩尾超車，先衝到山腳的人贏。</p>
+    <div class="lbl" style="margin-top:16px" data-i18n="modeLbl">模式</div>
+    <div class="pick" id="modePick" role="radiogroup" data-i18n-aria="modeLbl" aria-label="模式"></div>
+    <div id="tTa" class="tctl" hidden>
+      <div class="igrow"><span id="tGhostL" data-i18n="taGhost">幽靈車</span><button id="tGhost" type="button" role="switch" aria-labelledby="tGhostL" aria-checked="true"></button></div>
+    </div>
     <div class="lbl" style="margin-top:16px" data-i18n="pickTrack">選擇賽道</div>
     <div class="pick" id="trackPick" role="radiogroup" data-i18n-aria="pickTrackAria" aria-label="選擇賽道"></div>
     <div class="lbl" style="margin-top:16px" data-i18n="pick">選擇你的車</div>
@@ -344,7 +349,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div class="stripe"></div>
     <div class="stats">
       <div><div class="lbl" id="resTimeLbl" data-i18n="resTime">完賽時間</div><div id="resTime" class="num">—</div></div>
-      <div><div class="lbl" data-i18n="resGap">與對手差距</div><div id="resGap" class="num">—</div></div>
+      <div><div class="lbl" id="resGapLbl" data-i18n="resGap">與對手差距</div><div id="resGap" class="num">—</div></div>
       <div><div class="lbl" data-i18n="resScore">甩尾分數</div><div id="resScore" class="num">—</div></div>
       <div><div class="lbl" data-i18n="resBest">個人最佳</div><div id="resBest" class="num">—</div></div>
       <div id="resOppBox" hidden><div class="lbl" id="resOppLbl" data-i18n="pvpOppTime">對手完賽時間</div><div id="resOpp" class="num">—</div></div>
@@ -400,6 +405,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <div class="igrow"><label for="igSfxVol" data-i18n="igSfxVol">音效音量</label><output id="igSfxOut" for="igSfxVol"></output><input id="igSfxVol" type="range" min="0" max="100" step="5"></div>
       <div class="igrow" id="igKxChimeRow" hidden><span id="igKxChimeL" data-i18n="kxChime">時速警示音</span><button id="igKxChime" type="button" role="switch" aria-labelledby="igKxChimeL" aria-checked="true"></button></div>
       <div class="igrow" id="igKxLetterRow" hidden><span id="igKxLetterL" data-i18n="kxLetter">車門字樣</span><button id="igKxLetter" type="button" role="switch" aria-labelledby="igKxLetterL" aria-checked="true"></button></div>
+      <div class="igrow" id="igGhostRow" hidden><span id="igGhostL" data-i18n="taGhost">幽靈車</span><button id="igGhost" type="button" role="switch" aria-labelledby="igGhostL" aria-checked="true"></button></div>
       <div class="igrow" id="igSteerRow" hidden><span id="igSteerL" data-i18n="igSteer">轉向方式</span><div class="igseg" role="radiogroup" aria-labelledby="igSteerL"><button type="button" role="radio" data-m="drag" data-i18n="stDrag">拖曳</button><button type="button" role="radio" data-m="tilt" data-i18n="stTilt">傾斜</button><button type="button" role="radio" data-m="zones" data-i18n="stZones">分區</button></div></div>
       <div class="igrow" id="igTiltRow" hidden><label for="igTiltSens" data-i18n="igTiltSens">傾斜靈敏度</label><output id="igTiltOut" for="igTiltSens"></output><input id="igTiltSens" type="range" min="0" max="100" step="5"></div>
       <p class="igq" id="igTiltNote" role="status" hidden></p>
@@ -408,7 +414,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <button class="ghost" id="igBack" type="button" data-i18n="igBack">返回</button>
     </div>
     <div id="igConf" class="igview" hidden>
-      <p class="igq" data-i18n="igConfirm">確定認輸？</p>
+      <p class="igq" id="igConfQ" data-i18n="igConfirm">確定認輸？</p>
       <button class="go" id="igYes" type="button" data-i18n="igYes">是，認輸</button>
       <button class="ghost" id="igNo" type="button" data-i18n="igNo">否</button>
     </div>
@@ -456,7 +462,7 @@ const $ = s => document.querySelector(s);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const store = {
   get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
-  set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* storage unavailable: best time just isn't kept */ } }
+  set(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; /* storage unavailable or full: best time just isn't kept */ } }
 };
 /* @own-music:start */
 const OWN_MAX = 50 * 1024 * 1024;
@@ -503,6 +509,93 @@ function kxChime({ enabled, car, state, kmh, over, t, last }) {
   return { over: now, play: now && (last == null || t - last >= KXCHIME.GAP) };
 }
 /* @kx-chime:end */
+/* @timeattack:start */
+// Time attack: best time + ghost per course × car. A ghost is samples { t, s, x, z, h } taken about every DT seconds,
+// stored as "1." + per-field quantized deltas, each a zigzag varint in 6-bit chars (low 5 bits data, bit 5 = more follows).
+const TA = { V: 1, DT: 0.1, MAX_SAMPLES: 6000, MAX_CHARS: 60000, HU: 4096 }; // MAX_SAMPLES: 10 min at 10 Hz; HU: heading units per turn
+const TA_Q = [100, 10, 10, 10]; // t, s, x, z per unit: 0.01 s, 0.1 m
+const TA_ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
+const taKey = (track, car) => 'yatouge-ta-best-' + track + '-' + car;
+const taGhostOn = v => v !== '0'; // saved as '0' / '1'; a missing value means on
+const taWrap = a => a - 2 * Math.PI * Math.round(a / (2 * Math.PI));
+// p: { s, x, z, h }. s is kept as the furthest progress so far, so time-at-distance stays searchable. false = full (no ghost for this run).
+function taRecord(buf, t, p, force) {
+  if (buf.length >= TA.MAX_SAMPLES) return false;
+  const last = buf[buf.length - 1];
+  if (!last || force || t - last.t >= TA.DT - 1e-9) buf.push({ t, s: last ? Math.max(last.s, p.s) : p.s, x: p.x, z: p.z, h: p.h });
+  return true;
+}
+function taEncode(buf) {
+  if (!buf || !buf.length) return null;
+  let out = TA.V + '.';
+  const prev = [0, 0, 0, 0, 0];
+  for (const p of buf) {
+    const q = [Math.round(p.t * TA_Q[0]), Math.round(p.s * TA_Q[1]), Math.round(p.x * TA_Q[2]), Math.round(p.z * TA_Q[3]), Math.round(taWrap(p.h) * TA.HU / (2 * Math.PI))];
+    for (let k = 0; k < 5; k++) {
+      let d = q[k] - prev[k]; prev[k] = q[k];
+      if (k === 4) d -= TA.HU * Math.round(d / TA.HU); // the short way round
+      let v = d >= 0 ? 2 * d : -2 * d - 1;
+      while (v >= 32) { out += TA_ABC[32 + (v % 32)]; v = Math.floor(v / 32); }
+      out += TA_ABC[v];
+    }
+    if (out.length > TA.MAX_CHARS) return null;
+  }
+  return out;
+}
+// null for anything malformed, a different version, time or progress running backwards, or over the caps
+function taDecode(str) {
+  const head = TA.V + '.';
+  if (typeof str !== 'string' || str.length > TA.MAX_CHARS || !str.startsWith(head)) return null;
+  const nums = [];
+  let v = 0, mul = 1, len = 0;
+  for (let i = head.length; i < str.length; i++) {
+    const c = TA_ABC.indexOf(str[i]);
+    if (c < 0) return null;
+    v += (c % 32) * mul; mul *= 32; len++;
+    if (len > 7) return null;
+    if (c < 32) { nums.push(v % 2 ? -(v + 1) / 2 : v / 2); v = 0; mul = 1; len = 0; }
+  }
+  if (len || !nums.length || nums.length % 5 || nums.length / 5 > TA.MAX_SAMPLES) return null;
+  const out = [], acc = [0, 0, 0, 0, 0];
+  for (let i = 0; i < nums.length; i += 5) {
+    if (i && (nums[i] < 0 || nums[i + 1] < 0)) return null;
+    for (let k = 0; k < 5; k++) acc[k] += nums[i + k];
+    out.push({ t: acc[0] / TA_Q[0], s: acc[1] / TA_Q[1], x: acc[2] / TA_Q[2], z: acc[3] / TA_Q[3], h: acc[4] * 2 * Math.PI / TA.HU });
+  }
+  return out;
+}
+// ghost pose at time t (clamped to the recording); i = search hint from the previous call; end = the recording is over
+function taAt(g, t, i0 = 0) {
+  const n = g.length;
+  if (n === 1 || t <= g[0].t) { const a = g[0]; return { x: a.x, z: a.z, h: a.h, s: a.s, i: 0, end: n === 1 }; }
+  if (t >= g[n - 1].t) { const a = g[n - 1]; return { x: a.x, z: a.z, h: a.h, s: a.s, i: n - 2, end: true }; }
+  let i = Math.min(Math.max(0, i0 | 0), n - 2);
+  while (i < n - 2 && g[i + 1].t <= t) i++;
+  while (i > 0 && g[i].t > t) i--;
+  const a = g[i], b = g[i + 1], f = (t - a.t) / (b.t - a.t);
+  return { x: a.x + (b.x - a.x) * f, z: a.z + (b.z - a.z) * f, h: a.h + taWrap(b.h - a.h) * f, s: a.s + (b.s - a.s) * f, i, end: false };
+}
+// when the ghost first reached progress s; null outside its range
+function taTimeAtS(g, s) {
+  if (!g || !g.length || !(s >= g[0].s) || s > g[g.length - 1].s) return null;
+  let lo = 0, hi = g.length - 1;
+  while (lo < hi) { const m = (lo + hi) >> 1; if (g[m].s >= s) hi = m; else lo = m + 1; }
+  if (lo === 0) return g[0].t;
+  const a = g[lo - 1], b = g[lo];
+  return a.t + (s - a.s) / (b.s - a.s) * (b.t - a.t);
+}
+// seconds behind (+) or ahead (−) of the best run at the same point of the course
+function taDelta(g, s, t) { const gt = taTimeAtS(g, s); return gt === null ? null : t - gt; }
+function taFmtDelta(d) { const r = Math.round(Math.abs(d) * 100) / 100; return r === 0 ? '±0.00' : (d < 0 ? '−' : '+') + r.toFixed(2); }
+const taIsNewBest = (prev, t) => !(prev > 0) || t < prev;
+const taSerialize = (t, g) => JSON.stringify({ v: TA.V, t, g: g || null });
+// saved record → { t, g } or null; a bad ghost is dropped but a good time is kept
+function taParse(str) {
+  let o; try { o = JSON.parse(str); } catch (e) { return null; }
+  if (!o || typeof o !== 'object' || Array.isArray(o) || typeof o.t !== 'number' || !(o.t > 0 && o.t < 3600)) return null;
+  return { t: o.t, g: typeof o.g === 'string' && o.g.length <= TA.MAX_CHARS ? o.g : null };
+}
+/* @timeattack:end */
 /* ---------- language (zh = Traditional Chinese, en = English) ---------- */
 const I18N = {
   zh: {
@@ -542,7 +635,11 @@ const I18N = {
     igOn: '開', igOff: '關', kxChime: '時速警示音', kxLetter: '車門字樣', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
     ctlLbl: '操作設定', igSteer: '轉向方式', stDrag: '拖曳', stTilt: '傾斜', stZones: '分區', igTiltSens: '傾斜靈敏度', recenter: '回正', zoneBrake: '煞車 + 手煞', tiltFail: '此環境無法使用傾斜轉向，已改回拖曳',
     transTitle: '選擇變速箱', transAT: '自排 AT', transATd: '自動換檔，專心過彎。', transMT: '手排 MT', transMTd: '自己換檔：Shift 升檔、Z 降檔。換得好比自排快。', transHint: '手機會多出 ▲ ▼ 換檔鈕。每次開賽前都會再問一次。', transKeys: 'Enter 或點一下確認，Esc 取消。',
-    kShift: '手排：升檔／降檔', shiftUp: '升檔', shiftDown: '降檔', shiftRpm: '轉速過高'
+    kShift: '手排：升檔／降檔', shiftUp: '升檔', shiftDown: '降檔', shiftRpm: '轉速過高',
+    modeLbl: '模式', modeRace: '比賽', modeRaceD: '跟對手車比誰先衝到山腳。', modeTa: '計時賽', modeTaD: '沒有對手，挑戰自己的最佳時間與幽靈車。',
+    leadTa: name => `凌晨兩點的${name}，整條路只屬於你。沒有對手，只有碼表和上一次最快的自己。`,
+    taGhost: '幽靈車', taBestIs: t => `最佳 ${t}`, taFirst: '第一次計時', taVsBest: d => `與最佳 ${d} 秒`,
+    taNew: '新紀錄！', taDone: '完賽', taGap: '與最佳差距', taQuit: '放棄', taQuitAsk: '確定放棄這次計時？紀錄不會儲存。', taQuitYes: '是，放棄', taQuitted: '已放棄，紀錄未儲存'
   },
   en: {
     canvas: 'Night Pass Downhill 3D view', time: 'TIME', score: 'DRIFT SCORE', musicOn: 'Music: on', musicOff: 'Music: off', bgmLbl: 'Music', bgmSynth: 'Original', bgmOwn: n => `Mine — ${n}`, ownPick: 'Choose music', ownClear: 'Remove', ownBad: 'Not an audio file', ownBig: 'File over 50 MB', reset: 'Back on road',
@@ -581,7 +678,11 @@ const I18N = {
     igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
     ctlLbl: 'Controls', igSteer: 'Steering', stDrag: 'Drag', stTilt: 'Tilt', stZones: 'Zones', igTiltSens: 'Tilt sensitivity', recenter: 'Re-center', zoneBrake: 'BRAKE + E-BRAKE', tiltFail: 'Tilt steering is unavailable here; switched back to drag.',
     transTitle: 'Choose a gearbox', transAT: 'Automatic AT', transATd: 'Shifts for you. Focus on the corners.', transMT: 'Manual MT', transMTd: 'Shift yourself: Shift = up, Z = down. Shift well and you beat the automatic.', transHint: 'On a phone, ▲ ▼ shift buttons appear. You are asked again before every race.', transKeys: 'Enter or a tap confirms, Esc cancels.',
-    kShift: 'Manual: shift up / down', shiftUp: 'Shift up', shiftDown: 'Shift down', shiftRpm: 'RPM too high'
+    kShift: 'Manual: shift up / down', shiftUp: 'Shift up', shiftDown: 'Shift down', shiftRpm: 'RPM too high',
+    modeLbl: 'Mode', modeRace: 'Race', modeRaceD: 'Beat the rival car to the bottom.', modeTa: 'Time attack', modeTaD: 'No rival. Chase your best time and your ghost car.',
+    leadTa: name => `2 a.m. on ${name}, and the road is all yours. No rival, just the clock and the ghost of your fastest run.`,
+    taGhost: 'Ghost car', taBestIs: t => `Best ${t}`, taFirst: 'First timed run', taVsBest: d => `${d} s vs best`,
+    taNew: 'NEW RECORD', taDone: 'Finished', taGap: 'Gap to best', taQuit: 'Quit', taQuitAsk: 'Quit this run? Nothing will be saved.', taQuitYes: 'Yes, quit', taQuitted: 'Run abandoned. Nothing saved.'
   }
 };
 let lang = store.get('yatouge-lang') || ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
@@ -1891,16 +1992,27 @@ let choice = { car: 'hatch', color: 0 };
 let kxChimeOn = kxOn(store.get('yatouge-kx-chime')), kxLetterOn = kxOn(store.get('yatouge-kx-letter')); // KX-2 options, both default on
 try { const c = JSON.parse(store.get('yatouge-car') || 'null'); if (c && CARS[c.car]) choice = c; } catch (e) { /* ignore bad saved choice */ }
 let playerCar, rivalCar, playerInterior = null; // the 3D cabin is built lazily the first time cockpit view is shown
+// time attack: mode is the title choice; taRun is the run in progress (null otherwise, always null online); ghostCar exists only while that run has a saved ghost
+let mode = store.get('yatouge-mode') === 'ta' ? 'ta' : 'race', taRun = null, ghostCar = null, ghostOn = taGhostOn(store.get('yatouge-ta-ghost'));
 const head = new THREE.SpotLight(0xfff0d0, 2.4, 95, 0.52, 0.55, 1);
 head.position.set(0, 0.9, 2.0);
 const headTarget = new THREE.Object3D(); headTarget.position.set(0, 0, 24); head.target = headTarget;
 function buildCars() {
+  disposeGhost();
   if (playerInterior) { disposeInterior(playerInterior); playerInterior = null; }
   for (const c of [playerCar, rivalCar]) if (c) { scene.remove(c.g); disposeCar(c); } // the cabin is already detached above
   playerCar = makeCar(choice.car, choice.color);
   const rv = rivalFor(trackId, choice.car);
   rivalCar = makeCar(rv.car, rv.color);
   playerCar.g.add(head); playerCar.g.add(headTarget);
+}
+function disposeGhost() { if (ghostCar) { scene.remove(ghostCar.g); disposeCar(ghostCar); ghostCar = null; } }
+// the same car, see-through: makeCar gives every car its own materials, so they can be changed in place (shared textures are untouched)
+function makeGhost() {
+  const c = makeCar(choice.car, choice.color), seen = new Set();
+  c.g.traverse(o => { for (const m of [].concat(o.material || [])) if (!seen.has(m)) { seen.add(m); m.transparent = true; m.opacity *= 0.35; m.depthWrite = false; } });
+  c.g.visible = ghostOn;
+  return c;
 }
 buildCars();
 
@@ -2128,7 +2240,7 @@ function physics(dt) {
     if (vt > 0) { c.vx -= tx * vt; c.vz -= tz * vt; }
   }
   if (pvp) pvpBump(c);
-  else {
+  else if (!taRun) {
     const rp = samplePos(rival.s, rival.lat);
     const cr = carStep(c, CAR_BOX[choice.car], { x: rp.x, z: rp.z, h: rp.h, vis: rival.vis, s: rival.s, lat: rival.lat, v: rival.v, latV: rival.latV }, CAR_BOX[rivalFor(trackId, choice.car).car], roadHW - 1, COLL);
     if (cr) {
@@ -2480,6 +2592,10 @@ function hud(dt) {
   $('#time').textContent = fmtT(playerFinishT ?? raceT);
   $('#score').textContent = Math.round(driftTotal).toLocaleString('zh-TW');
   $('#chain').textContent = driftChain > 0 ? '+' + Math.round(driftChain).toLocaleString('zh-TW') : '';
+  $('#progMe').style.left = clamp(car.loc.s / FINISH_S * 100, 0, 100) + '%';
+  if (popTimer > 0) { popTimer -= dt; if (popTimer <= 0) $('#pop').classList.remove('show'); }
+  if (taRun) { taHud(); return; }
+  $('#progRival').hidden = false;
   const rs = pvp ? (pvp.pose ? pvp.pose.s : null) : rival.s, gap = (rs ?? car.loc.s) - car.loc.s, el = $('#gap');
   if ((state === 'race' || state === 'done') && rs !== null) {
     el.textContent = gap > 0 ? T('behind', Math.round(gap)) : T('ahead', Math.round(-gap));
@@ -2487,9 +2603,17 @@ function hud(dt) {
     const sg = gap > 0 ? 1 : -1;
     if (state === 'race' && sg !== lastGapSign && Math.abs(gap) > 1) { showPop(T(sg < 0 ? 'overtake' : 'passed'), T(sg < 0 ? 'hold' : 'chase')); lastGapSign = sg; }
   } else { el.textContent = pvp ? nickOf(pvp.opp && pvp.opp.nk) : T('rival') + Lz(CARS[rivalFor(trackId, choice.car).car].name); el.className = 'gap behind'; }
-  $('#progMe').style.left = clamp(car.loc.s / FINISH_S * 100, 0, 100) + '%';
   $('#progRival').style.left = clamp((rs ?? 0) / FINISH_S * 100, 0, 100) + '%';
-  if (popTimer > 0) { popTimer -= dt; if (popTimer <= 0) $('#pop').classList.remove('show'); }
+}
+// time attack: the gap line shows the time against the best run at this point of the course; the second dot is the ghost
+function taHud() {
+  const r = taRun, el = $('#gap');
+  const d = state === 'done' ? (r.best > 0 ? playerFinishT - r.best : null) : state === 'race' ? taDelta(r.ghost, car.loc.s, raceT) : null;
+  if (d !== null) { el.textContent = T('taVsBest', taFmtDelta(d)); el.className = 'gap ' + (d > 0 ? 'behind' : 'ahead'); }
+  else { el.textContent = r.best > 0 ? T('taBestIs', fmtT(r.best)) : T('taFirst'); el.className = 'gap'; }
+  const gs = ghostCar && ghostOn ? r.gs : null, pr = $('#progRival');
+  pr.hidden = gs == null;
+  if (gs != null) pr.style.left = clamp(gs / FINISH_S * 100, 0, 100) + '%';
 }
 
 /* ---------- visuals per frame ---------- */
@@ -2506,7 +2630,8 @@ function placeCars(dt) {
   for (const w of playerCar.steer) w.rotation.y = -c.steer * 0.45;
   playerCar.tailMat.color.setHex(c.brakeOn ? 0xff2a36 : 0x7a0b14);
   for (const t of playerCar.tails) t.scale.setScalar(c.brakeOn ? 1.8 : 0.9);
-  const r = pvp ? null : samplePos(rival.s, rival.lat);
+  if (!pvp) rivalCar.g.visible = mode !== 'ta'; // time attack: no rival (also hidden on the title screen while time attack is picked)
+  const r = pvp || taRun ? null : samplePos(rival.s, rival.lat);
   if (r) {
     rivalCar.g.position.set(r.x, r.y, r.z);
     rivalCar.g.rotation.set(Math.atan(-r.grade), r.h + rival.vis, 0, 'YXZ');
@@ -2516,6 +2641,7 @@ function placeCars(dt) {
     rivalCar.tailMat.color.setHex(rb ? 0xff2a36 : 0x7a0b14);
     for (const t of rivalCar.tails) t.scale.setScalar(rb ? 1.8 : 0.9);
   } else if (pvp) placeOpp(dt);
+  placeGhost(dt);
 
   if (c.drift && spd > 8) for (const sx of [-0.84, 0.84]) {
     const wx = c.x + Math.cos(c.h) * sx * -1 - Math.sin(c.h) * 1.3, wz = c.z + Math.sin(c.h) * sx - Math.cos(c.h) * 1.3;
@@ -2524,6 +2650,18 @@ function placeCars(dt) {
   if (r && Math.abs(rival.vis) > 0.2 && rival.v > 8 && Math.random() < 0.5) {
     const h = r.h + rival.vis; puff(r.x - Math.sin(h) * 1.3, r.y, r.z - Math.cos(h) * 1.3, Math.sin(r.h) * rival.v, Math.cos(r.h) * rival.v, 0.8);
   }
+}
+// the ghost replays the best run by time: no physics, no collisions; height and pitch come from the road under it
+function placeGhost(dt) {
+  if (!ghostCar || !taRun) return;
+  ghostCar.g.visible = ghostOn;
+  if (!ghostOn) return;
+  const r = taRun, p = taAt(r.ghost, state === 'race' || state === 'done' ? raceT : 0, r.gi);
+  r.gi = p.i; r.gs = p.s; r.gpos.x = p.x; r.gpos.z = p.z;
+  const L = locate(r.gpos), g = ghostCar.g, moved = Math.hypot(p.x - g.position.x, p.z - g.position.z);
+  g.position.set(p.x, L.y, p.z);
+  g.rotation.set(Math.atan(-L.grade * Math.cos(wrap(p.h - L.h))), p.h, 0, 'YXZ');
+  if (moved < 5) for (const w of ghostCar.spin) w.rotation.x += moved / 0.34;
 }
 /* @camera-modes:start */
 const CAM_MODES = ['chase', 'near', 'cockpit'];
@@ -2910,10 +3048,37 @@ function finishRace() {
   state = 'done'; playerFinishT = raceT; finishTimer = 1.6;
   if (driftChain > 0) { driftTotal += driftChain; driftChain = 0; }
   playerWon = rivalFinishT === null || playerFinishT < rivalFinishT;
-  if (pvp) { pvpFinished(); showPop(T('pvpLine')); } else showPop(T(playerWon ? 'first' : 'second'));
+  if (pvp) { pvpFinished(); showPop(T('pvpLine')); } else if (taRun) { taSample(true); showPop(T('pvpLine')); } else showPop(T(playerWon ? 'first' : 'second'));
+}
+function taSample(force) { const r = taRun; if (!r.full && !taRecord(r.buf, raceT, { s: car.loc.s, x: car.x, z: car.z, h: car.h }, force)) r.full = true; }
+// a new run: the saved best (and its ghost) for this course × car; never online
+function taBegin() {
+  disposeGhost(); taRun = null;
+  if (pvp || mode !== 'ta') return;
+  const rec = taParse(store.get(taKey(trackId, choice.car))), ghost = rec && rec.g ? taDecode(rec.g) : null;
+  taRun = { best: rec ? rec.t : null, ghost, buf: [], full: false, gi: 0, gs: null, gpos: { x: 0, z: 0, idx: 8 } };
+  if (ghost) ghostCar = makeGhost();
+}
+function taEnd() { taRun = null; disposeGhost(); }
+// time attack result: saved only on a new best (the ghost too, unless it is over the size cap); the race-mode best is never touched
+function showTaResult() {
+  const prev = taRun.best, nb = taIsNewBest(prev, playerFinishT);
+  if (nb) {
+    const k = taKey(trackId, choice.car), g = taRun.full ? null : taEncode(taRun.buf);
+    if (!store.set(k, taSerialize(playerFinishT, g)) && g) store.set(k, taSerialize(playerFinishT, null)); // storage full: keep the time without the ghost
+  }
+  const t = $('#resTitle'); t.textContent = T(nb ? 'taNew' : 'taDone'); t.className = 'res-title' + (nb ? ' win' : '');
+  $('#resTime').textContent = fmtT(playerFinishT);
+  $('#resGap').textContent = prev > 0 ? taFmtDelta(playerFinishT - prev) + ' s' : '—';
+  $('#resScore').textContent = Math.round(driftTotal).toLocaleString('zh-TW');
+  $('#resBest').textContent = fmtT(nb ? playerFinishT : prev);
+  $('#hud').hidden = true; $('#result').hidden = false;
+  $('#btnAgain').focus();
 }
 function showResult() {
+  $('#resGapLbl').textContent = T(taRun ? 'taGap' : 'resGap');
   if (pvp) { showPvpResult(); return; }
+  if (taRun) { showTaResult(); return; }
   const win = playerWon;
   const t = $('#resTitle'); t.textContent = T(win ? 'win' : 'lose'); t.className = 'res-title ' + (win ? 'win' : 'lose');
   $('#resTime').textContent = fmtT(playerFinishT);
@@ -2945,8 +3110,31 @@ function renderPicker() {
     b.addEventListener('click', () => { choice = { car: choice.car, color: i }; chosen(); });
     sw.append(b);
   });
-  syncKxUI();
+  syncKxUI(); renderModePicker();
 }
+// race / time attack cards; the time-attack card shows the best for the chosen course × car
+function renderModePicker() {
+  const el = $('#modePick'), best = taParse(store.get(taKey(trackId, choice.car)));
+  el.innerHTML = '';
+  for (const m of ['race', 'ta']) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(m === mode));
+    b.innerHTML = '<b></b><small></small>';
+    b.querySelector('b').textContent = T(m === 'ta' ? 'modeTa' : 'modeRace');
+    b.querySelector('small').textContent = m === 'ta' ? T('modeTaD') + (best ? ' ' + T('taBestIs', fmtT(best.t)) : '') : T('modeRaceD');
+    b.addEventListener('click', () => setMode(m));
+    el.append(b);
+  }
+  $('#lead').textContent = T(mode === 'ta' ? 'leadTa' : 'lead', Lz(TRACKS[trackId].name));
+  syncTaUI();
+}
+function setMode(m) { if (state !== 'title' || m === mode) return; mode = m; store.set('yatouge-mode', m); renderModePicker(); }
+// ghost on / off: the title switch (time attack picked) and the in-game menu row (time-attack run) stay in sync
+function syncTaUI() {
+  $('#tTa').hidden = mode !== 'ta'; $('#igGhostRow').hidden = !taRun;
+  for (const id of ['#tGhost', '#igGhost']) { const b = $(id); b.setAttribute('aria-checked', String(ghostOn)); b.textContent = T(ghostOn ? 'igOn' : 'igOff'); }
+}
+function setGhost(on) { ghostOn = on; store.set('yatouge-ta-ghost', on ? '1' : '0'); if (ghostCar) ghostCar.g.visible = on; syncTaUI(); }
+for (const id of ['#tGhost', '#igGhost']) $(id).addEventListener('click', () => setGhost(!ghostOn));
 // KX-2 options: the title block and the in-game menu rows show only while the player's car is the KX-2; both controls stay in sync
 function syncKxUI() {
   const kx = choice.car === 'hatch';
@@ -2956,7 +3144,7 @@ function syncKxUI() {
 }
 function setKx(kind, on) {
   if (kind === 'chime') { kxChimeOn = on; store.set('yatouge-kx-chime', on ? '1' : '0'); }
-  else { kxLetterOn = on; store.set('yatouge-kx-letter', on ? '1' : '0'); for (const c of [playerCar, rivalCar]) if (c && c.door) c.door.visible = on; }
+  else { kxLetterOn = on; store.set('yatouge-kx-letter', on ? '1' : '0'); for (const c of [playerCar, rivalCar, ghostCar]) if (c && c.door) c.door.visible = on; }
   syncKxUI();
 }
 for (const [id, kind] of [['#tKxChime', 'chime'], ['#igKxChime', 'chime'], ['#tKxLetter', 'letter'], ['#igKxLetter', 'letter']])
@@ -2992,7 +3180,7 @@ $('#langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'z
 applyLang();
 function startRace() {
   document.body.classList.toggle('manual', trans === 'manual');
-  initAudio(); resetRace(); Object.assign(P, CARS[choice.car].phys); camera.clearViewOffset();
+  initAudio(); resetRace(); taBegin(); Object.assign(P, CARS[choice.car].phys); camera.clearViewOffset();
   state = 'count'; countT = 3.999;
   $('#title').hidden = true; $('#result').hidden = true; $('#hud').hidden = false; $('#lobby').hidden = true; $('#room').hidden = true; onlineUI = false;
   camera.position.set(car.x - Math.sin(car.h) * 7, car.loc.y + 3, car.z - Math.cos(car.h) * 7);
@@ -3759,9 +3947,9 @@ function frame(now) {
   }
   if (state === 'race' || state === 'done') {
     acc += dt;
-    while (acc >= FIX) { physics(FIX); if (!pvp) rivalUpdate(FIX); acc -= FIX; }
+    while (acc >= FIX) { physics(FIX); if (!pvp && !taRun) rivalUpdate(FIX); acc -= FIX; }
     raceT += dt; // keeps running after the player finishes so the rival's time is real
-    if (state === 'race') { scoring(dt); if (car.loc.s >= FINISH_S) finishRace(); }
+    if (state === 'race') { if (taRun) taSample(false); scoring(dt); if (car.loc.s >= FINISH_S) finishRace(); }
     if (finishTimer > 0) { finishTimer -= dt; if (finishTimer <= 0) showResult(); }
   }
   placeCars(dt); updateSmoke(dt); updateCamera(dt);
@@ -3808,7 +3996,7 @@ window.addEventListener('keydown', e => {
   if (e.code === 'KeyR' && (state === 'race')) resetCar();
   if (e.code === 'KeyM') setMusic(!musicOn);
   if (e.code === 'KeyC' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && !hudEl.hidden) setCamMode(nextCam(camMode), true);
-  if (e.code === 'Enter' && state === 'title' && !onlineUI && !e.target.closest('.music, #tKx')) { e.preventDefault(); askTrans(startRace); } // Enter on a music button or a KX-2 option activates it, not the race
+  if (e.code === 'Enter' && state === 'title' && !onlineUI && !e.target.closest('.music, #tKx, #tTa')) { e.preventDefault(); askTrans(startRace); } // Enter on a music button or a KX-2 option activates it, not the race
 });
 window.addEventListener('keyup', e => { if (KEYMAP[e.code]) input[KEYMAP[e.code]] = false; });
 window.addEventListener('blur', () => { for (const k in input) input[k] = k === 'steerAxis' ? null : false; releaseTouch(); });
@@ -3991,7 +4179,7 @@ $('#btnOnline').addEventListener('click', () => { if ($('#btnOnline').getAttribu
 $('#btnStart').addEventListener('click', () => askTrans(startRace));
 $('#btnAgain').addEventListener('click', () => pvp ? pvpBackToRoom() : askTrans(startRace));
 function returnToTitle() {
-  resetRace(); camOrbit = 0; $('#count').textContent = ''; $('#pop').classList.remove('show');
+  taEnd(); resetRace(); camOrbit = 0; $('#count').textContent = ''; $('#pop').classList.remove('show');
   $('#result').hidden = true; $('#hud').hidden = true; $('#title').hidden = false; renderPicker(); $('#btnStart').focus();
 }
 $('#btnMenu').addEventListener('click', () => { if (pvp) { pvpLeave(); return; } returnToTitle(); });
@@ -4020,7 +4208,9 @@ function syncMenuUI() {
   $('#igMusicVol').value = volPct(musicVol); $('#igMusicOut').textContent = volPct(musicVol) + '%';
   $('#igSfxVol').value = volPct(sfxVol); $('#igSfxOut').textContent = volPct(sfxVol) + '%';
   $('#igCam').value = camMode; $('#igLang').value = lang;
-  syncKxUI(); syncSteerUI();
+  syncKxUI(); syncSteerUI(); syncTaUI();
+  // time attack: "forfeit" becomes "quit" (back to the title, nothing saved)
+  $('#igForfeit').textContent = T(taRun ? 'taQuit' : 'igForfeit'); $('#igConfQ').textContent = T(taRun ? 'taQuitAsk' : 'igConfirm'); $('#igYes').textContent = T(taRun ? 'taQuitYes' : 'igYes');
 }
 function showMenuView(v, focus) {
   menuView = v;
@@ -4036,10 +4226,10 @@ function openMenu() {
 }
 function closeMenu() { if (!menuOpen) return; menuOpen = false; $('#igmenu').hidden = true; if (document.activeElement) document.activeElement.blur(); }
 function forfeit() {
-  const plan = forfeitPlan(!!pvp); // never saves a best time
+  const plan = forfeitPlan(!!pvp), quit = !!taRun; // never saves a best time
   closeMenu();
   if (plan.action === 'leave') pvpLeave(); else returnToTitle();
-  const n = $('#forfeitNote'); n.textContent = T('igForfeited'); n.hidden = false;
+  const n = $('#forfeitNote'); n.textContent = T(quit ? 'taQuitted' : 'igForfeited'); n.hidden = false;
   clearTimeout(forfeitT); forfeitT = setTimeout(() => { n.hidden = true; }, 2500);
 }
 $('#btnIgm').addEventListener('click', e => { e.currentTarget.blur(); if (menuOpen) closeMenu(); else openMenu(); });
