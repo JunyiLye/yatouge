@@ -537,13 +537,13 @@ const menuEscAction = (open, view, st, nickOpen) => open ? (view === 'main' ? 'c
 const forfeitPlan = isPvp => ({ action: isPvp ? 'leave' : 'title', saveBest: false });
 /* @ingame-menu:end */
 /* @kx-chime:start */
-// KX-2 only: speed warning chime. Starts above 105 km/h, stops below 100 km/h (hysteresis), repeats about every second while over.
-const KXCHIME = { ON: 105, OFF: 100, GAP: 1.0 };
+// KX-2 only: speed warning chime, the original timing: rings above 100 km/h, repeats every 0.9 s while over.
+const KXCHIME = { ON: 100, GAP: 0.9 };
 const kxOn = v => v !== '0'; // saved as '0' / '1'; a missing value means on
 // over = was over the limit on the previous call, last = time of the previous chime (null if none); returns the new over flag and whether to ring now
 function kxChime({ enabled, car, state, kmh, over, t, last }) {
   if (!enabled || car !== 'hatch' || (state !== 'count' && state !== 'race')) return { over: false, play: false };
-  const now = over ? kmh >= KXCHIME.OFF : kmh > KXCHIME.ON;
+  const now = kmh > KXCHIME.ON;
   return { over: now, play: now && (last == null || t - last >= KXCHIME.GAP) };
 }
 /* @kx-chime:end */
@@ -2561,19 +2561,19 @@ function setVolume(kind, v) {
 }
 function beep(f, dur) { if (!ac) return; tone('square', f, ac.currentTime, dur, 0.18, 4000, master); }
 function sfxHit(v) { if (!ac) return; noise(ac.currentTime, 0.25, 0.25 + v * 0.4, 'lowpass', 900, master); }
-// one soft bell tone: sine plus a triangle for body, 5 ms attack, 0.6 s decay, through the SFX bus
+// the original bell: a sine plus its 2.76× partial, 4 ms attack, 0.85 s decay
 let chimeBus = null; // own gain so a stop (finish, forfeit, setting off) can cut a ringing chime at once
 function chimeTone(f, t) {
-  for (const [type, v] of [['sine', 0.1], ['triangle', 0.04]]) {
-    const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f;
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
-    o.connect(g).connect(chimeBus); o.start(t); o.stop(t + 0.65);
+  for (const [m, v] of [[1, 0.13], [2.76, 0.035]]) {
+    const o = ac.createOscillator(), g = ac.createGain(); o.type = 'sine'; o.frequency.value = f * m;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.85);
+    o.connect(g).connect(chimeBus); o.start(t); o.stop(t + 0.9);
   }
 }
 const kxChimeRing = t => { // ding, then dong
   if (!chimeBus) { chimeBus = ac.createGain(); chimeBus.connect(master); }
   chimeBus.gain.cancelScheduledValues(t); chimeBus.gain.setValueAtTime(1, t);
-  chimeTone(1300, t); chimeTone(1050, t + 0.28);
+  chimeTone(2093, t); chimeTone(1661, t + 0.32);
 };
 const kxChimeCut = () => { if (chimeBus) { chimeBus.gain.cancelScheduledValues(ac.currentTime); chimeBus.gain.setTargetAtTime(0, ac.currentTime, 0.02); } };
 // gtr one-shots: self-terminating nodes (source/oscillator stop → garbage-collected), scheduled on the audio clock, no timers
