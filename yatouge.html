@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no">
 <title>夜峠下坡</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -23,6 +23,11 @@
 [hidden] { display: none !important; }
 html, body { height: 100%; margin: 0; background: var(--night); color: var(--ink); overflow: hidden; font-family: var(--body); -webkit-user-select: none; user-select: none; }
 #c { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+/* phone taps: no double-tap zoom / 300 ms delay (iOS ignores user-scalable=no), no highlight flash, no long-press callout or selection; the driving controls below keep touch-action: none */
+html, body { -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; touch-action: manipulation; }
+button, label, select, input, .screen, .tools { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+button, label, select, input[type="range"], input[type="checkbox"] { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+input[type="text"], input:not([type]) { -webkit-user-select: text; user-select: text; -webkit-touch-callout: default; }
 button { font: inherit; color: inherit; cursor: pointer; }
 button:focus-visible { outline: 2px solid var(--sodium); outline-offset: 2px; }
 
@@ -131,6 +136,8 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 .music button { background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; font-size: 13px; white-space: nowrap; }
 .music button:hover { border-color: var(--sodium); }
 .music button[hidden] { display: none; }
+.tctl .igrow { margin-top: 8px; }
+.tctl .igq { font-size: 13px; color: var(--dim); }
 .music .musicsel { flex: 1 1 100%; min-width: 0; text-align: left; overflow: hidden; text-overflow: ellipsis; border-color: var(--sodium); background: rgba(255,162,58,.1); }
 @media (min-width: 900px) { #title, #lobby, #room { justify-items: start; padding-left: 6vw; background: linear-gradient(90deg, rgba(5,7,15,.9) 0 38%, rgba(5,7,15,.15) 70%); } }
 .go { background: var(--sodium); color: #1a0f02; border: 0; border-radius: 4px; padding: 14px 30px; font-size: 18px; font-weight: 700; letter-spacing: .12em; }
@@ -290,6 +297,12 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <button id="btnPick" type="button" data-i18n="ownPick">選擇音樂</button>
       <button id="btnOwnClear" type="button" data-i18n="ownClear" hidden>移除</button>
       <input id="ownFile" type="file" accept="audio/*" hidden tabindex="-1" aria-hidden="true">
+    </div>
+    <div id="tCtl" class="tctl" hidden>
+      <div class="lbl" style="margin-top:16px" data-i18n="ctlLbl">操作設定</div>
+      <div class="igrow" id="tSteerRow"><span id="tSteerL" data-i18n="igSteer">轉向方式</span><div class="igseg" role="radiogroup" aria-labelledby="tSteerL"><button type="button" role="radio" data-m="drag" data-i18n="stDrag">拖曳</button><button type="button" role="radio" data-m="tilt" data-i18n="stTilt">傾斜</button><button type="button" role="radio" data-m="zones" data-i18n="stZones">分區</button></div></div>
+      <div class="igrow" id="tTiltRow" hidden><label for="tTiltSens" data-i18n="igTiltSens">傾斜靈敏度</label><output id="tTiltOut" for="tTiltSens"></output><input id="tTiltSens" type="range" min="0" max="100" step="5"></div>
+      <p class="igq" id="tTiltNote" role="status" hidden></p>
     </div>
     <div class="keys">
       <span><kbd>↑</kbd> <kbd>W</kbd></span><span data-i18n="kGas">油門</span>
@@ -480,7 +493,7 @@ const I18N = {
     pvpPlayer: '玩家', pvpYouTag: n => `${n}（你）`, pvpNickIs: n => `你的暱稱：${n}。`, pvpTimeOf: n => `${n} 完賽時間`,
     igAria: '選單', igTitle: '選單', igResume: '繼續', igSettings: '設定', igForfeit: '認輸', igBack: '返回', igMusic: '音樂', igMusicVol: '音樂音量', igSfxVol: '音效音量', igCam: '鏡頭', igLang: '語言',
     igOn: '開', igOff: '關', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
-    igSteer: '轉向方式', stDrag: '拖曳', stTilt: '傾斜', stZones: '分區', igTiltSens: '傾斜靈敏度', recenter: '回正', zoneBrake: '煞車 + 手煞', tiltFail: '此環境無法使用傾斜轉向，已改回拖曳'
+    ctlLbl: '操作設定', igSteer: '轉向方式', stDrag: '拖曳', stTilt: '傾斜', stZones: '分區', igTiltSens: '傾斜靈敏度', recenter: '回正', zoneBrake: '煞車 + 手煞', tiltFail: '此環境無法使用傾斜轉向，已改回拖曳'
   },
   en: {
     canvas: 'Night Pass Downhill 3D view', time: 'TIME', score: 'DRIFT SCORE', musicOn: 'Music: on', musicOff: 'Music: off', bgmLbl: 'Music', bgmSynth: 'Original', bgmOwn: n => `Mine — ${n}`, ownPick: 'Choose music', ownClear: 'Remove', ownBad: 'Not an audio file', ownBig: 'File over 50 MB', reset: 'Back on road',
@@ -517,7 +530,7 @@ const I18N = {
     pvpPlayer: 'Player', pvpYouTag: n => `${n} (you)`, pvpNickIs: n => `Your nickname: ${n}.`, pvpTimeOf: n => `${n} · finish time`,
     igAria: 'Menu', igTitle: 'Menu', igResume: 'Resume', igSettings: 'Settings', igForfeit: 'Forfeit', igBack: 'Back', igMusic: 'Music', igMusicVol: 'Music volume', igSfxVol: 'Sound effects volume', igCam: 'Camera', igLang: 'Language',
     igOn: 'On', igOff: 'Off', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
-    igSteer: 'Steering', stDrag: 'Drag', stTilt: 'Tilt', stZones: 'Zones', igTiltSens: 'Tilt sensitivity', recenter: 'Re-center', zoneBrake: 'BRAKE + E-BRAKE', tiltFail: 'Tilt steering is unavailable here; switched back to drag.'
+    ctlLbl: 'Controls', igSteer: 'Steering', stDrag: 'Drag', stTilt: 'Tilt', stZones: 'Zones', igTiltSens: 'Tilt sensitivity', recenter: 'Re-center', zoneBrake: 'BRAKE + E-BRAKE', tiltFail: 'Tilt steering is unavailable here; switched back to drag.'
   }
 };
 let lang = store.get('yatouge-lang') || ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
@@ -1539,6 +1552,45 @@ function disposeTree(root, shared) {
   });
 }
 /* @dispose:end */
+/* @lettering:start */
+// KX-2 door lettering ink: white on dark paint, black on light paint (Rec.709 luma of the top colour)
+function doorInkLight(hex) { return (0.2126 * ((hex >> 16) & 255) + 0.7152 * ((hex >> 8) & 255) + 0.0722 * (hex & 255)) / 255 < 0.5; }
+/* @lettering:end */
+// KX-2 door lettering (own words) and the small wide-spaced TOUGE nameplate: created once per ink / once, shared by every KX-2
+const CJK_BOLD = '"Noto Sans JP","Hiragino Kaku Gothic ProN","Yu Gothic","Microsoft JhengHei","PingFang TC",sans-serif';
+const doorTex = {};
+function doorLetteringTex(light) {
+  return doorTex[light] || (doorTex[light] = canvasTex(1024, 160, (g, w, h) => {
+    const big = '夜峠酒舗', small = '（自家用）', gap = 14;
+    g.textBaseline = 'alphabetic'; g.fillStyle = light ? '#f4f5f7' : '#08080a';
+    g.font = `900 130px ${CJK_BOLD}`; const wb = g.measureText(big).width;
+    g.font = `800 70px ${CJK_BOLD}`; const ws = g.measureText(small).width;
+    const x0 = (w - wb - ws - gap) / 2, base = 132;
+    g.font = `900 130px ${CJK_BOLD}`; g.fillText(big, x0, base);
+    g.font = `800 70px ${CJK_BOLD}`; g.fillText(small, x0 + wb + gap, base);
+  }));
+}
+const trimTex = {};
+function trimBadgeTex(light) { // rear-left trim badge: bold wide "KX-2" then smaller "DOWNHILL 16" on one baseline
+  return trimTex[light] || (trimTex[light] = canvasTex(640, 96, (g, w, h) => {
+    g.textBaseline = 'alphabetic'; g.fillStyle = light ? '#f4f5f7' : '#08080a';
+    const sp = v => { if ('letterSpacing' in g) g.letterSpacing = v; };
+    g.font = '900 64px "Arial Black", Arial, sans-serif'; sp('10px'); const wb = g.measureText('KX-2').width;
+    g.font = '700 34px Arial, sans-serif'; sp('3px'); const ws = g.measureText('DOWNHILL 16').width;
+    const gap = 22, x0 = (w - wb - ws - gap) / 2, base = 74;
+    g.font = '900 64px "Arial Black", Arial, sans-serif'; sp('10px'); g.fillText('KX-2', x0, base);
+    g.font = '700 34px Arial, sans-serif'; sp('3px'); g.fillText('DOWNHILL 16', x0 + wb + gap, base);
+  }));
+}
+let tougeTex = null;
+function tougeNameplateTex() {
+  return tougeTex || (tougeTex = canvasTex(512, 80, (g, w, h) => {
+    g.font = '900 56px "Arial Black", Arial, sans-serif'; g.textBaseline = 'middle'; g.textAlign = 'center'; g.lineJoin = 'round';
+    if ('letterSpacing' in g) g.letterSpacing = '14px'; // wide-set caps; engines without letterSpacing just get tighter text
+    g.lineWidth = 9; g.strokeStyle = '#101114'; g.strokeText('TOUGE', w / 2 + 7, h / 2 + 3);
+    g.fillStyle = '#e6e9ee'; g.fillText('TOUGE', w / 2 + 7, h / 2 + 3);
+  }));
+}
 // GT-32 trunk badge (own name, no real marque): created once, shared by every GT-32 on screen
 let badgeTex = null;
 function gtBadgeTex() {
@@ -1614,6 +1666,14 @@ function makeCar(style, colorIdx) {
     const gr = add(box(1.55, 0.14, 0.03), black, 0, 0.62, nose(0.62) + 0.008); gr.rotation.x = -0.229; // grille band right under the hood edge, flush with the corner lamps
     for (const y of [0.63, 0.655, 0.68]) add(box(1.5, 0.01, 0.006), slat, 0, y, nose(y) + 0.026).rotation.x = -0.229;
     add(box(0.3, 0.13, 0.012), plate, 0.25, 0.45, 2.181); // blank front plate, off-centre to the car's left (+x)
+    // door lettering on the car's right door only (-x, driver's side): flat plane 4 mm off the wall, yawed to the wall slope; nameplates rear and front (-x = car's right)
+    { const zc = 0.21, y = 0.72, w = z => 0.82 * widthK(S, y, z), m = new THREE.MeshBasicMaterial({ map: doorLetteringTex(doorInkLight(col.top)), transparent: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+      const p = add(new THREE.PlaneGeometry(0.9, 0.14), m, -(w(zc) + 0.004), y, zc); p.rotation.y = -Math.PI / 2 - Math.atan((w(zc + 0.02) - w(zc - 0.02)) / 0.04); }
+    const nameMat = new THREE.MeshBasicMaterial({ map: tougeNameplateTex(), transparent: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    add(new THREE.PlaneGeometry(0.32, 0.05), nameMat, -0.47, 0.862, -2.158).rotation.y = Math.PI; // above the right tail cluster, facing -z
+    const trimMat = new THREE.MeshBasicMaterial({ map: trimBadgeTex(doorInkLight(col.top)), transparent: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    add(new THREE.PlaneGeometry(0.3, 0.045), trimMat, 0.47, 0.862, -2.158).rotation.y = Math.PI; // above the left (+x) tail cluster
+    add(new THREE.PlaneGeometry(0.16, 0.025), nameMat, -0.25, 0.585, nose(0.585) + 0.03).rotation.x = -0.229; // grille band, below the slats, right of centre
     const hood = add(box(0.5, 0.014, 1.15), paint, 0, 0.811, 1.4); hood.rotation.x = 0.147; // slightly raised hood centre, following the hood slope
     add(box(1.5, 0.24, 0.02), black, 0, 0.72, -2.18); // full-width black tail panel
     add(box(0.34, 0.11, 0.01), plate, 0, 0.72, -2.19); // blank plate
@@ -3228,7 +3288,7 @@ function courseBox(id) {
   return boxCache[id];
 }
 // free the GPU side of a car we are done with (the shared glow / badge textures stay)
-function disposeCar(c) { disposeTree(c.g, new Set([glowTex, badgeTex])); }
+function disposeCar(c) { disposeTree(c.g, new Set([glowTex, badgeTex, tougeTex, doorTex[true], doorTex[false], trimTex[true], trimTex[false]])); }
 const pvpCheck = pres => validatePeerState(pres, courseBox(pres && NET.TRACKS.includes(pres.trk) ? pres.trk : trackId));
 function pvpPublish(extra) {
   const p = pvp; if (!p) return;
@@ -3600,8 +3660,23 @@ function resetCar() {
   Object.assign(car, { x: p.x, z: p.z, h: p.h, vx: 0, vz: 0, w: 0, steer: 0, drift: false, idx: L.i, railAgo: Infinity, gutSide: 0, gutT: 0, gutCool: 0, gutDrop: 0 });
   car.loc = locate(car); driftChain = 0;
 }
+/* @tapguard:start */
+// iOS double-tap zoom backstop. Only a second tap on a NON-interactive spot is cancelled; cancelling touchend on a button would eat its click.
+const TAPGUARD = { GAP_MS: 350 };
+const blockDoubleTap = (prevEnd, now, interactive) => !interactive && prevEnd !== null && now > prevEnd && now - prevEnd < TAPGUARD.GAP_MS;
+/* @tapguard:end */
 const coarse = window.matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
-if (coarse) { document.body.classList.add('coarse'); $('#touch').hidden = false; }
+if (coarse) {
+  document.body.classList.add('coarse'); $('#touch').hidden = false;
+  for (const t of ['gesturestart', 'gesturechange', 'gestureend']) document.addEventListener(t, e => e.preventDefault(), { passive: false }); // iOS pinch zoom
+  let lastTapEnd = null;
+  document.addEventListener('touchend', e => {
+    if (e.touches.length) return; // a multi-finger release is steering, not a tap
+    const now = e.timeStamp;
+    if (blockDoubleTap(lastTapEnd, now, !!(e.target.closest && e.target.closest('button, input, select, label, a, textarea')))) e.preventDefault();
+    lastTapEnd = now;
+  }, { passive: false });
+}
 // Every touch control tracks its own pointer ids, so steering and pedals work at once; each releases on up / cancel / lost capture.
 const touchRelease = [];
 function releaseTouch() { for (const f of touchRelease) f(); }
@@ -3676,10 +3751,13 @@ async function pickSteer(m) {
 }
 function syncSteerUI() {
   const touchUI = document.body.classList.contains('coarse'); // not `coarse` itself: applyLang() reaches here before that const exists
-  $('#igSteerRow').hidden = !touchUI; $('#igTiltRow').hidden = !touchUI || steerMode !== 'tilt';
-  for (const b of document.querySelectorAll('#igSteerRow [data-m]')) b.setAttribute('aria-checked', String(b.dataset.m === steerMode));
-  $('#igTiltSens').value = Math.round(tiltSens * 100); $('#igTiltOut').textContent = Math.round(tiltSens * 100) + '%';
-  const n = $('#igTiltNote'); n.textContent = tiltNoteKey ? T(tiltNoteKey) : ''; n.hidden = !tiltNoteKey;
+  $('#tCtl').hidden = !touchUI;
+  $('#igSteerRow').hidden = !touchUI; $('#igTiltRow').hidden = $('#tTiltRow').hidden = !touchUI || steerMode !== 'tilt';
+  for (const b of document.querySelectorAll('#igSteerRow [data-m], #tSteerRow [data-m]')) b.setAttribute('aria-checked', String(b.dataset.m === steerMode));
+  for (const p of ['ig', 't']) {
+    $('#' + p + 'TiltSens').value = Math.round(tiltSens * 100); $('#' + p + 'TiltOut').textContent = Math.round(tiltSens * 100) + '%';
+    const n = $('#' + p + 'TiltNote'); n.textContent = tiltNoteKey ? T(tiltNoteKey) : ''; n.hidden = !tiltNoteKey;
+  }
 }
 function syncZoneUI() {
   const z = [...ptrs.values()];
@@ -3716,8 +3794,8 @@ function controlsTick(dt) {
     else { tiltSm = tiltSmooth(tiltSm, tiltSteer(tiltRaw, tiltCenter, tiltMaxAngle(tiltSens)), dt); input.steerAxis = tiltSm; }
   }
 }
-for (const b of document.querySelectorAll('#igSteerRow [data-m]')) b.addEventListener('click', () => pickSteer(b.dataset.m));
-$('#igTiltSens').addEventListener('input', e => { tiltSens = tiltSensOf(e.target.value); store.set('yatouge-tilt-sens', String(Math.round(tiltSens * 100))); syncSteerUI(); });
+for (const b of document.querySelectorAll('#igSteerRow [data-m], #tSteerRow [data-m]')) b.addEventListener('click', () => pickSteer(b.dataset.m));
+for (const id of ['#igTiltSens', '#tTiltSens']) $(id).addEventListener('input', e => { tiltSens = tiltSensOf(e.target.value); store.set('yatouge-tilt-sens', String(Math.round(tiltSens * 100))); syncSteerUI(); });
 $('#btnRecenter').addEventListener('click', e => { tiltCalibrate(); e.currentTarget.blur(); });
 tiltSens = tiltSensOf(store.get('yatouge-tilt-sens'));
 if (coarse) { // a saved tilt choice is re-tried quietly: no sensor (or iOS, which needs a tap to grant) just leaves drag on
