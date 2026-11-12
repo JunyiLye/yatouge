@@ -195,6 +195,13 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 .plst.ok { color: var(--sodium); }
 .roomrow.live small { color: var(--sodium); }
 .watchn { font-size: 12px; color: var(--dim); margin-top: 6px; }
+/* Sake Run HUD: one cup per wall contact still allowed, then the sake level */
+.sakehud { display: flex; align-items: center; gap: 10px; font-size: 13px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.sakehud[hidden] { display: none; }
+.cups { display: inline-flex; gap: 4px; }
+.cups i { width: 11px; height: 14px; background: var(--sodium); clip-path: polygon(0 0, 100% 0, 82% 100%, 18% 100%); }
+.cups i.off { background: rgba(255,255,255,.16); }
+#time.low { color: #ff5a5a; }
 /* spectator view: names / gap / result top left, view buttons and leave at the bottom (thumb reach on a phone) */
 #spec { position: fixed; inset: 0; pointer-events: none; }
 .spec-tl { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(12px + env(safe-area-inset-left, 0px)); width: min(300px, calc(100% - 24px)); box-sizing: border-box; }
@@ -277,9 +284,10 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 <div id="hud" hidden>
   <div id="zones" aria-hidden="true"><div class="zn zl">◀</div><div class="zn zr">▶</div><div class="zn zb" data-i18n="zoneBrake">煞車 + 手煞</div></div>
   <div class="hud-tl panel">
-    <div class="lbl" data-i18n="time">時間</div>
+    <div class="lbl" id="timeLbl" data-i18n="time">時間</div>
     <div id="time" class="num">0:00.00</div>
     <div id="gap" class="gap">—</div>
+    <div id="sakeHud" class="sakehud" hidden><span id="sakeCups" class="cups" role="img"></span><span id="sakeLiq"></span></div>
     <div class="prog"><i id="progRival"></i><i id="progMe"></i></div>
     <div id="watchN" class="watchn" hidden></div>
   </div>
@@ -344,6 +352,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div id="tTa" class="tctl" hidden>
       <div class="igrow"><span id="tGhostL" data-i18n="taGhost">幽靈車</span><button id="tGhost" type="button" role="switch" aria-labelledby="tGhostL" aria-checked="true"></button></div>
     </div>
+    <p id="tSake" class="note" data-i18n="sakeLocked" hidden></p>
     <div class="lbl" style="margin-top:16px" data-i18n="pickTrack">選擇賽道</div>
     <div class="pick" id="trackPick" role="radiogroup" data-i18n-aria="pickTrackAria" aria-label="選擇賽道"></div>
     <div class="lbl" style="margin-top:16px" data-i18n="pick">選擇你的車</div>
@@ -382,14 +391,15 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 
 <div id="result" class="screen" hidden>
   <div class="sheet">
-    <div class="eyebrow" data-i18n="resEyebrow">山腳終點</div>
+    <div class="eyebrow" id="resEyebrow" data-i18n="resEyebrow">山腳終點</div>
     <h2 id="resTitle" class="res-title">你贏了</h2>
     <div class="stripe"></div>
     <div class="stats">
       <div><div class="lbl" id="resTimeLbl" data-i18n="resTime">完賽時間</div><div id="resTime" class="num">—</div></div>
       <div><div class="lbl" id="resGapLbl" data-i18n="resGap">與對手差距</div><div id="resGap" class="num">—</div></div>
-      <div><div class="lbl" data-i18n="resScore">甩尾分數</div><div id="resScore" class="num">—</div></div>
-      <div><div class="lbl" data-i18n="resBest">個人最佳</div><div id="resBest" class="num">—</div></div>
+      <div><div class="lbl" id="resScoreLbl" data-i18n="resScore">甩尾分數</div><div id="resScore" class="num">—</div></div>
+      <div><div class="lbl" id="resBestLbl" data-i18n="resBest">個人最佳</div><div id="resBest" class="num">—</div></div>
+      <div id="resSakeBox" hidden><div class="lbl" data-i18n="sakeLiqLbl">剩餘酒量</div><div id="resSake" class="num">—</div></div>
       <div id="resOppBox" hidden><div class="lbl" id="resOppLbl" data-i18n="pvpOppTime">對手完賽時間</div><div id="resOpp" class="num">—</div></div>
     </div>
     <div class="actions"><button class="go" id="btnMenu" type="button" data-i18n="menu">回主畫面選車</button><button class="ghost" id="btnAgain" type="button" data-i18n="again">同一台再跑</button></div>
@@ -634,6 +644,58 @@ function taParse(str) {
   return { t: o.t, g: typeof o.g === 'string' && o.g.length <= TA.MAX_CHARS ? o.g : null };
 }
 /* @timeattack:end */
+/* @sake:start */
+// Sake Run: deliver a cup of sake down Seiran in the KX-2 cockpit. LIMIT s on the clock; the HITS-th wall contact fails at once.
+// A contact is any corner on the rail; touching again less than GAP s after the last touching step is still the same contact.
+const SAKE = { LIMIT: 195, HITS: 3, GAP: 0.4, MAX_TILT: 25 * Math.PI / 180, W: 9, ZETA: 0.15, G: 9.81, SPILL_MIN: 0.03, SPILL_MAX: 0.1, V_LO: 1, V_HI: 14 };
+const sakeKey = 'yatouge-sake-best';
+const sakeNewHits = () => ({ n: 0, off: Infinity, hit: false });
+// one physics step: off = seconds since the last touching step; hit = a new contact started this step
+function sakeContact(st, touching, dt) {
+  if (!touching) return { n: st.n, off: st.off + (dt > 0 ? dt : 0), hit: false };
+  const hit = st.off >= SAKE.GAP - 1e-6;
+  return { n: st.n + (hit ? 1 : 0), off: 0, hit };
+}
+const sakeLeft = t => Math.max(0, SAKE.LIMIT - t);
+// 'hits' | 'time' | 'win' | null (still running); a finish needs time left > 0
+function sakeJudge({ n, t, finished }) {
+  if (n >= SAKE.HITS) return 'hits';
+  if (t >= SAKE.LIMIT) return 'time';
+  return finished ? 'win' : null;
+}
+// liquid surface as a damped spring toward the tilt the G force asks for (atan(a / g)), capped at MAX_TILT.
+// p > 0: liquid piled toward the front (braking); r > 0: toward the right. aLong forward +, aLat right + (m/s²).
+const sakeNewSlosh = () => ({ p: 0, r: 0, vp: 0, vr: 0 });
+function sakeSlosh(s, aLong, aLat, dt) {
+  const M = SAKE.MAX_TILT, W = SAKE.W, Z = SAKE.ZETA, fin = v => (Number.isFinite(v) ? v : 0);
+  dt = Math.min(Math.max(fin(dt), 0), 0.1);
+  let tp = Math.atan(-fin(aLong) / SAKE.G), tr = Math.atan(-fin(aLat) / SAKE.G);
+  const tm = Math.hypot(tp, tr); if (tm > M) { tp *= M / tm; tr *= M / tm; }
+  let { p, r, vp, vr } = s;
+  const n = Math.ceil(dt * 240), h = n ? dt / n : 0;
+  for (let k = 0; k < n; k++) {
+    vp += (W * W * (tp - p) - 2 * Z * W * vp) * h; p += vp * h;
+    vr += (W * W * (tr - r) - 2 * Z * W * vr) * h; r += vr * h;
+    const m = Math.hypot(p, r);
+    if (m > M) { // at the cap: stop moving outward
+      const ux = p / m, uy = r / m, out = vp * ux + vr * uy;
+      p = ux * M; r = uy * M;
+      if (out > 0) { vp -= out * ux; vr -= out * uy; }
+    }
+  }
+  return { p, r, vp, vr };
+}
+// fraction of the cup lost on a new wall contact; v = speed change of the impact (m/s)
+function sakeSpill(v) {
+  const k = Math.min(1, Math.max(0, ((Number.isFinite(v) ? v : 0) - SAKE.V_LO) / (SAKE.V_HI - SAKE.V_LO)));
+  return k >= 1 ? SAKE.SPILL_MAX : SAKE.SPILL_MIN + (SAKE.SPILL_MAX - SAKE.SPILL_MIN) * k;
+}
+function sakeParseBest(v) {
+  const n = typeof v === 'string' && v.trim() !== '' ? Number(v) : NaN;
+  return n > 0 && n < SAKE.LIMIT ? n : null;
+}
+const sakeIsNewBest = (prev, t) => !(prev > 0) || t < prev;
+/* @sake:end */
 /* ---------- language (zh = Traditional Chinese, en = English) ---------- */
 const I18N = {
   zh: {
@@ -680,7 +742,15 @@ const I18N = {
     taNew: '新紀錄！', taDone: '完賽', taGap: '與最佳差距', taQuit: '放棄', taQuitAsk: '確定放棄這次計時？紀錄不會儲存。', taQuitYes: '是，放棄', taQuitted: '已放棄，紀錄未儲存',
     specRow: (track, n) => `${track} · 比賽中・觀戰 · ${n} 人觀戰`, specEyebrow: '觀戰中', specOver: '全景', specLeave: '離開觀戰', specViewAria: '觀戰視角',
     specGap: n => `差距 ${n} m`, specPos: n => `第 ${n}`, specWins: n => `${n} 獲勝`, specWaitOther: '等待另一台衝線…', specBetween: '這場結束了，等待下一場…',
-    specWaitHost: '等待比賽資料…', specWatching: n => `${n} 人觀戰中`, specCarLeft: '已離開'
+    specWaitHost: '等待比賽資料…', specWatching: n => `${n} 人觀戰中`, specCarLeft: '已離開',
+    modeSake: '送酒模式', modeSakeD: '開白色 KX-2 從青嵐峠送一杯酒下山。限時 3:15，碰牆第三次就失敗。',
+    leadSake: name => `凌晨兩點的${name}，杯架上放著一杯要送下山的酒。3 分 15 秒內送到山腳，別讓車子擦到護欄。`,
+    sakeLocked: '送酒模式固定使用白色 KX-2、青嵐峠與車內視角，不會改動你原本的選擇。',
+    sakeLeftLbl: '剩餘時間', sakeCupsAria: n => `還能碰牆 ${n} 次`, sakeLiq: n => `酒 ${n}%`,
+    sakeHit: (n, max) => `碰牆 ${n}/${max}`, sakeHitSub: '酒灑出來了一點',
+    sakeOk: '酒送達！', sakeFailHits: '撞太多次了', sakeFailTime: '超時', sakeEyebrowFail: '送酒失敗', sakeNew: '新紀錄！',
+    sakeUsed: '用時', sakeRemain: '剩餘時間', sakeWalls: '碰牆次數', sakeLiqLbl: '剩餘酒量', sakeBest: '最佳紀錄',
+    sakeRetry: '再挑戰', sakeTitle: '回主畫面', sakeQuitAsk: '確定放棄這次送酒？紀錄不會儲存。'
   },
   en: {
     canvas: 'Night Pass Downhill 3D view', time: 'TIME', score: 'DRIFT SCORE', musicOn: 'Music: on', musicOff: 'Music: off', bgmLbl: 'Music', bgmSynth: 'Original', bgmOwn: n => `Mine — ${n}`, ownPick: 'Choose music', ownClear: 'Remove', ownBad: 'Not an audio file', ownBig: 'File over 50 MB', reset: 'Back on road',
@@ -726,7 +796,15 @@ const I18N = {
     taNew: 'NEW RECORD', taDone: 'Finished', taGap: 'Gap to best', taQuit: 'Quit', taQuitAsk: 'Quit this run? Nothing will be saved.', taQuitYes: 'Yes, quit', taQuitted: 'Run abandoned. Nothing saved.',
     specRow: (track, n) => `${track} · Racing · Watch · ${n} watching`, specEyebrow: 'Watching', specOver: 'Overview', specLeave: 'Stop watching', specViewAria: 'Spectator view',
     specGap: n => `Gap ${n} m`, specPos: n => `P${n}`, specWins: n => `${n} wins`, specWaitOther: 'Waiting for the other car…', specBetween: 'Race over. Waiting for the next one…',
-    specWaitHost: 'Waiting for race data…', specWatching: n => `${n} watching`, specCarLeft: 'Left'
+    specWaitHost: 'Waiting for race data…', specWatching: n => `${n} watching`, specCarLeft: 'Left',
+    modeSake: 'Sake Run', modeSakeD: 'Carry a cup of sake down Seiran in the white KX-2. 3:15 on the clock; the third wall hit ends the run.',
+    leadSake: name => `2 a.m. on ${name}, with a cup of sake in the holder. Get it to the bottom within 3:15, and keep off the rails.`,
+    sakeLocked: 'Sake Run always uses the white KX-2, Seiran Pass and the cockpit view. Your own picks are left as they are.',
+    sakeLeftLbl: 'TIME LEFT', sakeCupsAria: n => `${n} wall hits left`, sakeLiq: n => `Sake ${n}%`,
+    sakeHit: (n, max) => `Wall ${n}/${max}`, sakeHitSub: 'A little sake spilled',
+    sakeOk: 'Sake delivered!', sakeFailHits: 'Too many hits', sakeFailTime: 'Out of time', sakeEyebrowFail: 'Delivery failed', sakeNew: 'NEW RECORD',
+    sakeUsed: 'Time used', sakeRemain: 'Time left', sakeWalls: 'Wall hits', sakeLiqLbl: 'Sake left', sakeBest: 'Best',
+    sakeRetry: 'Try again', sakeTitle: 'Back to title', sakeQuitAsk: 'Give up this run? Nothing will be saved.'
   }
 };
 let lang = store.get('yatouge-lang') || ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
@@ -1456,7 +1534,8 @@ function makeLimiter(interval, fn, now = () => performance.now(), later = setTim
 let roadHW = HW, WALL_LAT = roadHW + 0.3; // current course's road half-width and rail face (same plane as the rail mesh); buildTrack sets both
 const COURSES = {};
 for (const id in TRACKS) { COURSES[id] = buildCourse(id); COURSES[id].gutters = gutterSections(id, COURSES[id].pts); }
-let trackId = store.get('yatouge-track');
+const SAKE_TRACK = 'seiran', SAKE_CAR = { car: 'hatch', color: 3 }; // Sake Run's fixed course and car (white KX-2); never written over the saved picks
+let trackId = store.get('yatouge-mode') === 'sake' ? SAKE_TRACK : store.get('yatouge-track');
 if (!TRACKS[trackId]) trackId = 'kurosagi';
 let pts, N, TOTAL, FINISH_I, FINISH_S, hairpins, gutters;
 
@@ -2071,17 +2150,22 @@ function makeCar(style, colorIdx) {
   scene.add(g);
   return { g, tailMat, tails, spin, steer, door };
 }
-let choice = { car: 'hatch', color: 0 };
+function savedChoice() {
+  try { const c = JSON.parse(store.get('yatouge-car') || 'null'); if (c && CARS[c.car]) return c; } catch (e) { /* ignore bad saved choice */ }
+  return { car: 'hatch', color: 0 };
+}
+let choice = store.get('yatouge-mode') === 'sake' ? { ...SAKE_CAR } : savedChoice();
 let kxChimeOn = kxOn(store.get('yatouge-kx-chime')), kxLetterOn = kxOn(store.get('yatouge-kx-letter')); // KX-2 options, both default on
-try { const c = JSON.parse(store.get('yatouge-car') || 'null'); if (c && CARS[c.car]) choice = c; } catch (e) { /* ignore bad saved choice */ }
 let playerCar, rivalCar, playerInterior = null; // the 3D cabin is built lazily the first time cockpit view is shown
 // time attack: mode is the title choice; taRun is the run in progress (null otherwise, always null online); ghostCar exists only while that run has a saved ghost
-let mode = store.get('yatouge-mode') === 'ta' ? 'ta' : 'race', taRun = null, ghostCar = null, ghostOn = taGhostOn(store.get('yatouge-ta-ghost'));
+let mode = ['ta', 'sake'].includes(store.get('yatouge-mode')) ? store.get('yatouge-mode') : 'race', taRun = null, ghostCar = null, ghostOn = taGhostOn(store.get('yatouge-ta-ghost'));
+// Sake Run: sakeRun is the run in progress (null otherwise, never online); sakeCup is its cup in the cockpit, built on first view
+let sakeRun = null, sakeCup = null;
 const head = new THREE.SpotLight(0xfff0d0, 2.4, 95, 0.52, 0.55, 1);
 head.position.set(0, 0.9, 2.0);
 const headTarget = new THREE.Object3D(); headTarget.position.set(0, 0, 24); head.target = headTarget;
 function buildCars() {
-  disposeGhost();
+  disposeGhost(); sakeCupDrop();
   if (playerInterior) { disposeInterior(playerInterior); playerInterior = null; }
   for (const c of [playerCar, rivalCar]) if (c) { scene.remove(c.g); disposeCar(c); } // the cabin is already detached above
   playerCar = makeCar(choice.car, choice.color);
@@ -2312,18 +2396,21 @@ function physics(dt) {
   const L = c.loc = locate(c);
   c.railAgo += dt;
   const wr = wallStep(c, CAR_BOX[choice.car], (x, z) => locate({ x, z, idx: L.i }), WALL_LAT, c.penalty, COLL);
+  let hitDv = 0;
   if (wr) {
     c.railAgo = 0; // any corner touching, however lightly
+    hitDv = Math.hypot(wr.vx - c.vx, wr.vz - c.vz);
     Object.assign(c, { x: wr.x, z: wr.z, vx: wr.vx, vz: wr.vz, w: wr.w, penalty: wr.penalty });
     if (wr.pop) showPop(T('wall'), T('wallPen', wr.pop));
     if (wr.hitSpeed) wallHit(wr.hitSpeed);
   }
+  if (sakeRun && state === 'race') sakeStep(!!wr, hitDv, dt);
   if (L.s < pts[3].s || L.s > pts[N - 4].s) {
     const fwd = L.s > pts[N - 4].s ? 1 : -1, tx = Math.sin(L.h) * fwd, tz = Math.cos(L.h) * fwd, vt = c.vx * tx + c.vz * tz;
     if (vt > 0) { c.vx -= tx * vt; c.vz -= tz * vt; }
   }
   if (pvp) pvpBump(c);
-  else if (!taRun) {
+  else if (!taRun && !sakeRun) {
     const rp = samplePos(rival.s, rival.lat);
     const cr = carStep(c, CAR_BOX[choice.car], { x: rp.x, z: rp.z, h: rp.h, vis: rival.vis, s: rival.s, lat: rival.lat, v: rival.v, latV: rival.latV }, CAR_BOX[rivalFor(trackId, choice.car).car], roadHW - 1, COLL);
     if (cr) {
@@ -2679,6 +2766,7 @@ function hud(dt) {
   if (popTimer > 0) { popTimer -= dt; if (popTimer <= 0) $('#pop').classList.remove('show'); }
   const wn = $('#watchN'), nw = pvp ? pvp.watch : 0; wn.hidden = !nw; if (nw) wn.textContent = T('specWatching', nw);
   if (taRun) { taHud(); return; }
+  if (sakeRun) { sakeHud(); return; }
   $('#progRival').hidden = false;
   const rs = pvp ? (pvp.pose ? pvp.pose.s : null) : rival.s, gap = (rs ?? car.loc.s) - car.loc.s, el = $('#gap');
   if ((state === 'race' || state === 'done') && rs !== null) {
@@ -2714,8 +2802,8 @@ function placeCars(dt) {
   for (const w of playerCar.steer) w.rotation.y = -c.steer * 0.45;
   playerCar.tailMat.color.setHex(c.brakeOn ? 0xff2a36 : 0x7a0b14);
   for (const t of playerCar.tails) t.scale.setScalar(c.brakeOn ? 1.8 : 0.9);
-  if (!pvp) rivalCar.g.visible = mode !== 'ta'; // time attack: no rival (also hidden on the title screen while time attack is picked)
-  const r = pvp || taRun ? null : samplePos(rival.s, rival.lat);
+  if (!pvp) rivalCar.g.visible = mode === 'race'; // time attack / Sake Run: no rival (also hidden on the title screen while either is picked)
+  const r = pvp || taRun || sakeRun ? null : samplePos(rival.s, rival.lat);
   if (r) {
     rivalCar.g.position.set(r.x, r.y, r.z);
     rivalCar.g.rotation.set(Math.atan(-r.grade), r.h + rival.vis, 0, 'YXZ');
@@ -2859,7 +2947,10 @@ const gearLabelNow = (spd, vf) => trans === 'manual' ? (spd >= 0.5 && vf < -0.3 
 let camMode = camModeFromStore(store.get('yatouge-cam'));
 const hudEl = $('#hud');
 let fovSnap = false; // a mode change jumps the FOV instead of easing it
+// Sake Run locks the cockpit view without touching the saved camera choice
+const camNow = () => sakeRun ? 'cockpit' : camMode;
 function setCamMode(m, announce) {
+  if (sakeRun) return;
   fovSnap = m !== camMode;
   camMode = m; store.set('yatouge-cam', m);
   if (announce) showPop(T('camPop') + T('camM_' + m));
@@ -3075,7 +3166,7 @@ function easeFov(dt, fov) {
 function updateCamera(dt) {
   const c = car, L = c.loc, spd = Math.hypot(c.vx, c.vz);
   camera.up.set(0, 1, 0);
-  syncBody(camMode === 'cockpit' && state !== 'title');
+  syncBody(camNow() === 'cockpit' && state !== 'title');
   if (state === 'title') _ckPrev.ok = false;
   if (state === 'title') {
     camOrbit += dt * 0.22;
@@ -3091,9 +3182,9 @@ function updateCamera(dt) {
   const CAM_MAX = 25 * Math.PI / 180;
   const tgt = c.h + clamp(wrap(Math.atan2(c.vx, c.vz) - c.h) * wgt, -CAM_MAX, CAM_MAX);
   camH += wrap(tgt - camH) * Math.min(1, 5 * dt);
-  if (camMode === 'cockpit') { cockpitCamera(dt); easeFov(dt, Math.min(95, COCKPIT_CARS[choice.car].fov + clamp(spd / 55, 0, 1) * 6 + (camera.aspect < 1 ? (1 - camera.aspect) * 20 : 0))); return; } // portrait screens get a wider FOV so the wheel and cluster still fit
+  if (camNow() === 'cockpit') { cockpitCamera(dt); if (sakeRun) sakeVisual(dt); easeFov(dt, Math.min(95, COCKPIT_CARS[choice.car].fov + clamp(spd / 55, 0, 1) * 6 + (camera.aspect < 1 ? (1 - camera.aspect) * 20 : 0))); return; } // portrait screens get a wider FOV so the wheel and cluster still fit
   _ckPrev.ok = false;
-  if (camMode === 'near') {
+  if (camNow() === 'near') {
     _nearCar.x = c.x; _nearCar.y = L.y; _nearCar.z = c.z;
     const n = nearChasePose(_nearCar, camH, spd, _near);
     camPos.set(n.pos.x, n.pos.y, n.pos.z);
@@ -3132,7 +3223,7 @@ function finishRace() {
   state = 'done'; playerFinishT = raceT; finishTimer = 1.6;
   if (driftChain > 0) { driftTotal += driftChain; driftChain = 0; }
   playerWon = rivalFinishT === null || playerFinishT < rivalFinishT;
-  if (pvp) { pvpFinished(); showPop(T('pvpLine')); } else if (taRun) { taSample(true); showPop(T('pvpLine')); } else showPop(T(playerWon ? 'first' : 'second'));
+  if (pvp) { pvpFinished(); showPop(T('pvpLine')); } else if (taRun) { taSample(true); showPop(T('pvpLine')); } else if (sakeRun) { const j = sakeCheck(true); showPop(T(j === 'win' ? 'sakeOk' : j === 'hits' ? 'sakeFailHits' : 'sakeFailTime')); } else showPop(T(playerWon ? 'first' : 'second'));
 }
 function taSample(force) { const r = taRun; if (!r.full && !taRecord(r.buf, raceT, { s: car.loc.s, x: car.x, z: car.z, h: car.h }, force)) r.full = true; }
 // a new run: the saved best (and its ghost) for this course × car; never online
@@ -3159,10 +3250,134 @@ function showTaResult() {
   $('#hud').hidden = true; $('#result').hidden = false;
   $('#btnAgain').focus();
 }
+// Sake Run: a new run (never online); the cup is put into the cabin on the first cockpit frame
+function sakeBegin() {
+  sakeEnd();
+  if (pvp || mode !== 'sake') return;
+  sakeRun = { hits: sakeNewHits(), liq: 1, slosh: sakeNewSlosh(), end: null, endT: 0, best: sakeParseBest(store.get(sakeKey)), shownN: -1, shownLiq: -1 };
+  fovSnap = true; syncSakeUI();
+}
+function sakeEnd() { sakeRun = null; sakeCupDrop(); syncSakeUI(); }
+// one physics step of wall contact; a new contact spills a little and may end the run
+function sakeStep(touching, dv, dt) {
+  const r = sakeRun;
+  r.hits = sakeContact(r.hits, touching, dt);
+  if (!r.hits.hit) return;
+  r.liq = Math.max(0, r.liq - sakeSpill(dv));
+  if (sakeCup) sakeCup.spill(dv, r.slosh);
+  if (!sakeCheck(false)) showPop(T('sakeHit', r.hits.n, SAKE.HITS), T('sakeHitSub'));
+}
+// decides the run once: a failure stops the race here; a finish (finished = true) comes from finishRace
+function sakeCheck(finished) {
+  const r = sakeRun;
+  if (r.end) return r.end;
+  const j = sakeJudge({ n: r.hits.n, t: finished ? playerFinishT : raceT, finished });
+  if (!j) return null;
+  r.end = j; r.endT = j === 'time' ? SAKE.LIMIT : finished ? playerFinishT : raceT;
+  if (j !== 'win' && !finished) { state = 'done'; finishTimer = 1.6; showPop(T(j === 'hits' ? 'sakeFailHits' : 'sakeFailTime')); }
+  return j;
+}
+function syncSakeUI() {
+  const on = !!sakeRun;
+  $('#sakeHud').hidden = !on; $('#gap').hidden = on; $('#btnCam').hidden = on;
+  $('#timeLbl').textContent = T(on ? 'sakeLeftLbl' : 'time');
+  if (on) sakeRun.shownN = sakeRun.shownLiq = -1; else $('#time').classList.remove('low');
+}
+// the time line counts down; under it one cup per contact still allowed, and the sake level
+function sakeHud() {
+  const r = sakeRun, left = sakeLeft(r.end ? r.endT : playerFinishT ?? raceT), el = $('#time');
+  el.textContent = fmtT(left); el.classList.toggle('low', left < 20);
+  $('#progRival').hidden = true;
+  const n = Math.min(SAKE.HITS, r.hits.n), pct = Math.round(r.liq * 100);
+  if (r.shownN !== n) {
+    r.shownN = n;
+    const cups = $('#sakeCups'); cups.innerHTML = '';
+    for (let i = 0; i < SAKE.HITS; i++) { const c = document.createElement('i'); if (i >= SAKE.HITS - n) c.className = 'off'; cups.append(c); }
+    cups.setAttribute('aria-label', T('sakeCupsAria', SAKE.HITS - n));
+  }
+  if (r.shownLiq !== pct) { r.shownLiq = pct; $('#sakeLiq').textContent = T('sakeLiq', pct); }
+}
+function showSakeResult() {
+  const r = sakeRun, ok = r.end === 'win', used = ok ? playerFinishT : r.endT, nb = ok && sakeIsNewBest(r.best, used);
+  if (nb) { store.set(sakeKey, String(used)); r.best = used; }
+  $('#resEyebrow').textContent = ok ? (nb ? T('sakeNew') + ' · ' : '') + T('resEyebrow') : T('sakeEyebrowFail');
+  const t = $('#resTitle'); t.textContent = T(ok ? 'sakeOk' : r.end === 'hits' ? 'sakeFailHits' : 'sakeFailTime'); t.className = 'res-title ' + (ok ? 'win' : 'lose');
+  $('#resTimeLbl').textContent = T('sakeUsed'); $('#resTime').textContent = fmtT(used);
+  $('#resGapLbl').textContent = T('sakeRemain'); $('#resGap').textContent = fmtT(sakeLeft(used));
+  $('#resScoreLbl').textContent = T('sakeWalls'); $('#resScore').textContent = Math.min(SAKE.HITS, r.hits.n) + ' / ' + SAKE.HITS;
+  $('#resBestLbl').textContent = T('sakeBest') + (nb ? ' · ' + T('sakeNew') : ''); $('#resBest').textContent = r.best ? fmtT(r.best) : '—';
+  $('#resSakeBox').hidden = false; $('#resSake').textContent = Math.round(r.liq * 100) + '%';
+  $('#btnAgain').textContent = T('sakeRetry'); $('#btnMenu').textContent = T('sakeTitle');
+  $('#hud').hidden = true; $('#result').hidden = false;
+  $('#btnAgain').focus();
+}
+// cup holder clipped to the dash face, a clear cup and pale-gold sake; the surface tilts with the slosh, droplets fly on a spill.
+// Cup-local frame = cabin frame: +z forward, -x right. Every geometry and material here is its own (none shared), so disposeTree frees all.
+function makeSakeCup() {
+  const g = new THREE.Group(), R0 = 0.033, R1 = 0.042, H = 0.1, FILL = 0.78;
+  const add = (geo, mat, x, y, z, parent = g) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, y, z); parent.add(m); return m; };
+  const dark = new THREE.MeshLambertMaterial({ color: 0x17181c });
+  add(new THREE.TorusGeometry(R1 + 0.004, 0.006, 6, 24), dark, 0, H * 0.6, 0).rotation.x = Math.PI / 2;
+  add(new THREE.CylinderGeometry(R0 + 0.008, R0 + 0.006, 0.014, 20), dark, 0, 0.002, 0);
+  add(new THREE.BoxGeometry(0.03, 0.012, 0.07), dark, 0, H * 0.6, R1 + 0.035);
+  add(new THREE.BoxGeometry(0.012, H * 0.6, 0.012), dark, 0, H * 0.3, R0 + 0.01);
+  const sakeMat = new THREE.MeshLambertMaterial({ color: 0xf1dc9a, emissive: 0x5a4818, transparent: true, opacity: 0.8, depthWrite: false });
+  const bodyGeo = new THREE.CylinderGeometry(R0 * 0.97, R0 * 0.97, 1, 20, 1, true); bodyGeo.translate(0, 0.5, 0);
+  const body = add(bodyGeo, sakeMat, 0, 0, 0); body.renderOrder = 1;
+  const surf = new THREE.Group(); g.add(surf);
+  const discGeo = new THREE.CircleGeometry(1, 24); discGeo.rotateX(-Math.PI / 2);
+  const disc = add(discGeo, sakeMat, 0, 0, 0, surf); disc.renderOrder = 1;
+  const glassGeo = new THREE.CylinderGeometry(R1, R0, H, 24, 1, true); glassGeo.translate(0, H / 2, 0);
+  const glass = add(glassGeo, new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0x23262c, transparent: true, opacity: 0.28, side: THREE.DoubleSide, depthWrite: false }), 0, 0, 0);
+  glass.renderOrder = 2;
+  add(new THREE.TorusGeometry(R1, 0.0016, 4, 32), new THREE.MeshLambertMaterial({ color: 0xdfe3ea, emissive: 0x30333a }), 0, H, 0).rotation.x = Math.PI / 2;
+  const dropGeo = new THREE.SphereGeometry(0.0045, 6, 4), dropMat = new THREE.MeshLambertMaterial({ color: 0xf1dc9a, emissive: 0x5a4818 });
+  const drops = [];
+  for (let i = 0; i < 6; i++) { const m = add(dropGeo, dropMat, 0, 0, 0); m.visible = false; drops.push({ m, vx: 0, vy: 0, vz: 0, life: 0 }); }
+  let lv = FILL * H;
+  const update = (dt, s, liq) => {
+    lv = Math.max(0.03, liq) * FILL * H;
+    body.scale.y = lv;
+    surf.position.y = lv; surf.rotation.set(-s.p, 0, -s.r); // p > 0: higher at the front (+z); r > 0: higher on the right (-x)
+    disc.scale.setScalar(R0 + (R1 - R0) * lv / H - 0.002);
+    for (const d of drops) {
+      if (d.life <= 0) continue;
+      d.life -= dt; d.vy -= 9.8 * dt;
+      d.m.position.set(d.m.position.x + d.vx * dt, d.m.position.y + d.vy * dt, d.m.position.z + d.vz * dt);
+      if (d.life <= 0 || d.m.position.y < -0.02) { d.life = 0; d.m.visible = false; }
+    }
+  };
+  // droplets leave the rim on the side the sake is piled toward (random when level)
+  const spill = (dv, s) => {
+    let dx = -s.r, dz = s.p, m = Math.hypot(dx, dz);
+    if (m < 1e-3) { const a = Math.random() * Math.PI * 2; dx = Math.cos(a); dz = Math.sin(a); m = 1; }
+    dx /= m; dz /= m;
+    const k = Math.min(1, Math.max(0, dv) / SAKE.V_HI), n = 3 + Math.round(3 * k);
+    for (let i = 0; i < n; i++) {
+      const d = drops[i], sp = 0.25 + 0.35 * Math.random() + 0.3 * k, j = (Math.random() - 0.5) * 0.8;
+      d.m.position.set(dx * R1, Math.max(lv, H * 0.8), dz * R1);
+      d.vx = (dx - dz * j) * sp; d.vz = (dz + dx * j) * sp; d.vy = 0.5 + 0.5 * Math.random() + 0.4 * k;
+      d.life = 0.7; d.m.visible = true;
+    }
+  };
+  return { g, update, spill };
+}
+function sakeCupDrop() { if (sakeCup) { sakeCup.g.parent?.remove(sakeCup.g); disposeTree(sakeCup.g, new Set()); sakeCup = null; } }
+function sakeVisual(dt) {
+  const r = sakeRun;
+  r.slosh = sakeSlosh(r.slosh, _ckIn.aLong, _ckIn.aLat, dt);
+  if (!playerInterior) return;
+  if (!sakeCup) sakeCup = makeSakeCup();
+  if (sakeCup.g.parent !== playerInterior.group) { sakeCup.g.position.set(0.4, COCKPIT_CARS[choice.car].dashTop - 0.2, 0.68); playerInterior.group.add(sakeCup.g); }
+  sakeCup.update(dt, r.slosh, r.liq);
+}
 function showResult() {
+  for (const el of $('#result').querySelectorAll('[data-i18n]')) el.textContent = T(el.dataset.i18n); // a Sake Run result relabels these
+  $('#resSakeBox').hidden = true;
   $('#resGapLbl').textContent = T(taRun ? 'taGap' : 'resGap');
   if (pvp) { showPvpResult(); return; }
   if (taRun) { showTaResult(); return; }
+  if (sakeRun) { showSakeResult(); return; }
   const win = playerWon;
   const t = $('#resTitle'); t.textContent = T(win ? 'win' : 'lose'); t.className = 'res-title ' + (win ? 'win' : 'lose');
   $('#resTime').textContent = fmtT(playerFinishT);
@@ -3183,7 +3398,8 @@ function renderPicker() {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(k === choice.car));
     b.innerHTML = `<b></b><small></small>` + d.stats.map(([n, v]) => `<div class="stat"><span>${Lz(n)}</span><div class="pips">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= v ? 'on' : ''}"></i>`).join('')}</div></div>`).join('');
     b.querySelector('b').textContent = Lz(d.name); b.querySelector('small').textContent = Lz(d.sub);
-    b.addEventListener('click', () => { choice = { car: k, color: 0 }; chosen(); });
+    b.disabled = mode === 'sake'; // the car is fixed in Sake Run
+    b.addEventListener('click', () => { if (mode === 'sake') return; choice = { car: k, color: 0 }; chosen(); });
     pick.append(b);
   }
   CARS[choice.car].colors.forEach((c, i) => {
@@ -3191,7 +3407,8 @@ function renderPicker() {
     const dot = document.createElement('i'); const hex = n => '#' + n.toString(16).padStart(6, '0');
     dot.style.background = c.low !== undefined && c.low !== c.top ? `linear-gradient(180deg, ${hex(c.top)} 50%, ${hex(c.low)} 50%)` : hex(c.top);
     b.append(dot, Lz(c.n));
-    b.addEventListener('click', () => { choice = { car: choice.car, color: i }; chosen(); });
+    b.disabled = mode === 'sake';
+    b.addEventListener('click', () => { if (mode === 'sake') return; choice = { car: choice.car, color: i }; chosen(); });
     sw.append(b);
   });
   syncKxUI(); renderModePicker();
@@ -3200,21 +3417,33 @@ function renderPicker() {
 function renderModePicker() {
   const el = $('#modePick'), best = taParse(store.get(taKey(trackId, choice.car)));
   el.innerHTML = '';
-  for (const m of ['race', 'ta']) {
+  const sb = sakeParseBest(store.get(sakeKey));
+  for (const m of ['race', 'ta', 'sake']) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(m === mode));
     b.innerHTML = '<b></b><small></small>';
-    b.querySelector('b').textContent = T(m === 'ta' ? 'modeTa' : 'modeRace');
-    b.querySelector('small').textContent = m === 'ta' ? T('modeTaD') + (best ? ' ' + T('taBestIs', fmtT(best.t)) : '') : T('modeRaceD');
+    b.querySelector('b').textContent = T(m === 'ta' ? 'modeTa' : m === 'sake' ? 'modeSake' : 'modeRace');
+    b.querySelector('small').textContent = m === 'ta' ? T('modeTaD') + (best ? ' ' + T('taBestIs', fmtT(best.t)) : '') : m === 'sake' ? T('modeSakeD') + (sb ? ' ' + T('taBestIs', fmtT(sb)) : '') : T('modeRaceD');
     b.addEventListener('click', () => setMode(m));
     el.append(b);
   }
-  $('#lead').textContent = T(mode === 'ta' ? 'leadTa' : 'lead', Lz(TRACKS[trackId].name));
+  $('#lead').textContent = T(mode === 'ta' ? 'leadTa' : mode === 'sake' ? 'leadSake' : 'lead', Lz(TRACKS[trackId].name));
   syncTaUI();
 }
-function setMode(m) { if (state !== 'title' || m === mode) return; mode = m; store.set('yatouge-mode', m); renderModePicker(); }
+function setMode(m) {
+  if (state !== 'title' || m === mode) return;
+  const was = mode; mode = m; store.set('yatouge-mode', m);
+  if (m === 'sake' || was === 'sake') sakeForce(m === 'sake'); else renderModePicker();
+}
+// Sake Run picked: white KX-2 on Seiran, in memory only; picked away: back to the saved car and course
+function sakeForce(on) {
+  const st = store.get('yatouge-track'), tr = on ? SAKE_TRACK : TRACKS[st] ? st : 'kurosagi';
+  choice = on ? { ...SAKE_CAR } : savedChoice();
+  if (tr !== trackId) buildTrack(tr);
+  buildCars(); resetRace(); applyLang();
+}
 // ghost on / off: the title switch (time attack picked) and the in-game menu row (time-attack run) stay in sync
 function syncTaUI() {
-  $('#tTa').hidden = mode !== 'ta'; $('#igGhostRow').hidden = !taRun;
+  $('#tTa').hidden = mode !== 'ta'; $('#igGhostRow').hidden = !taRun; $('#tSake').hidden = mode !== 'sake';
   for (const id of ['#tGhost', '#igGhost']) { const b = $(id); b.setAttribute('aria-checked', String(ghostOn)); b.textContent = T(ghostOn ? 'igOn' : 'igOff'); }
 }
 function setGhost(on) { ghostOn = on; store.set('yatouge-ta-ghost', on ? '1' : '0'); if (ghostCar) ghostCar.g.visible = on; syncTaUI(); }
@@ -3239,12 +3468,13 @@ function renderTrackPicker() {
     const c = COURSES[id], b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(id === trackId));
     b.innerHTML = '<b></b><small></small>';
     b.querySelector('b').textContent = Lz(TRACKS[id].name); b.querySelector('small').textContent = T('trackSub', (c.FINISH_S / 1000).toFixed(1), c.hairpins);
+    b.disabled = mode === 'sake'; // the course is fixed in Sake Run
     b.addEventListener('click', () => setTrack(id));
     el.append(b);
   }
 }
 function setTrack(id) {
-  if (state !== 'title' || id === trackId) return;
+  if (state !== 'title' || id === trackId || mode === 'sake') return;
   store.set('yatouge-track', id); buildTrack(id); buildCars(); resetRace(); applyLang(); // the rival belongs to the track
 }
 function chosen() { store.set('yatouge-car', JSON.stringify(choice)); buildCars(); renderPicker(); }
@@ -3264,7 +3494,8 @@ $('#langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'z
 applyLang();
 function startRace() {
   document.body.classList.toggle('manual', trans === 'manual');
-  initAudio(); resetRace(); taBegin(); Object.assign(P, CARS[choice.car].phys); camera.clearViewOffset();
+  if (!pvp && mode === 'sake' && (trackId !== SAKE_TRACK || choice.car !== SAKE_CAR.car || choice.color !== SAKE_CAR.color)) sakeForce(true); // defensive: online play may have moved the course
+  initAudio(); resetRace(); taBegin(); sakeBegin(); Object.assign(P, CARS[choice.car].phys); camera.clearViewOffset();
   state = 'count'; countT = 3.999;
   $('#title').hidden = true; $('#result').hidden = true; $('#hud').hidden = false; $('#lobby').hidden = true; $('#room').hidden = true; onlineUI = false;
   camera.position.set(car.x - Math.sin(car.h) * 7, car.loc.y + 3, car.z - Math.cos(car.h) * 7);
@@ -3573,6 +3804,7 @@ let nick = null, nickOpen = false;
 const nickOf = nk => nk || T('pvpPlayer');
 function askNick() {
   if ($('#btnOnline').getAttribute('aria-disabled') === 'true') return;
+  if (mode === 'sake') setMode('race'); // online races use the player's own car and course, not the forced Sake Run ones
   sbConnect(); // Supabase transport: load the sdk and join the lobby while the nickname is typed
   nickOpen = true; $('#nick').hidden = false; $('#title').inert = true;
   $('#nickInput').value = ''; syncNick(); $('#nickInput').focus();
@@ -4177,8 +4409,9 @@ function frame(now) {
   }
   if (state === 'race' || state === 'done') {
     acc += dt;
-    while (acc >= FIX) { physics(FIX); if (!pvp && !taRun) rivalUpdate(FIX); acc -= FIX; }
+    while (acc >= FIX) { physics(FIX); if (!pvp && !taRun && !sakeRun) rivalUpdate(FIX); acc -= FIX; }
     raceT += dt; // keeps running after the player finishes so the rival's time is real
+    if (state === 'race' && sakeRun) sakeCheck(false); // the clock ran out
     if (state === 'race') { if (taRun) taSample(false); scoring(dt); if (car.loc.s >= FINISH_S) finishRace(); }
     if (finishTimer > 0) { finishTimer -= dt; if (finishTimer <= 0) showResult(); }
   }
@@ -4186,7 +4419,7 @@ function frame(now) {
   else { placeCars(dt); updateCamera(dt); if (state !== 'title') hud(dt); updateEngineAudio(dt); }
   updateSmoke(dt);
   sky.position.copy(camera.position);
-  const mirrorOn = camMode === 'cockpit' && state !== 'title' && !hudEl.hidden;
+  const mirrorOn = camNow() === 'cockpit' && state !== 'title' && !hudEl.hidden;
   if (mirrorOn) {
     layoutMirror(window.innerWidth, window.innerHeight);
     if (playerInterior) playerInterior.group.visible = false; // the cabin never shows in the mirror views (and the door mirrors never sample themselves)
@@ -4410,7 +4643,7 @@ $('#btnOnline').addEventListener('click', () => { if ($('#btnOnline').getAttribu
 $('#btnStart').addEventListener('click', () => askTrans(startRace));
 $('#btnAgain').addEventListener('click', () => pvp ? pvpBackToRoom() : askTrans(startRace));
 function returnToTitle() {
-  taEnd(); resetRace(); camOrbit = 0; $('#count').textContent = ''; $('#pop').classList.remove('show');
+  taEnd(); sakeEnd(); resetRace(); camOrbit = 0; $('#count').textContent = ''; $('#pop').classList.remove('show');
   $('#result').hidden = true; $('#hud').hidden = true; $('#title').hidden = false; renderPicker(); $('#btnStart').focus();
 }
 $('#btnMenu').addEventListener('click', () => { if (pvp) { pvpLeave(); return; } returnToTitle(); });
@@ -4439,9 +4672,11 @@ function syncMenuUI() {
   $('#igMusicVol').value = volPct(musicVol); $('#igMusicOut').textContent = volPct(musicVol) + '%';
   $('#igSfxVol').value = volPct(sfxVol); $('#igSfxOut').textContent = volPct(sfxVol) + '%';
   $('#igCam').value = camMode; $('#igLang').value = lang;
-  syncKxUI(); syncSteerUI(); syncTaUI();
-  // time attack: "forfeit" becomes "quit" (back to the title, nothing saved)
-  $('#igForfeit').textContent = T(taRun ? 'taQuit' : 'igForfeit'); $('#igConfQ').textContent = T(taRun ? 'taQuitAsk' : 'igConfirm'); $('#igYes').textContent = T(taRun ? 'taQuitYes' : 'igYes');
+  syncKxUI(); syncSteerUI(); syncTaUI(); syncSakeUI();
+  $('#igCam').disabled = !!sakeRun; // Sake Run: cockpit only
+  // time attack / Sake Run: "forfeit" becomes "quit" (back to the title, nothing saved)
+  const solo = !!(taRun || sakeRun);
+  $('#igForfeit').textContent = T(solo ? 'taQuit' : 'igForfeit'); $('#igConfQ').textContent = T(taRun ? 'taQuitAsk' : sakeRun ? 'sakeQuitAsk' : 'igConfirm'); $('#igYes').textContent = T(solo ? 'taQuitYes' : 'igYes');
 }
 function showMenuView(v, focus) {
   menuView = v;
@@ -4457,7 +4692,7 @@ function openMenu() {
 }
 function closeMenu() { if (!menuOpen) return; menuOpen = false; $('#igmenu').hidden = true; if (document.activeElement) document.activeElement.blur(); }
 function forfeit() {
-  const plan = forfeitPlan(!!pvp), quit = !!taRun; // never saves a best time
+  const plan = forfeitPlan(!!pvp), quit = !!(taRun || sakeRun); // never saves a best time
   closeMenu();
   if (plan.action === 'leave') pvpLeave(); else returnToTitle();
   const n = $('#forfeitNote'); n.textContent = T(quit ? 'taQuitted' : 'igForfeited'); n.hidden = false;
