@@ -1670,9 +1670,9 @@ function makeCar(style, colorIdx) {
     { const zc = 0.21, y = 0.72, w = z => 0.82 * widthK(S, y, z), m = new THREE.MeshBasicMaterial({ map: doorLetteringTex(doorInkLight(col.top)), transparent: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
       const p = add(new THREE.PlaneGeometry(0.9, 0.14), m, -(w(zc) + 0.004), y, zc); p.rotation.y = -Math.PI / 2 - Math.atan((w(zc + 0.02) - w(zc - 0.02)) / 0.04); }
     const nameMat = new THREE.MeshBasicMaterial({ map: tougeNameplateTex(), transparent: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-    add(new THREE.PlaneGeometry(0.5, 0.078), nameMat, -0.46, 0.885, -2.158).rotation.y = Math.PI; // above the right tail cluster, facing -z
+    add(new THREE.PlaneGeometry(0.41, 0.064), nameMat, -0.46, 0.878, -2.158).rotation.y = Math.PI; // above the right tail cluster, facing -z
     const trimMat = new THREE.MeshBasicMaterial({ map: trimBadgeTex(doorInkLight(col.top)), transparent: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-    add(new THREE.PlaneGeometry(0.48, 0.072), trimMat, 0.46, 0.885, -2.158).rotation.y = Math.PI; // above the left (+x) tail cluster
+    add(new THREE.PlaneGeometry(0.39, 0.058), trimMat, 0.46, 0.878, -2.158).rotation.y = Math.PI; // above the left (+x) tail cluster
     add(new THREE.PlaneGeometry(0.3, 0.047), nameMat, 0, 0.585, nose(0.585) + 0.03).rotation.x = -0.229; // grille band, below the slats, centred
     const hood = add(box(0.5, 0.014, 1.15), paint, 0, 0.811, 1.4); hood.rotation.x = 0.147; // slightly raised hood centre, following the hood slope
     add(box(1.5, 0.24, 0.02), black, 0, 0.72, -2.18); // full-width black tail panel
