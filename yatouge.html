@@ -1575,10 +1575,11 @@ function trimBadgeTex(light) { // rear-left trim badge: bold wide "KX-2" then sm
   return trimTex[light] || (trimTex[light] = canvasTex(640, 96, (g, w, h) => {
     g.textBaseline = 'alphabetic'; g.fillStyle = light ? '#f4f5f7' : '#08080a';
     const sp = v => { if ('letterSpacing' in g) g.letterSpacing = v; };
-    g.font = '900 64px "Arial Black", Arial, sans-serif'; sp('10px'); const wb = g.measureText('KX-2').width;
+    const SX = 1.6; // "KX-2" is drawn horizontally stretched (extended, APEX-style lettering)
+    g.font = '900 60px "Arial Black", Arial, sans-serif'; sp('6px'); const wb = g.measureText('KX-2').width * SX;
     g.font = '700 34px Arial, sans-serif'; sp('3px'); const ws = g.measureText('DOWNHILL 16').width;
     const gap = 22, x0 = (w - wb - ws - gap) / 2, base = 74;
-    g.font = '900 64px "Arial Black", Arial, sans-serif'; sp('10px'); g.fillText('KX-2', x0, base);
+    g.font = '900 60px "Arial Black", Arial, sans-serif'; sp('6px'); g.save(); g.scale(SX, 1); g.fillText('KX-2', x0 / SX, base); g.restore();
     g.font = '700 34px Arial, sans-serif'; sp('3px'); g.fillText('DOWNHILL 16', x0 + wb + gap, base);
   }));
 }
@@ -1586,9 +1587,9 @@ let tougeTex = null;
 function tougeNameplateTex() {
   return tougeTex || (tougeTex = canvasTex(512, 80, (g, w, h) => {
     g.font = '900 56px "Arial Black", Arial, sans-serif'; g.textBaseline = 'middle'; g.textAlign = 'center'; g.lineJoin = 'round';
-    if ('letterSpacing' in g) g.letterSpacing = '14px'; // wide-set caps; engines without letterSpacing just get tighter text
-    g.lineWidth = 9; g.strokeStyle = '#101114'; g.strokeText('TOUGE', w / 2 + 7, h / 2 + 3);
-    g.fillStyle = '#e6e9ee'; g.fillText('TOUGE', w / 2 + 7, h / 2 + 3);
+    if ('letterSpacing' in g) g.letterSpacing = '2px'; // normal-set caps (the user asked for TOUGE not to be wide)
+    g.lineWidth = 9; g.strokeStyle = '#101114'; g.strokeText('TOUGE', w / 2 + 1, h / 2 + 3);
+    g.fillStyle = '#e6e9ee'; g.fillText('TOUGE', w / 2 + 1, h / 2 + 3);
   }));
 }
 // GT-32 trunk badge (own name, no real marque): created once, shared by every GT-32 on screen
