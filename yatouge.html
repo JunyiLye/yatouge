@@ -138,6 +138,10 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 /* online 1v1 */
 #btnOnline { margin-left: 10px; padding: 14px 22px; vertical-align: top; }
 @media (max-width: 480px) { #btnOnline { display: block; margin: 10px 0 0; } }
+#btnOnline[aria-disabled="true"] { opacity: .45; cursor: not-allowed; }
+#btnOnline[aria-disabled="true"]:hover { border-color: var(--line); }
+.onl-info { margin-top: 8px; font-size: 12px; color: var(--dim); }
+.onl-info #btnOnlineAct { padding: 6px 12px; font-size: 13px; margin-left: 8px; letter-spacing: 0; }
 .pvp-h { font-family: var(--display); font-size: clamp(34px, 9vw, 56px); line-height: 1.1; margin: 4px 0 0; text-wrap: balance; }
 #nick { z-index: 8; background: rgba(5,7,15,.94); } /* opaque enough that the title screen behind cannot be read through the dialog */
 .nickinput { display: block; width: 100%; box-sizing: border-box; margin: 8px 0 0; padding: 12px 14px; font: inherit; font-size: 18px; color: var(--ink); background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 4px; -webkit-user-select: text; user-select: text; }
@@ -276,7 +280,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <span><kbd>R</kbd> <kbd>M</kbd></span><span data-i18n="kMisc">回到路面／音樂開關</span>
       <span><kbd>C</kbd></span><span data-i18n="kCam">切換鏡頭（追蹤／近距離／車內）</span>
     </div>
-    <button class="go" id="btnStart" type="button" data-i18n="start">開始下坡</button><button class="ghost" id="btnOnline" type="button" data-i18n="pvpOnline" hidden>線上對戰</button>
+    <button class="go" id="btnStart" type="button" data-i18n="start">開始下坡</button><button class="ghost" id="btnOnline" type="button" data-i18n="pvpOnline" aria-disabled="true">線上對戰</button><div class="onl-info"><span id="onlineNote" role="status"></span><button class="ghost" id="btnOnlineAct" type="button" hidden></button></div>
     <p class="note" data-i18n="note">不拉手煞車時輪胎會抓地，轉太快只會推頭。入彎先減速，轉向的同時點一下手煞就能甩起來，反打方向盤可以收住車尾。手機上用畫面下方的按鈕操作。</p>
   </div>
 </div>
@@ -431,6 +435,8 @@ const I18N = {
     driftGod: '神級甩尾', driftNice: '漂亮的甩尾', drift: '甩尾', first: '第一名衝線', second: '第二名衝線',
     gutter: '水溝過彎', gutterLow: '甩尾分數不足', gutterNeed: '水溝過彎需要 1,000 分',
     cam: '鏡頭', camAria: '切換鏡頭', kCam: '切換鏡頭（追蹤／近距離／車內）', camPop: '鏡頭：', camM_chase: '追蹤', camM_near: '近距離', camM_cockpit: '車內',
+    onConnecting: '連線中…', onNotClaude: '線上對戰只能在 claude.ai 內使用', onNeedPerm: '需要允許線上連線', onAllow: '允許線上',
+    onDenied: '線上權限已被拒絕', onManage: '開啟權限設定', onManageFail: '無法開啟設定，請從這個 artifact 右上角的權限選單開啟', onError: c => `線上暫時無法使用 (${c})`,
     pvpOnline: '線上對戰', pvpEyebrow: '1 對 1 · 即時連線', pvpLobby: '線上對戰大廳', pvpRoomsLbl: '開著的房間',
     pvpPick: (track, car) => `賽道：${track} · 車：${car}。要更換請先返回主畫面。`, pvpEmpty: '目前沒有開著的房間，自己開一間吧。',
     pvpRoomRow: (track, n) => `${track} · ${n}/2 人`, pvpCreate: '建立房間', pvpBack: '返回', pvpJoining: '正在加入…',
@@ -464,6 +470,8 @@ const I18N = {
     driftGod: 'Legendary drift', driftNice: 'Nice drift', drift: 'Drift', first: 'First across the line', second: 'Second across the line',
     gutter: 'Gutter run', gutterLow: 'Not enough drift points', gutterNeed: 'A gutter run costs 1,000 points',
     cam: 'Camera', camAria: 'Switch camera', kCam: 'Switch camera (chase / close / cockpit)', camPop: 'Camera: ', camM_chase: 'Chase', camM_near: 'Close', camM_cockpit: 'Cockpit',
+    onConnecting: 'Connecting…', onNotClaude: 'Online only works inside claude.ai', onNeedPerm: 'Online needs your permission', onAllow: 'Allow online',
+    onDenied: 'Online permission was denied', onManage: 'Open permissions', onManageFail: "Couldn't open settings. Use this artifact's Permissions menu (top right)", onError: c => `Online unavailable (${c})`,
     pvpOnline: 'Online 1v1', pvpEyebrow: '1v1 · live', pvpLobby: 'Online lobby', pvpRoomsLbl: 'Open rooms',
     pvpPick: (track, car) => `Course: ${track} · Car: ${car}. Go back to the title screen to change them.`, pvpEmpty: 'No open rooms right now. Create one.',
     pvpRoomRow: (track, n) => `${track} · ${n}/2 players`, pvpCreate: 'Create room', pvpBack: 'Back', pvpJoining: 'Joining…',
@@ -2690,7 +2698,7 @@ function applyLang() {
   menuRelabel();
   pvpRelabel();
 }
-$('#langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'zh'; store.set('yatouge-lang', lang); applyLang(); });
+$('#langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'zh'; store.set('yatouge-lang', lang); applyLang(); renderOnline(); });
 applyLang();
 function startRace() {
   initAudio(); resetRace(); Object.assign(P, CARS[choice.car].phys); camera.clearViewOffset();
@@ -2699,6 +2707,24 @@ function startRace() {
   camera.position.set(car.x - Math.sin(car.h) * 7, car.loc.y + 3, car.z - Math.cos(car.h) * 7);
   $('#count').textContent = '3'; beep(440, 0.15);
 }
+
+/* ---------- online 1v1: what the title-screen button shows ---------- */
+/* @onlinestatus:start */
+const ONLINE_CONNECTED_GRACE_MS = 5000;
+// in: hasClaude (window.claude exists), room 'pending' | 'null' | 'ok' (use('room') answer), perm (permissions state or null),
+// connected, isMeSeen, elapsed (ms since init), errCode (terminal room error or null).
+// out: { key (i18n suffix), enabled, action: null | 'allow' | 'manage' }. A connected room is enough: isMe never gates the button.
+function onlineStatus(i) {
+  const st = (key, enabled = false, action = null) => ({ key, enabled, action });
+  if (i.errCode === 'not_granted' && i.perm === 'prompt') return st('needPerm', false, 'allow');
+  if (i.errCode === 'not_granted' && i.perm === 'denied') return st('denied', false, 'manage');
+  if (i.errCode) return st('error');
+  if (!i.hasClaude) return st('notClaude');
+  if (i.room === 'pending') return st('connecting');
+  if (i.room === 'null') return i.perm === 'prompt' ? st('needPerm', false, 'allow') : i.perm === 'denied' ? st('denied', false, 'manage') : st('notClaude');
+  return i.isMeSeen || (i.connected && i.elapsed >= ONLINE_CONNECTED_GRACE_MS) ? st('ready', true) : st('connecting');
+}
+/* @onlinestatus:end */
 
 /* ---------- online 1v1: transport ---------- */
 /* The transport is the claude.ai `room` capability, presence only (no topics: those are admin-only). With ?mockroom=1 a
@@ -2791,10 +2817,13 @@ function makeMockRoom() {
 
 /* ---------- online 1v1: lobby and room UI ---------- */
 let room = null, netDown = false, netT = 0, busy = false, lobbyT = 0, lobbySig = '';
+// Title-screen online button state. unsubs: listeners of the current init (cleaned before a retry); gen: drops a stale init's late answers.
+const onl = { hasClaude: false, room: 'pending', perm: null, permApi: null, errCode: null, isMeSeen: false, manageFail: false, t0: 0, timer: 0, gen: 0, unsubs: [], mock: null };
 // The nickname typed for this online session (null outside one). It is the only identity shown or sent: no account data at all.
 let nick = null, nickOpen = false;
 const nickOf = nk => nk || T('pvpPlayer');
 function askNick() {
+  if ($('#btnOnline').getAttribute('aria-disabled') === 'true') return;
   nickOpen = true; $('#nick').hidden = false; $('#title').inert = true;
   $('#nickInput').value = ''; syncNick(); $('#nickInput').focus();
 }
@@ -2804,13 +2833,13 @@ function nickConfirm() { const n = cleanNick($('#nickInput').value); if (n === n
 function nickCancel() { closeNick(); nick = null; $('#btnOnline').focus(); }
 function syncNet() { const el = $('#netNote'); el.hidden = !(netDown && (onlineUI || pvp)); el.textContent = el.hidden ? '' : T('pvpNet'); }
 const warned = new Set();
-function hideOnline() { $('#btnOnline').hidden = true; if (nickOpen) nickCancel(); if (onlineUI && !pvp) closeLobby(); }
+function hideOnline(code) { onl.errCode = code || 'unknown'; renderOnline(); if (code === 'not_granted') readPerm().then(p => { onl.perm = p; renderOnline(); }); if (nickOpen) nickCancel(); if (onlineUI && !pvp) closeLobby(); }
 // scope: 'lobby' | 'room' (a match room's listener or call) | 'join'; what to do about the code is netAction's call
 function netFail(e, scope = 'lobby') {
   const code = e && e.code;
   if (!warned.has(code)) { warned.add(code); console.warn('room:', code, e && e.message); }
   const a = netAction(code, scope);
-  if (a === 'fallback' || a === 'unavailable') { if (pvp) pvpLeave(); hideOnline(); } // online is gone for this page load: single player only
+  if (a === 'fallback' || a === 'unavailable') { if (pvp) pvpLeave(); hideOnline(code); } // online is gone until a retry: the button shows the code
   else if (a === 'lobby' && pvp) leaveToLobby('pvpNetLost');
 }
 const roomFail = e => netFail(e, 'room');
@@ -3088,22 +3117,47 @@ function pvpResultTick() {
   o.textContent = r.dnf ? T(p.oppLeft ? 'pvpLeft' : 'pvpDnf') : fmtT(p.oppFt);
   gap.textContent = r.gap === null ? '—' : (r.outcome === 'win' ? '−' : r.outcome === 'lose' ? '+' : '') + r.gap.toFixed(2) + ' s';
 }
-const safeUse = async name => { try { return await window.claude.use(name); } catch (e) { return null; } }; // only 'room' is ever requested: the artifact declares no `user`
-async function initOnline() {
-  let m = null;
-  try {
-    if (typeof BroadcastChannel === 'function' && mockAllowed(location.search, location.hostname, location.protocol)) m = makeMockRoom();
-    else if (window.claude && typeof window.claude.use === 'function') {
-      const r = await safeUse('room');
-      if (r) m = { room: r };
-    }
-  } catch (e) { m = null; }
-  if (!m || !m.room || typeof m.room.join !== 'function') return;
-  room = m.room;
-  // the button appears only once the platform has answered with us in the room; a refusal (not_granted) leaves it hidden
-  room.onPeers(() => { if ($('#btnOnline').hidden && !netDown && room.peers().some(p => p.isMe)) $('#btnOnline').hidden = false; renderLobby(); }, netFail);
-  room.onConnection(c => { clearTimeout(netT); if (c) { netDown = false; syncNet(); } else netT = setTimeout(() => { netDown = true; syncNet(); }, 2000); }, netFail);
+const safeUse = async name => { try { return await window.claude.use(name); } catch (e) { return null; } }; // 'room' and the built-in 'permissions' only: the artifact declares no `user`
+const readPerm = async () => { try { return onl.permApi ? await onl.permApi.state('room') : null; } catch (e) { return null; } };
+function renderOnline() {
+  const btn = $('#btnOnline'), note = $('#onlineNote'), act = $('#btnOnlineAct');
+  const s = onlineStatus({ hasClaude: onl.hasClaude, room: onl.room, perm: onl.perm, connected: !!(room && room.connected && room.connected()), isMeSeen: onl.isMeSeen, elapsed: performance.now() - onl.t0, errCode: onl.errCode });
+  btn.setAttribute('aria-disabled', s.enabled ? 'false' : 'true');
+  note.textContent = s.enabled ? '' : onl.manageFail && s.action === 'manage' ? T('onManageFail') : T('on' + s.key[0].toUpperCase() + s.key.slice(1), onl.errCode);
+  act.hidden = !s.action; act.disabled = false; act.dataset.act = s.action || '';
+  if (s.action) act.textContent = T(s.action === 'allow' ? 'onAllow' : 'onManage');
 }
+// Re-runnable (Allow / Open permissions): the previous run's listeners are unsubscribed first, so none are duplicated.
+async function initOnline() {
+  const gen = ++onl.gen;
+  onl.unsubs.forEach(f => { try { f(); } catch (e) { /* already gone */ } }); onl.unsubs = []; clearTimeout(onl.timer);
+  const mock = typeof BroadcastChannel === 'function' && mockAllowed(location.search, location.hostname, location.protocol);
+  Object.assign(onl, { hasClaude: mock || !!(window.claude && typeof window.claude.use === 'function'), room: 'pending', perm: null, errCode: null, isMeSeen: false, manageFail: false, t0: performance.now() });
+  netDown = false; room = null; renderOnline();
+  let r = null;
+  try {
+    if (mock) r = (onl.mock || (onl.mock = makeMockRoom())).room;
+    else if (onl.hasClaude) {
+      r = await safeUse('room');
+      if (!r) { onl.permApi = await safeUse('permissions'); onl.perm = await readPerm(); }
+    }
+  } catch (e) { r = null; }
+  if (gen !== onl.gen) return;
+  if (!r || typeof r.join !== 'function') { onl.room = 'null'; renderOnline(); return; }
+  room = r; onl.room = 'ok';
+  const keep = u => { if (typeof u === 'function') onl.unsubs.push(u); };
+  keep(room.onPeers(() => { if (!onl.isMeSeen && room.peers().some(p => p.isMe)) onl.isMeSeen = true; renderOnline(); renderLobby(); }, netFail));
+  keep(room.onConnection(c => { clearTimeout(netT); if (c) { netDown = false; syncNet(); } else netT = setTimeout(() => { netDown = true; syncNet(); }, 2000); renderOnline(); }, netFail));
+  onl.timer = setTimeout(renderOnline, ONLINE_CONNECTED_GRACE_MS + 50); // the "connected but no isMe" case enables the button
+  renderOnline();
+}
+$('#btnOnlineAct').addEventListener('click', async e => {
+  const p = onl.permApi, act = e.currentTarget.dataset.act; if (!p) return;
+  e.currentTarget.disabled = true;
+  if (act === 'allow') { try { await p.request(['room']); } catch (err) { /* state is re-read by the init below */ } }
+  else { try { await p.manage(); } catch (err) { onl.manageFail = true; renderOnline(); return; } }
+  initOnline();
+});
 $('#btnOnline').addEventListener('click', askNick);
 $('#nickInput').addEventListener('input', syncNick);
 $('#nickOk').addEventListener('click', nickConfirm);
@@ -3248,7 +3302,7 @@ function tryLandscape() {
   } catch (_) { /* refused: the rotate prompt still covers a portrait phone */ }
 }
 $('#btnStart').addEventListener('click', tryLandscape);
-$('#btnOnline').addEventListener('click', tryLandscape);
+$('#btnOnline').addEventListener('click', () => { if ($('#btnOnline').getAttribute('aria-disabled') !== 'true') tryLandscape(); });
 $('#btnStart').addEventListener('click', startRace);
 $('#btnAgain').addEventListener('click', () => pvp ? pvpBackToRoom() : startRace());
 function returnToTitle() {
