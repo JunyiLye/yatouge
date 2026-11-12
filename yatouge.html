@@ -298,6 +298,10 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <button id="btnOwnClear" type="button" data-i18n="ownClear" hidden>移除</button>
       <input id="ownFile" type="file" accept="audio/*" hidden tabindex="-1" aria-hidden="true">
     </div>
+    <div id="tKx" class="tctl" hidden>
+      <div class="igrow"><span id="tKxChimeL" data-i18n="kxChime">時速警示音</span><button id="tKxChime" type="button" role="switch" aria-labelledby="tKxChimeL" aria-checked="true"></button></div>
+      <div class="igrow"><span id="tKxLetterL" data-i18n="kxLetter">車門字樣</span><button id="tKxLetter" type="button" role="switch" aria-labelledby="tKxLetterL" aria-checked="true"></button></div>
+    </div>
     <div id="tCtl" class="tctl" hidden>
       <div class="lbl" style="margin-top:16px" data-i18n="ctlLbl">操作設定</div>
       <div class="igrow" id="tSteerRow"><span id="tSteerL" data-i18n="igSteer">轉向方式</span><div class="igseg" role="radiogroup" aria-labelledby="tSteerL"><button type="button" role="radio" data-m="drag" data-i18n="stDrag">拖曳</button><button type="button" role="radio" data-m="tilt" data-i18n="stTilt">傾斜</button><button type="button" role="radio" data-m="zones" data-i18n="stZones">分區</button></div></div>
@@ -378,6 +382,8 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <div class="igrow"><span id="igMusicL" data-i18n="igMusic">音樂</span><button id="igMusic" type="button" role="switch" aria-labelledby="igMusicL" aria-checked="true"></button></div>
       <div class="igrow"><label for="igMusicVol" data-i18n="igMusicVol">音樂音量</label><output id="igMusicOut" for="igMusicVol"></output><input id="igMusicVol" type="range" min="0" max="100" step="5"></div>
       <div class="igrow"><label for="igSfxVol" data-i18n="igSfxVol">音效音量</label><output id="igSfxOut" for="igSfxVol"></output><input id="igSfxVol" type="range" min="0" max="100" step="5"></div>
+      <div class="igrow" id="igKxChimeRow" hidden><span id="igKxChimeL" data-i18n="kxChime">時速警示音</span><button id="igKxChime" type="button" role="switch" aria-labelledby="igKxChimeL" aria-checked="true"></button></div>
+      <div class="igrow" id="igKxLetterRow" hidden><span id="igKxLetterL" data-i18n="kxLetter">車門字樣</span><button id="igKxLetter" type="button" role="switch" aria-labelledby="igKxLetterL" aria-checked="true"></button></div>
       <div class="igrow" id="igSteerRow" hidden><span id="igSteerL" data-i18n="igSteer">轉向方式</span><div class="igseg" role="radiogroup" aria-labelledby="igSteerL"><button type="button" role="radio" data-m="drag" data-i18n="stDrag">拖曳</button><button type="button" role="radio" data-m="tilt" data-i18n="stTilt">傾斜</button><button type="button" role="radio" data-m="zones" data-i18n="stZones">分區</button></div></div>
       <div class="igrow" id="igTiltRow" hidden><label for="igTiltSens" data-i18n="igTiltSens">傾斜靈敏度</label><output id="igTiltOut" for="igTiltSens"></output><input id="igTiltSens" type="range" min="0" max="100" step="5"></div>
       <p class="igq" id="igTiltNote" role="status" hidden></p>
@@ -456,6 +462,17 @@ const menuCanOpen = (st, nickOpen) => !nickOpen && (st === 'count' || st === 'ra
 const menuEscAction = (open, view, st, nickOpen) => open ? (view === 'main' ? 'close' : 'back') : menuCanOpen(st, nickOpen) ? 'open' : 'none';
 const forfeitPlan = isPvp => ({ action: isPvp ? 'leave' : 'title', saveBest: false });
 /* @ingame-menu:end */
+/* @kx-chime:start */
+// KX-2 only: speed warning chime. Starts above 105 km/h, stops below 100 km/h (hysteresis), repeats about every second while over.
+const KXCHIME = { ON: 105, OFF: 100, GAP: 1.0 };
+const kxOn = v => v !== '0'; // saved as '0' / '1'; a missing value means on
+// over = was over the limit on the previous call, last = time of the previous chime (null if none); returns the new over flag and whether to ring now
+function kxChime({ enabled, car, state, kmh, over, t, last }) {
+  if (!enabled || car !== 'hatch' || (state !== 'count' && state !== 'race')) return { over: false, play: false };
+  const now = over ? kmh >= KXCHIME.OFF : kmh > KXCHIME.ON;
+  return { over: now, play: now && (last == null || t - last >= KXCHIME.GAP) };
+}
+/* @kx-chime:end */
 /* ---------- language (zh = Traditional Chinese, en = English) ---------- */
 const I18N = {
   zh: {
@@ -492,7 +509,7 @@ const I18N = {
     nickTitle: '你的暱稱', nickLbl: '暱稱', nickHint: '1 到 16 個字，只在這次線上對戰使用，不會被記住；其他玩家看得到。', nickOk: '確定', nickCancel: '取消',
     pvpPlayer: '玩家', pvpYouTag: n => `${n}（你）`, pvpNickIs: n => `你的暱稱：${n}。`, pvpTimeOf: n => `${n} 完賽時間`,
     igAria: '選單', igTitle: '選單', igResume: '繼續', igSettings: '設定', igForfeit: '認輸', igBack: '返回', igMusic: '音樂', igMusicVol: '音樂音量', igSfxVol: '音效音量', igCam: '鏡頭', igLang: '語言',
-    igOn: '開', igOff: '關', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
+    igOn: '開', igOff: '關', kxChime: '時速警示音', kxLetter: '車門字樣', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
     ctlLbl: '操作設定', igSteer: '轉向方式', stDrag: '拖曳', stTilt: '傾斜', stZones: '分區', igTiltSens: '傾斜靈敏度', recenter: '回正', zoneBrake: '煞車 + 手煞', tiltFail: '此環境無法使用傾斜轉向，已改回拖曳'
   },
   en: {
@@ -529,7 +546,7 @@ const I18N = {
     nickTitle: 'Your nickname', nickLbl: 'Nickname', nickHint: '1 to 16 characters. Used for this online session only and never saved; other players can see it.', nickOk: 'Confirm', nickCancel: 'Cancel',
     pvpPlayer: 'Player', pvpYouTag: n => `${n} (you)`, pvpNickIs: n => `Your nickname: ${n}.`, pvpTimeOf: n => `${n} · finish time`,
     igAria: 'Menu', igTitle: 'Menu', igResume: 'Resume', igSettings: 'Settings', igForfeit: 'Forfeit', igBack: 'Back', igMusic: 'Music', igMusicVol: 'Music volume', igSfxVol: 'Sound effects volume', igCam: 'Camera', igLang: 'Language',
-    igOn: 'On', igOff: 'Off', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
+    igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
     ctlLbl: 'Controls', igSteer: 'Steering', stDrag: 'Drag', stTilt: 'Tilt', stZones: 'Zones', igTiltSens: 'Tilt sensitivity', recenter: 'Re-center', zoneBrake: 'BRAKE + E-BRAKE', tiltFail: 'Tilt steering is unavailable here; switched back to drag.'
   }
 };
@@ -1606,6 +1623,7 @@ function gtBadgeTex() {
 function makeCar(style, colorIdx) {
   const def = CARS[style], col = def.colors[colorIdx] || def.colors[0];
   const g = new THREE.Group();
+  let door = null; // KX-2 door lettering mesh, toggled by the setting
   const paint = new THREE.MeshLambertMaterial({ color: col.top });
   const lowPaint = new THREE.MeshLambertMaterial({ color: col.low ?? col.top });
   const dark = new THREE.MeshLambertMaterial({ color: 0x121317 });
@@ -1669,7 +1687,7 @@ function makeCar(style, colorIdx) {
     add(box(0.3, 0.13, 0.012), plate, 0, 0.45, 2.181); // blank front plate, centred
     // door lettering on the car's right door only (-x, driver's side): flat plane 4 mm off the wall, yawed to the wall slope; nameplates rear and front (-x = car's right)
     { const zc = 0.21, y = 0.72, w = z => 0.82 * widthK(S, y, z), m = new THREE.MeshBasicMaterial({ map: doorLetteringTex(doorInkLight(col.top)), transparent: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-      const p = add(new THREE.PlaneGeometry(0.9, 0.14), m, -(w(zc) + 0.004), y, zc); p.rotation.y = -Math.PI / 2 - Math.atan((w(zc + 0.02) - w(zc - 0.02)) / 0.04); }
+      const p = add(new THREE.PlaneGeometry(0.9, 0.14), m, -(w(zc) + 0.004), y, zc); p.rotation.y = -Math.PI / 2 - Math.atan((w(zc + 0.02) - w(zc - 0.02)) / 0.04); p.visible = kxLetterOn; door = p; }
     const nameMat = new THREE.MeshBasicMaterial({ map: tougeNameplateTex(), transparent: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
     add(new THREE.PlaneGeometry(0.41, 0.064), nameMat, -0.6, 0.878, -2.158).rotation.y = Math.PI; // above the right tail cluster, facing -z
     const trimMat = new THREE.MeshBasicMaterial({ map: trimBadgeTex(doorInkLight(col.top)), transparent: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
@@ -1794,9 +1812,10 @@ function makeCar(style, colorIdx) {
     spin.push(sp); if (z > 0) steer.push(st);
   }
   scene.add(g);
-  return { g, tailMat, tails, spin, steer };
+  return { g, tailMat, tails, spin, steer, door };
 }
 let choice = { car: 'hatch', color: 0 };
+let kxChimeOn = kxOn(store.get('yatouge-kx-chime')), kxLetterOn = kxOn(store.get('yatouge-kx-letter')); // KX-2 options, both default on
 try { const c = JSON.parse(store.get('yatouge-car') || 'null'); if (c && CARS[c.car]) choice = c; } catch (e) { /* ignore bad saved choice */ }
 let playerCar, rivalCar, playerInterior = null; // the 3D cabin is built lazily the first time cockpit view is shown
 const head = new THREE.SpotLight(0xfff0d0, 2.4, 95, 0.52, 0.55, 1);
@@ -2272,13 +2291,21 @@ function setVolume(kind, v) {
 }
 function beep(f, dur) { if (!ac) return; tone('square', f, ac.currentTime, dur, 0.18, 4000, master); }
 function sfxHit(v) { if (!ac) return; noise(ac.currentTime, 0.25, 0.25 + v * 0.4, 'lowpass', 900, master); }
-function bell(f, t) {
-  for (const [m, v] of [[1, 0.13], [2.76, 0.035]]) {
-    const o = ac.createOscillator(), g = ac.createGain(); o.type = 'sine'; o.frequency.value = f * m;
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.85);
-    o.connect(g).connect(master); o.start(t); o.stop(t + 0.9);
+// one soft bell tone: sine plus a triangle for body, 5 ms attack, 0.6 s decay, through the SFX bus
+let chimeBus = null; // own gain so a stop (finish, forfeit, setting off) can cut a ringing chime at once
+function chimeTone(f, t) {
+  for (const [type, v] of [['sine', 0.1], ['triangle', 0.04]]) {
+    const o = ac.createOscillator(), g = ac.createGain(); o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.6);
+    o.connect(g).connect(chimeBus); o.start(t); o.stop(t + 0.65);
   }
 }
+const kxChimeRing = t => { // ding, then dong
+  if (!chimeBus) { chimeBus = ac.createGain(); chimeBus.connect(master); }
+  chimeBus.gain.cancelScheduledValues(t); chimeBus.gain.setValueAtTime(1, t);
+  chimeTone(1300, t); chimeTone(1050, t + 0.28);
+};
+const kxChimeCut = () => { if (chimeBus) { chimeBus.gain.cancelScheduledValues(ac.currentTime); chimeBus.gain.setTargetAtTime(0, ac.currentTime, 0.02); } };
 // gtr one-shots: self-terminating nodes (source/oscillator stop → garbage-collected), scheduled on the audio clock, no timers
 function sfxBov(t) { // "pssh": band-passed noise, fast attack, decaying level, filter sweeping down
   const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
@@ -2302,7 +2329,7 @@ function sfxFlutter(t, boost) { // compressor flutter "stu-tu-tu": 5 pulses at ~
 function sfxCrackle(t) { // overrun pops: 2-4 short quiet low bursts just after the BOV
   for (let i = 0, n = 2 + Math.floor(Math.random() * 3); i < n; i++) noise(t + 0.08 + Math.random() * 0.35, 0.04, 0.07, 'lowpass', 700, master);
 }
-let chimeT = 0;
+let chimeOver = false, chimeLast = null;
 function updateEngineAudio(dt) {
   if (!ac) return;
   const t = ac.currentTime, f = car.rpm / 30, spd = Math.hypot(car.vx, car.vz);
@@ -2347,11 +2374,9 @@ function updateEngineAudio(dt) {
   }
   gutG.gain.setTargetAtTime(car.gutSide ? 0.4 : 0, t, 0.06);
   sqG.gain.setTargetAtTime(car.drift && spd > 8 ? Math.min(0.16, spd / 220) : 0, t, 0.06);
-  // hatch only: the two-tone over-speed warning chime above 100 km/h
-  if (choice.car === 'hatch' && (state === 'race' || state === 'done') && spd * 3.6 > 100) {
-    chimeT -= dt;
-    if (chimeT <= 0) { bell(2093, t); bell(1661, t + 0.32); chimeT = 0.9; }
-  } else chimeT = 0;
+  const cr = kxChime({ enabled: kxChimeOn, car: choice.car, state, kmh: spd * 3.6, over: chimeOver, t, last: chimeLast });
+  chimeOver = cr.over;
+  if (cr.play) { kxChimeRing(t); chimeLast = t; } else if (!cr.over && chimeLast != null) { chimeLast = null; kxChimeCut(); }
 }
 document.addEventListener('visibilitychange', () => { if (!ac) return; if (document.hidden) ac.suspend(); else ac.resume(); });
 
@@ -2834,7 +2859,22 @@ function renderPicker() {
     b.addEventListener('click', () => { choice = { car: choice.car, color: i }; chosen(); });
     sw.append(b);
   });
+  syncKxUI();
 }
+// KX-2 options: the title block and the in-game menu rows show only while the player's car is the KX-2; both controls stay in sync
+function syncKxUI() {
+  const kx = choice.car === 'hatch';
+  $('#tKx').hidden = !kx; $('#igKxChimeRow').hidden = $('#igKxLetterRow').hidden = !kx;
+  for (const [ids, on] of [[['#tKxChime', '#igKxChime'], kxChimeOn], [['#tKxLetter', '#igKxLetter'], kxLetterOn]])
+    for (const id of ids) { const b = $(id); b.setAttribute('aria-checked', String(on)); b.textContent = T(on ? 'igOn' : 'igOff'); }
+}
+function setKx(kind, on) {
+  if (kind === 'chime') { kxChimeOn = on; store.set('yatouge-kx-chime', on ? '1' : '0'); }
+  else { kxLetterOn = on; store.set('yatouge-kx-letter', on ? '1' : '0'); for (const c of [playerCar, rivalCar]) if (c && c.door) c.door.visible = on; }
+  syncKxUI();
+}
+for (const [id, kind] of [['#tKxChime', 'chime'], ['#igKxChime', 'chime'], ['#tKxLetter', 'letter'], ['#igKxLetter', 'letter']])
+  $(id).addEventListener('click', () => setKx(kind, !(kind === 'chime' ? kxChimeOn : kxLetterOn)));
 function renderTrackPicker() {
   const el = $('#trackPick'); el.innerHTML = '';
   for (const id in TRACKS) {
@@ -3652,7 +3692,7 @@ window.addEventListener('keydown', e => {
   if (e.code === 'KeyR' && (state === 'race')) resetCar();
   if (e.code === 'KeyM') setMusic(!musicOn);
   if (e.code === 'KeyC' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && !hudEl.hidden) setCamMode(nextCam(camMode), true);
-  if (e.code === 'Enter' && state === 'title' && !onlineUI && !e.target.closest('.music')) startRace(); // Enter on a music button activates it, not the race
+  if (e.code === 'Enter' && state === 'title' && !onlineUI && !e.target.closest('.music, #tKx')) startRace(); // Enter on a music button or a KX-2 option activates it, not the race
 });
 window.addEventListener('keyup', e => { if (KEYMAP[e.code]) input[KEYMAP[e.code]] = false; });
 window.addEventListener('blur', () => { for (const k in input) input[k] = k === 'steerAxis' ? null : false; releaseTouch(); });
@@ -3856,7 +3896,7 @@ function syncMenuUI() {
   $('#igMusicVol').value = volPct(musicVol); $('#igMusicOut').textContent = volPct(musicVol) + '%';
   $('#igSfxVol').value = volPct(sfxVol); $('#igSfxOut').textContent = volPct(sfxVol) + '%';
   $('#igCam').value = camMode; $('#igLang').value = lang;
-  syncSteerUI();
+  syncKxUI(); syncSteerUI();
 }
 function showMenuView(v, focus) {
   menuView = v;
