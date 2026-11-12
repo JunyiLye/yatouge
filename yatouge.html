@@ -80,6 +80,17 @@ button:focus-visible { outline: 2px solid var(--sodium); outline-offset: 2px; }
 .coarse .spd { font-size: 44px; }
 .coarse .rpm { width: 130px; }
 .coarse .keys { display: none; } /* keyboard hints mean nothing on a phone */
+/* tilt / zones steering: the drag zone and pedal buttons give way; the whole canvas becomes the touch area */
+.m-tilt #steerZone, .m-tilt .pedals, .m-zones #steerZone, .m-zones .pedals { display: none; }
+#btnRecenter { display: none; position: absolute; left: calc(14px + env(safe-area-inset-left, 0px)); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); pointer-events: auto; background: rgba(9,12,26,.55); border: 1px solid var(--line); border-radius: 4px; padding: 10px 16px; font-size: 14px; }
+.m-tilt #btnRecenter { display: block; }
+#zones { position: absolute; inset: 0; pointer-events: none; display: none; }
+.m-zones #zones { display: block; }
+#zones .zn { position: absolute; box-sizing: border-box; display: grid; place-items: center; border: 1px dashed rgba(236,238,246,.18); background: rgba(236,238,246,.03); font-size: 28px; color: rgba(236,238,246,.35); transition: background .08s; }
+#zones .zl { left: 0; top: 0; width: 50%; height: 70%; } #zones .zr { left: 50%; top: 0; width: 50%; height: 70%; }
+#zones .zb { left: 0; bottom: 0; width: 100%; height: 30%; place-items: center start; padding-left: 24px; font-size: 15px; font-weight: 700; letter-spacing: .08em; }
+#zones .zn.on { background: rgba(255,162,58,.16); border-color: var(--sodium); color: var(--sodium); }
+.igseg { display: flex; gap: 6px; } .igrow[hidden], .igq[hidden] { display: none; }
 
 /* asks a phone held upright to turn sideways; it covers the page but pauses nothing */
 .rotate { position: fixed; inset: 0; z-index: 30; display: grid; place-content: center; justify-items: center; gap: 20px; padding: 24px; text-align: center; background: rgba(5,7,15,.96); touch-action: none; }
@@ -147,6 +158,12 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 .nickinput { display: block; width: 100%; box-sizing: border-box; margin: 8px 0 0; padding: 12px 14px; font: inherit; font-size: 18px; color: var(--ink); background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 4px; -webkit-user-select: text; user-select: text; }
 .nickinput:focus-visible { outline: 2px solid var(--sodium); outline-offset: 2px; }
 .go:disabled { opacity: .4; cursor: not-allowed; filter: none; }
+.coderow { display: flex; gap: 10px; align-items: stretch; margin: 8px 0 18px; }
+.coderow .nickinput { margin: 0; flex: 1 1 auto; min-width: 0; text-transform: uppercase; letter-spacing: .3em; font-family: var(--mono); }
+.coderow .go { flex: 0 0 auto; }
+.coderow .go:disabled { opacity: .45; cursor: not-allowed; }
+.codeshow { margin: 0 0 14px; font-size: 13px; color: var(--dim); }
+.codeshow b { font-family: var(--mono); font-size: 28px; letter-spacing: .3em; color: var(--sodium); margin-left: 8px; -webkit-user-select: text; user-select: text; }
 .rooms { display: grid; gap: 8px; margin: 8px 0 18px; }
 .roomrow { width: 100%; min-height: 44px; }
 .plrows { display: grid; gap: 8px; margin: 4px 0 20px; }
@@ -218,6 +235,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 <canvas id="c" data-i18n-aria="canvas" aria-label="夜峠下坡 3D 畫面"></canvas>
 
 <div id="hud" hidden>
+  <div id="zones" aria-hidden="true"><div class="zn zl">◀</div><div class="zn zr">▶</div><div class="zn zb" data-i18n="zoneBrake">煞車 + 手煞</div></div>
   <div class="hud-tl panel">
     <div class="lbl" data-i18n="time">時間</div>
     <div id="time" class="num">0:00.00</div>
@@ -251,6 +269,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <button type="button" data-k="gas" data-i18n="gas">油門</button>
     </div>
   </div>
+  <button id="btnRecenter" type="button" data-i18n="recenter">回正</button>
 </div>
 
 <div id="title" class="screen">
@@ -309,7 +328,11 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <p id="lobbyPick" class="note" style="margin-top:0"></p>
     <div class="lbl" data-i18n="pvpRoomsLbl">開著的房間</div>
     <div id="roomList" class="rooms"></div>
-    <div class="actions"><button class="go" id="btnCreate" type="button" data-i18n="pvpCreate">建立房間</button><button class="ghost" id="btnLobbyBack" type="button" data-i18n="pvpBack">返回</button></div>
+    <div id="codeBox" hidden>
+      <label class="lbl" for="codeInput" data-i18n="pvpCodeLbl">用代碼加入私人房間</label>
+      <form id="codeForm" class="coderow" autocomplete="off"><input id="codeInput" class="nickinput codeinput" type="text" maxlength="4" inputmode="text" autocomplete="off" autocapitalize="characters" spellcheck="false" aria-describedby="lobbyNote"><button class="go" id="btnJoinCode" type="submit" data-i18n="pvpJoinCode" disabled>加入</button></form>
+    </div>
+    <div class="actions"><button class="go" id="btnCreate" type="button" data-i18n="pvpCreate">建立公開房間</button><button class="go" id="btnCreatePriv" type="button" data-i18n="pvpCreatePriv" hidden>建立私人房間</button><button class="ghost" id="btnLobbyBack" type="button" data-i18n="pvpBack">返回</button></div>
     <p id="lobbyNote" class="note" role="status"></p>
   </div>
 </div>
@@ -319,6 +342,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div class="eyebrow" data-i18n="pvpRoomEyebrow">線上對戰 · 房間</div>
     <h2 id="roomTrack" class="pvp-h"></h2>
     <div class="stripe"></div>
+    <p id="roomCodeRow" class="codeshow" hidden><span data-i18n="pvpCodeIs">房間代碼</span> <b id="roomCode"></b></p>
     <div class="plrows" aria-live="polite">
       <div class="plrow" id="plMe"><b></b><small></small><span class="plst"></span></div>
       <div class="plrow" id="plOpp"><b></b><small></small><span class="plst"></span></div>
@@ -341,6 +365,9 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <div class="igrow"><span id="igMusicL" data-i18n="igMusic">音樂</span><button id="igMusic" type="button" role="switch" aria-labelledby="igMusicL" aria-checked="true"></button></div>
       <div class="igrow"><label for="igMusicVol" data-i18n="igMusicVol">音樂音量</label><output id="igMusicOut" for="igMusicVol"></output><input id="igMusicVol" type="range" min="0" max="100" step="5"></div>
       <div class="igrow"><label for="igSfxVol" data-i18n="igSfxVol">音效音量</label><output id="igSfxOut" for="igSfxVol"></output><input id="igSfxVol" type="range" min="0" max="100" step="5"></div>
+      <div class="igrow" id="igSteerRow" hidden><span id="igSteerL" data-i18n="igSteer">轉向方式</span><div class="igseg" role="radiogroup" aria-labelledby="igSteerL"><button type="button" role="radio" data-m="drag" data-i18n="stDrag">拖曳</button><button type="button" role="radio" data-m="tilt" data-i18n="stTilt">傾斜</button><button type="button" role="radio" data-m="zones" data-i18n="stZones">分區</button></div></div>
+      <div class="igrow" id="igTiltRow" hidden><label for="igTiltSens" data-i18n="igTiltSens">傾斜靈敏度</label><output id="igTiltOut" for="igTiltSens"></output><input id="igTiltSens" type="range" min="0" max="100" step="5"></div>
+      <p class="igq" id="igTiltNote" role="status" hidden></p>
       <div class="igrow"><label for="igCam" data-i18n="igCam">鏡頭</label><select id="igCam"></select></div>
       <div class="igrow"><label for="igLang" data-i18n="igLang">語言</label><select id="igLang"><option value="zh">中文</option><option value="en">English</option></select></div>
       <button class="ghost" id="igBack" type="button" data-i18n="igBack">返回</button>
@@ -439,7 +466,8 @@ const I18N = {
     onDenied: '線上權限已被拒絕', onManage: '開啟權限設定', onManageFail: '無法開啟設定，請從這個 artifact 右上角的權限選單開啟', onError: c => `線上暫時無法使用 (${c})`,
     pvpOnline: '線上對戰', pvpEyebrow: '1 對 1 · 即時連線', pvpLobby: '線上對戰大廳', pvpRoomsLbl: '開著的房間',
     pvpPick: (track, car) => `賽道：${track} · 車：${car}。要更換請先返回主畫面。`, pvpEmpty: '目前沒有開著的房間，自己開一間吧。',
-    pvpRoomRow: (track, n) => `${track} · ${n}/2 人`, pvpCreate: '建立房間', pvpBack: '返回', pvpJoining: '正在加入…',
+    pvpRoomRow: (track, n) => `${track} · ${n}/2 人`, pvpCreate: '建立公開房間', pvpCreatePriv: '建立私人房間', pvpBack: '返回', pvpJoining: '正在加入…',
+    pvpCodeLbl: '用代碼加入私人房間', pvpJoinCode: '加入', pvpCodeIs: '房間代碼', pvpCodeNone: '找不到這個代碼的房間。', pvpCodeFull: '這個房間已經滿了。',
     pvpJoinFail: '加入失敗，房間可能已關閉或已滿。', pvpCreateFail: '建立房間失敗，請稍後再試。', pvpFull: '房間已滿，已返回大廳。',
     pvpGone: '找不到房主，已返回大廳。', pvpNetLost: '連線中斷，已返回大廳。', pvpHostLeft: '房主已離開，已返回大廳。',
     pvpRoomEyebrow: '線上對戰 · 房間', pvpYou: '你', pvpOpp: '對手', pvpWaitJoin: '等待對手加入…', pvpFree: '空位',
@@ -451,7 +479,8 @@ const I18N = {
     nickTitle: '你的暱稱', nickLbl: '暱稱', nickHint: '1 到 16 個字，只在這次線上對戰使用，不會被記住；其他玩家看得到。', nickOk: '確定', nickCancel: '取消',
     pvpPlayer: '玩家', pvpYouTag: n => `${n}（你）`, pvpNickIs: n => `你的暱稱：${n}。`, pvpTimeOf: n => `${n} 完賽時間`,
     igAria: '選單', igTitle: '選單', igResume: '繼續', igSettings: '設定', igForfeit: '認輸', igBack: '返回', igMusic: '音樂', igMusicVol: '音樂音量', igSfxVol: '音效音量', igCam: '鏡頭', igLang: '語言',
-    igOn: '開', igOff: '關', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸'
+    igOn: '開', igOff: '關', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
+    igSteer: '轉向方式', stDrag: '拖曳', stTilt: '傾斜', stZones: '分區', igTiltSens: '傾斜靈敏度', recenter: '回正', zoneBrake: '煞車 + 手煞', tiltFail: '此環境無法使用傾斜轉向，已改回拖曳'
   },
   en: {
     canvas: 'Night Pass Downhill 3D view', time: 'TIME', score: 'DRIFT SCORE', musicOn: 'Music: on', musicOff: 'Music: off', bgmLbl: 'Music', bgmSynth: 'Original', bgmOwn: n => `Mine — ${n}`, ownPick: 'Choose music', ownClear: 'Remove', ownBad: 'Not an audio file', ownBig: 'File over 50 MB', reset: 'Back on road',
@@ -474,7 +503,8 @@ const I18N = {
     onDenied: 'Online permission was denied', onManage: 'Open permissions', onManageFail: "Couldn't open settings. Use this artifact's Permissions menu (top right)", onError: c => `Online unavailable (${c})`,
     pvpOnline: 'Online 1v1', pvpEyebrow: '1v1 · live', pvpLobby: 'Online lobby', pvpRoomsLbl: 'Open rooms',
     pvpPick: (track, car) => `Course: ${track} · Car: ${car}. Go back to the title screen to change them.`, pvpEmpty: 'No open rooms right now. Create one.',
-    pvpRoomRow: (track, n) => `${track} · ${n}/2 players`, pvpCreate: 'Create room', pvpBack: 'Back', pvpJoining: 'Joining…',
+    pvpRoomRow: (track, n) => `${track} · ${n}/2 players`, pvpCreate: 'Create public room', pvpCreatePriv: 'Create private room', pvpBack: 'Back', pvpJoining: 'Joining…',
+    pvpCodeLbl: 'Join a private room with a code', pvpJoinCode: 'Join', pvpCodeIs: 'Room code', pvpCodeNone: 'No room found for that code.', pvpCodeFull: 'That room is full.',
     pvpJoinFail: 'Could not join. The room may be closed or full.', pvpCreateFail: 'Could not create the room. Try again later.', pvpFull: 'The room is full. Back in the lobby.',
     pvpGone: 'The host could not be found. Back in the lobby.', pvpNetLost: 'Connection lost. Back in the lobby.', pvpHostLeft: 'The host left. Back in the lobby.',
     pvpRoomEyebrow: 'Online 1v1 · Room', pvpYou: 'You', pvpOpp: 'Opponent', pvpWaitJoin: 'Waiting for an opponent…', pvpFree: 'Open slot',
@@ -486,7 +516,8 @@ const I18N = {
     nickTitle: 'Your nickname', nickLbl: 'Nickname', nickHint: '1 to 16 characters. Used for this online session only and never saved; other players can see it.', nickOk: 'Confirm', nickCancel: 'Cancel',
     pvpPlayer: 'Player', pvpYouTag: n => `${n} (you)`, pvpNickIs: n => `Your nickname: ${n}.`, pvpTimeOf: n => `${n} · finish time`,
     igAria: 'Menu', igTitle: 'Menu', igResume: 'Resume', igSettings: 'Settings', igForfeit: 'Forfeit', igBack: 'Back', igMusic: 'Music', igMusicVol: 'Music volume', igSfxVol: 'Sound effects volume', igCam: 'Camera', igLang: 'Language',
-    igOn: 'On', igOff: 'Off', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited'
+    igOn: 'On', igOff: 'Off', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
+    igSteer: 'Steering', stDrag: 'Drag', stTilt: 'Tilt', stZones: 'Zones', igTiltSens: 'Tilt sensitivity', recenter: 'Re-center', zoneBrake: 'BRAKE + E-BRAKE', tiltFail: 'Tilt steering is unavailable here; switched back to drag.'
   }
 };
 let lang = store.get('yatouge-lang') || ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
@@ -528,6 +559,8 @@ const glow = (color, scale) => {
 /* @course-geometry:start */
 const DS = 1.5, HW = 5.2;
 const wrap = a => { while (a > Math.PI) a -= 2 * Math.PI; while (a < -Math.PI) a += 2 * Math.PI; return a; };
+// point headings are atan2 values (-pi..pi); interpolate along the short arc so a segment straddling +-pi does not sweep ~360 degrees
+const lerpAngle = (a, b, t) => a + wrap(b - a) * t;
 /* Mt. Kurosagi: switchback descent, + deg = right turn */
 function kurosagiPts() {
   const plan = [];
@@ -1100,6 +1133,39 @@ function mockAllowed(search, hostname, protocol) {
 }
 const emptyShown = (since, now) => since !== null && now - since >= 1500;
 /* @netcode:end */
+/* @supa:start */
+/* Supabase Realtime transport (pure part). Private rooms: a 4-character code, never advertised in the lobby. */
+const ROOM_CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no 0 O 1 I L; 31 symbols, 31^4 ~ 923k codes (a byte % 31 is slightly uneven: fine for a casual code)
+function genRoomCode(bytes) {
+  if (!bytes || ![0, 1, 2, 3].every(i => Number.isInteger(bytes[i]))) throw new TypeError('genRoomCode needs 4 bytes');
+  return [0, 1, 2, 3].map(i => ROOM_CODE_CHARS[bytes[i] % ROOM_CODE_CHARS.length]).join('');
+}
+const validRoomCode = s => typeof s === 'string' && /^[A-HJKMNP-Z2-9]{4}$/.test(s);
+const normalizeCode = s => { const c = typeof s === 'string' ? s.trim().toUpperCase() : ''; return validRoomCode(c) ? c : null; };
+function privRoomName(code) { if (!validRoomCode(code)) throw new TypeError('bad room code'); return 'pvt-' + code.toLowerCase(); } // not a validRoomName: the lobby can never list it
+// 'mock' wins first (same as before), then the claude.ai room, then Supabase
+const pickTransport = ({ hasClaude, mockOk } = {}) => mockOk ? 'mock' : hasClaude ? 'claude' : 'supabase';
+// A peer's low-rate presence from the channel: no Supabase bookkeeping, and n / c never travel here (they come from broadcast)
+const lowOf = m => m && typeof m === 'object' && !Array.isArray(m) ? Object.fromEntries(Object.entries(m).filter(([k]) => k !== 'presence_ref' && k !== 'n' && k !== 'c' && k !== '__proto__')) : null;
+const stableJson = o => JSON.stringify(o, (k, v) => v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v).sort(([a], [b]) => a < b ? -1 : 1)) : v);
+// Low-rate presence (track) + latest car sample { n, c } (broadcast) -> one frozen presence, the shape the netcode already reads.
+// old: the previous record of this peer. Unchanged inputs return the same record, so unchanged peers stay === between deliveries.
+function mergePeer(old, low, car, now) {
+  const key = stableJson(low);
+  if (old && old.key === key && old.car === car) return old;
+  return { key, low, car, presence: Object.freeze(car ? { ...low, n: car.n, c: car.c } : { ...low }), at: now };
+}
+// Rate gate: may a send happen now, or after how many ms (leading edge, then one trailing send so the last value always goes out)
+const throttleStep = (last, now, interval) => { const wait = last + interval - now; return wait <= 0 ? { run: true, delay: 0 } : { run: false, delay: wait }; };
+function makeLimiter(interval, fn, now = () => performance.now(), later = setTimeout, cancelLater = clearTimeout) {
+  let last = -Infinity, timer = null, dead = false;
+  const fire = () => { timer = null; if (dead) return; last = now(); fn(); };
+  return {
+    poke() { if (dead || timer !== null) return; const s = throttleStep(last, now(), interval); if (s.run) fire(); else timer = later(fire, s.delay); },
+    cancel() { dead = true; if (timer !== null) { cancelLater(timer); timer = null; } }
+  };
+}
+/* @supa:end */
 let roadHW = HW, WALL_LAT = roadHW + 0.3; // current course's road half-width and rail face (same plane as the rail mesh); buildTrack sets both
 const COURSES = {};
 for (const id in TRACKS) { COURSES[id] = buildCourse(id); COURSES[id].gutters = gutterSections(id, COURSES[id].pts); }
@@ -1730,11 +1796,48 @@ function touchSteer(dx, range, dead = TOUCH.DEAD) {
 // where to draw the track so the whole of it stays inside a zone of width zoneW (a zone narrower than the track centres it)
 const trackCenter = (x, zoneW, range) => zoneW <= 2 * range ? zoneW / 2 : clamp(x, range, zoneW - range);
 /* @touch:end */
+/* @tilt:start */
+// Tilt steering + one-finger pedals. TILT.KICK_S = how long the handbrake stays on right after a touch starts.
+const TILT = { DEAD: 0.08, MIN_MAX: 12, MAX_MAX: 35, KICK_S: 0.25, SMOOTH: 14, SENS_DEF: 0.5, WAIT_MS: 1200, BOTTOM_FRAC: 0.3 };
+// No touch: gas only once the race runs. Touch: gas off, brake on, handbrake for the first KICK_S seconds.
+const pedalState = (touching, heldS, racing) => touching
+  ? { gas: false, brake: true, hb: heldS < TILT.KICK_S }
+  : { gas: !!racing, brake: false, hb: false };
+// Higher sensitivity = smaller tilt for full lock.
+const tiltMaxAngle = s => TILT.MAX_MAX + (TILT.MIN_MAX - TILT.MAX_MAX) * clamp(Number.isFinite(s) ? s : TILT.SENS_DEF, 0, 1);
+// Degrees from the calibrated centre -> -1..1 (shortest way round, dead zone then rescaled).
+function tiltSteer(angle, center, maxAngle, dead = TILT.DEAD) {
+  if (typeof angle !== 'number' || !Number.isFinite(angle) || !Number.isFinite(center) || !(maxAngle > 0)) return 0;
+  const d = ((angle - center + 540) % 360 + 360) % 360 - 180;
+  const n = clamp(d / maxAngle, -1, 1), m = Math.abs(n);
+  return m <= dead ? 0 : Math.sign(n) * (m - dead) / (1 - dead);
+}
+// Landscape (90 / 270): beta, sign flips with the side the phone was turned to. Portrait (0 / 180): gamma. Positive = right side down = steer right.
+function tiltAxis(screenAngle) {
+  const a = ((Math.round(Number(screenAngle) || 0) % 360) + 360) % 360;
+  return a === 90 ? { axis: 'beta', sign: 1 } : a === 270 ? { axis: 'beta', sign: -1 } : a === 180 ? { axis: 'gamma', sign: -1 } : { axis: 'gamma', sign: 1 };
+}
+function tiltAngle(ev, screenAngle) {
+  const { axis, sign } = tiltAxis(screenAngle), v = ev && ev[axis];
+  return typeof v === 'number' && Number.isFinite(v) ? sign * v : null;
+}
+const tiltSmooth = (prev, target, dt, rate = TILT.SMOOTH) => prev + (target - prev) * (1 - Math.exp(-rate * Math.max(0, dt)));
+const steerModeOf = v => (v === 'tilt' || v === 'zones' ? v : 'drag');
+// Zones mode: bottom BOTTOM_FRAC of the screen = brake band (full width), the rest splits left / right at the centre line (centre belongs to right).
+function zoneHit(x, y, w, h) {
+  if (![x, y, w, h].every(Number.isFinite) || w <= 0 || h <= 0 || x < 0 || y < 0 || x >= w || y >= h) return 'none';
+  return y >= h * (1 - TILT.BOTTOM_FRAC) ? 'bottom' : x < w / 2 ? 'left' : 'right';
+}
+// Both halves held cancel out (same as the keyboard).
+const zoneSteer = held => (held.right ? 1 : 0) - (held.left ? 1 : 0);
+const tiltSensOf = v => { const n = parseFloat(v); return Number.isFinite(n) ? clamp(n / 100, 0, 1) : TILT.SENS_DEF; };
+/* @tilt:end */
 const car = {};
 const rival = {};
 let state = 'title', raceT = 0, countT = 0, camOrbit = 0, shake = 0, lastGapSign = 1, finishTimer = -1;
 let playerWon = false, driftTotal = 0, driftChain = 0, driftIdle = 0, rivalFinishT = null, playerFinishT = null;
 let menuOpen = false, menuView = 'main'; // in-game menu (never pauses the race)
+let steerMode = 'drag', tiltSens = TILT.SENS_DEF, tiltNoteKey = '', steerTok = 0; // 'drag' | 'tilt' | 'zones'; the touch-control code is in the controls section
 let pvp = null, startLat = 2.2, onlineUI = false; // pvp: the online match in progress (null = single player); startLat: grid slot, + right of the centreline
 
 function locate(o) {
@@ -1748,14 +1851,14 @@ function locate(o) {
   let t = ((o.x - p.x) * sx + (o.z - p.z) * sz) / L2;
   if (t < 0 && i > 0) { i--; p = pts[i]; q = pts[i + 1]; sx = q.x - p.x; sz = q.z - p.z; L2 = sx * sx + sz * sz; t = ((o.x - p.x) * sx + (o.z - p.z) * sz) / L2; }
   t = clamp(t, 0, 1);
-  const cx = p.x + sx * t, cz = p.z + sz * t, h = p.h + (q.h - p.h) * t, rx = -Math.cos(h), rz = Math.sin(h);
+  const cx = p.x + sx * t, cz = p.z + sz * t, h = lerpAngle(p.h, q.h, t), rx = -Math.cos(h), rz = Math.sin(h);
   return { i, h, rx, rz, lat: (o.x - cx) * rx + (o.z - cz) * rz, y: p.y + (q.y - p.y) * t, s: p.s + (q.s - p.s) * t, grade: (q.y - p.y) / Math.sqrt(L2) };
 }
 function samplePos(s, lat) {
   let i = rival.i || 0;
   while (i < N - 2 && pts[i + 1].s < s) i++;
   while (i > 0 && pts[i].s > s) i--;
-  const p = pts[i], q = pts[i + 1], t = clamp((s - p.s) / (q.s - p.s), 0, 1), h = p.h + (q.h - p.h) * t;
+  const p = pts[i], q = pts[i + 1], t = clamp((s - p.s) / (q.s - p.s), 0, 1), h = lerpAngle(p.h, q.h, t);
   return { i, h, x: p.x + (q.x - p.x) * t - Math.cos(h) * lat, z: p.z + (q.z - p.z) * t + Math.sin(h) * lat, y: p.y + (q.y - p.y) * t, k: p.ks, grade: (q.y - p.y) / (q.s - p.s) };
 }
 function resetRace() {
@@ -2712,13 +2815,14 @@ function startRace() {
 /* @onlinestatus:start */
 const ONLINE_CONNECTED_GRACE_MS = 5000;
 // in: hasClaude (window.claude exists), room 'pending' | 'null' | 'ok' (use('room') answer), perm (permissions state or null),
-// connected, isMeSeen, elapsed (ms since init), errCode (terminal room error or null).
+// connected, isMeSeen, elapsed (ms since init), errCode (terminal room error or null); transport 'supabase' (no claude.ai needed): room 'idle' | 'pending' | 'ok'.
 // out: { key (i18n suffix), enabled, action: null | 'allow' | 'manage' }. A connected room is enough: isMe never gates the button.
 function onlineStatus(i) {
   const st = (key, enabled = false, action = null) => ({ key, enabled, action });
   if (i.errCode === 'not_granted' && i.perm === 'prompt') return st('needPerm', false, 'allow');
   if (i.errCode === 'not_granted' && i.perm === 'denied') return st('denied', false, 'manage');
   if (i.errCode) return st('error');
+  if (i.transport === 'supabase') return i.room === 'pending' ? st('connecting') : st('ready', true); // idle (SDK not loaded yet) is usable: pressing the button loads it
   if (!i.hasClaude) return st('notClaude');
   if (i.room === 'pending') return st('connecting');
   if (i.room === 'null') return i.perm === 'prompt' ? st('needPerm', false, 'allow') : i.perm === 'denied' ? st('denied', false, 'manage') : st('notClaude');
@@ -2815,6 +2919,191 @@ function makeMockRoom() {
   return { room: { presence: lobby.presence, peers: lobby.peers, onPeers: lobby.onPeers, connected, onConnection: lobby.onConnection, join } };
 }
 
+/* ---------- online 1v1: Supabase Realtime transport ---------- */
+/* Used outside claude.ai (GitHub Pages). Realtime only: no tables, nothing is stored. The publishable key is meant for browsers.
+   One channel `yatouge-lobby` (lobby presence) and one `yatouge-room-<name>` per match room. Supabase allows a client only 5
+   presence calls per 30 s (a hard limit on every plan), so channel presence is used ONLY as the roster (one track() per join: who is
+   here, and who left). A peer's state travels over broadcast in two parts that the receiver merges back into one frozen presence
+   (see mergePeer):
+   - low-rate fields (st, car, col, trk, go, opp, ft, nk, lobby ...): event 'p' { p: sender peer, low }, on change (at most every
+     LOW_MS) and as a HB_MS heartbeat while non-empty, so a lost message or a late joiner is repaired within a second;
+   - the car: event 'c' { p, n, c }, at most every CAR_MS.
+   The sdk is loaded from the CDN (pinned, with an integrity hash) only when the player presses Online. */
+const SUPA = {
+  URL: 'https://kvalgehfazubficybqhw.supabase.co', KEY: 'sb_publishable_dAQEl29T_VoG_SaKb4jzsg_AppMoOJw',
+  SRC: 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js', SRI: 'sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK',
+  LOW_MS: 300, HB_MS: 1000, CAR_MS: 50, CONNECT_MS: 15000, SYNC_MS: 1500, GHOST_MS: 2500, MAX_PEERS: 256, MAX_CARS: 64
+};
+let sdkLoad = null;
+function loadSupabaseSdk() {
+  if (sdkLoad) return sdkLoad;
+  return sdkLoad = new Promise((res, rej) => {
+    const ok = () => window.supabase && typeof window.supabase.createClient === 'function';
+    if (ok()) { res(window.supabase); return; }
+    const s = document.createElement('script');
+    const done = code => { clearTimeout(t); if (!code && ok()) res(window.supabase); else { sdkLoad = null; s.remove(); rej({ code: code || 'sb_load', message: 'supabase-js did not load' }); } };
+    const t = setTimeout(() => done('sb_timeout'), 15000);
+    s.src = SUPA.SRC; s.integrity = SUPA.SRI; s.crossOrigin = 'anonymous'; s.async = true;
+    s.onload = () => done(null); s.onerror = () => done('sb_load');
+    document.head.append(s);
+  });
+}
+function makeSupabaseRoom(load = loadSupabaseSdk) {
+  const ra = new Uint8Array(15);
+  if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(ra); else for (let i = 0; i < 15; i++) ra[i] = Math.random() * 256;
+  const me = { peer: 'p' + Array.from(ra, b => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join(''), by: null }; // random per tab: the only id sent
+  const scopes = new Set(), byName = new Map(), EMPTY = Object.freeze([]);
+  let client = null, lobby = null, startP = null;
+  const canPush = sc => !sc.left && !!client && client.realtime.isConnected() && sc.ch.state === 'joined'; // the sdk's own state: it rejoins by itself and fires no event for every change
+  const isConn = sc => canPush(sc) && navigator.onLine !== false;
+  const flush = sc => { // deliver the net change since the last delivery (same contract as the mock: frozen peers, unchanged ones stay ===)
+    sc.flushT = 0;
+    const next = new Map(), joined = [], updated = [], left = [];
+    const mk = (id, r, isMe) => {
+      const old = sc.cache.get(id);
+      if (old && old.updatedAt === r.at && old.presence === r.presence) { next.set(id, old); return; }
+      const p = Object.freeze({ peer: id, by: null, isMe, sameTab: isMe, kind: 'viewer', guest: false, presence: r.presence, updatedAt: r.at });
+      next.set(id, p); (old ? updated : joined).push(p);
+    };
+    mk(me.peer, { presence: sc.mine, at: sc.mineAt }, true);
+    for (const [id, r] of sc.recs) mk(id, r, false);
+    for (const [id, p] of sc.cache) if (!next.has(id)) left.push(p);
+    sc.cache = next;
+    if (!joined.length && !updated.length && !left.length) return;
+    sc.arr = Object.freeze([...next.values()]);
+    for (const f of [...sc.subs]) { try { f({ peers: sc.arr, joined, left, updated }); } catch (e) { console.error(e); } }
+  };
+  const later = sc => { if (!sc.flushT) sc.flushT = setTimeout(() => flush(sc), 16); };
+  const checkConn = sc => {
+    const c = isConn(sc); if (c === sc.connPrev) return; sc.connPrev = c;
+    for (const f of [...sc.conn]) { try { f(c); } catch (e) { console.error(e); } }
+  };
+  const setStatus = (sc, s) => { sc.status = s; checkConn(sc); };
+  const kill = sc => {
+    if (sc.left) return Promise.resolve();
+    try { sc.bye(); } catch (e) { /* not joined: nobody to tell */ }
+    sc.left = true; sc.lowL.cancel(); sc.carL.cancel(); clearInterval(sc.hb); clearInterval(sc.tick); scopes.delete(sc); byName.delete(sc.name);
+    sc.subs.clear(); sc.conn.clear();
+    return Promise.resolve(client && client.removeChannel(sc.ch)).catch(() => {});
+  };
+  const open = (name, isLobby) => new Promise((resolve, reject) => {
+    const sc = { name, status: 'none', ch: null, low: {}, mine: Object.freeze({}), mineAt: Date.now(), car: null, cars: new Map(), lows: new Map(), recs: new Map(), roster: new Set(), seen: new Map(), ghosts: false, connPrev: false, hb: 0, tick: 0, bye: null, cache: new Map(), arr: EMPTY, subs: new Set(), conn: new Set(), flushT: 0, left: false, synced: false, afterSync: null };
+    scopes.add(sc); if (!isLobby) byName.set(name, sc);
+    sc.ch = client.channel(isLobby ? 'yatouge-lobby' : 'yatouge-room-' + name, { config: { broadcast: { self: false, ack: false }, presence: { key: me.peer } } });
+    const live = () => canPush(sc); // never while rejoining: the sdk would fall back to one HTTP request per send
+    const bcast = (event, payload) => { if (live()) Promise.resolve(sc.ch.send({ type: 'broadcast', event, payload: { p: me.peer, ...payload } })).catch(() => {}); };
+    const sendLow = () => { if (Object.keys(sc.low).length) bcast('p', { low: sc.low }); };
+    const sendCar = () => { if (sc.car) bcast('c', { n: sc.car.n, c: sc.car.c }); };
+    sc.lowL = makeLimiter(SUPA.LOW_MS, sendLow); sc.carL = makeLimiter(SUPA.CAR_MS, sendCar);
+    sc.bye = () => bcast('x', {});
+    sc.hb = setInterval(() => sc.lowL.poke(), SUPA.HB_MS);
+    sc.tick = setInterval(() => { checkConn(sc); if (sc.ghosts) rebuild(); }, 500);
+    flush(sc);
+    // re-merge one peer after its low / car part changed (a part that arrives before the peer's roster entry waits in lows / cars)
+    const lowFor = id => { const e = sc.lows.get(id); return e ? e.low : {}; };
+    const remerge = id => { const rec = sc.recs.get(id); if (!rec) return; const nx = mergePeer(rec, lowFor(id), sc.cars.get(id) || null, Date.now()); if (nx !== rec) { sc.recs.set(id, nx); later(sc); } };
+    const shape = d => d && typeof d === 'object' && typeof d.p === 'string' && d.p !== me.peer && validPeerId(d.p); // untrusted: only the shape is checked here, the values by validatePeerState
+    const room_ = (map, id) => map.has(id) || map.size < SUPA.MAX_CARS;
+    // peers = the roster, plus a peer that left the roster but still sends (it is reconnecting: the old registration expires while the
+    // new one joins) for GHOST_MS; a peer that says bye, or goes silent, is dropped
+    const rebuild = () => {
+      const now = Date.now(), t = performance.now(), ids = new Set(sc.roster), next = new Map(); let ghost = false;
+      for (const id of sc.recs.keys()) if (!ids.has(id) && t - (sc.seen.get(id) || -1e9) < SUPA.GHOST_MS) { ids.add(id); ghost = true; }
+      for (const id of ids) { if (next.size >= SUPA.MAX_PEERS) break; next.set(id, mergePeer(sc.recs.get(id), lowFor(id), sc.cars.get(id) || null, now)); }
+      for (const m of [sc.lows, sc.cars, sc.seen]) for (const [id, v] of m) if (!next.has(id) && t - (v.at ?? v) > 5000) m.delete(id); // a part may arrive just before its sender's roster entry
+      sc.recs = next; sc.ghosts = ghost; flush(sc); // now, not later(): join() may resolve right after this and reads peers()
+    };
+    sc.ch.on('presence', { event: 'sync' }, () => { // the roster only
+      let st; try { st = sc.ch.presenceState(); } catch (e) { return; }
+      const ids = new Set(Object.keys(st).filter(id => id !== me.peer && validPeerId(id)));
+      const fresh = [...ids].some(id => !sc.recs.has(id));
+      sc.roster = ids; sc.synced = true; rebuild();
+      if (fresh) sc.lowL.poke(); // somebody new: tell them our state now instead of at the next heartbeat
+      if (sc.afterSync) sc.afterSync();
+    });
+    sc.ch.on('broadcast', { event: 'x' }, msg => { const d = msg && msg.payload; if (shape(d)) { sc.seen.delete(d.p); rebuild(); } }); // bye
+    sc.ch.on('broadcast', { event: 'p' }, msg => {
+      const d = msg && msg.payload; if (!shape(d) || !room_(sc.lows, d.p)) return;
+      const low = lowOf(d.low); if (!low) return;
+      sc.lows.set(d.p, { low, at: performance.now() }); sc.seen.set(d.p, performance.now());
+      remerge(d.p);
+    });
+    sc.ch.on('broadcast', { event: 'c' }, msg => {
+      const d = msg && msg.payload; if (!shape(d) || !Number.isInteger(d.n) || !room_(sc.cars, d.p)) return;
+      if (!(d.c === null || (d.c && typeof d.c === 'object' && !Array.isArray(d.c)))) return;
+      sc.cars.set(d.p, { n: d.n, c: d.c, at: performance.now() }); sc.seen.set(d.p, performance.now()); remerge(d.p);
+    });
+    sc.api = {
+      name,
+      presence(patch) {
+        if (sc.left) return Promise.reject({ code: 'invalid_argument', message: 'room left' });
+        const entries = Object.entries(patch || {}), lowP = entries.filter(([k]) => k !== 'n' && k !== 'c'), carP = entries.filter(([k]) => k === 'n' || k === 'c');
+        const next = { ...sc.low }, nextCar = carP.length ? { n: sc.car ? sc.car.n : 0, c: sc.car ? sc.car.c : null } : null;
+        for (const [k, v] of lowP) { if (v === null) delete next[k]; else next[k] = v; }
+        for (const [k, v] of carP) nextCar[k] = v;
+        let size = Infinity; try { size = Math.max(new TextEncoder().encode(JSON.stringify(next)).length, nextCar ? new TextEncoder().encode(JSON.stringify(nextCar)).length : 0); } catch (e) { /* not JSON */ }
+        if (size > 4096) return Promise.reject({ code: 'invalid_argument', message: 'presence over 4 KiB' });
+        if (lowP.length) { sc.low = next; sc.mine = Object.freeze({ ...next }); sc.mineAt = Date.now(); later(sc); sc.lowL.poke(); }
+        if (nextCar) {
+          sc.car = nextCar;
+          if (nextCar.c === null) { sendCar(); setTimeout(sendCar, 150); } else sc.carL.poke(); // clearing the car matters and is cheap: sent now and once more (broadcast may drop)
+        }
+        return Promise.resolve();
+      },
+      peers: () => sc.arr,
+      onPeers(fn) {
+        sc.subs.add(fn);
+        Promise.resolve().then(() => { if (sc.subs.has(fn)) fn({ peers: sc.arr, joined: sc.arr, left: [], updated: [] }); });
+        return () => { sc.subs.delete(fn); };
+      },
+      connected: () => isConn(sc),
+      onConnection(fn) { sc.conn.add(fn); Promise.resolve().then(() => { if (sc.conn.has(fn)) fn(isConn(sc)); }); return () => { sc.conn.delete(fn); }; }
+    };
+    if (!isLobby) sc.api.leave = () => kill(sc);
+    let settled = false, tO = 0;
+    const fin = err => { // resolves once subscribed and the first presence snapshot is in (or SYNC_MS after subscribing)
+      if (settled) return; settled = true; clearTimeout(tO); sc.afterSync = null;
+      if (err) { kill(sc); reject(err); } else resolve(sc);
+    };
+    tO = setTimeout(() => fin({ code: 'sb_timeout', message: 'subscribe timed out' }), SUPA.CONNECT_MS);
+    sc.ch.subscribe((status, err) => {
+      setStatus(sc, status);
+      if (settled && !sc.left && status !== 'SUBSCRIBED') console.warn('room:', 'sb_' + status, err && err.message); // the sdk rejoins by itself; this only leaves a trace
+      if (status === 'SUBSCRIBED') {
+        Promise.resolve(sc.ch.track({ v: 1 })).catch(() => {}); // our roster entry: the only presence call (5 per 30 s allowed); also after a rejoin
+        sc.lowL.poke();
+        if (sc.synced) fin(); else { sc.afterSync = () => fin(); setTimeout(fin, SUPA.SYNC_MS); }
+      } else if (!settled && (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED')) {
+        fin({ code: status === 'TIMED_OUT' ? 'sb_timeout' : status === 'CLOSED' ? 'sb_closed' : 'sb_channel', message: err && err.message });
+      }
+    });
+  });
+  const start = () => startP || (startP = (async () => {
+    try {
+      const sdk = await load();
+      client = sdk.createClient(SUPA.URL, SUPA.KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, realtime: { params: { eventsPerSecond: 40 } } });
+      lobby = (await open('', true)).api;
+      return room;
+    } catch (e) { startP = null; lobby = null; if (client) { try { client.removeAllChannels(); } catch (x) { /* nothing left to close */ } } client = null; throw e; }
+  })());
+  const room = {
+    presence: p => lobby ? lobby.presence(p) : Promise.reject({ code: 'upstream_error', message: 'not connected' }),
+    peers: () => lobby ? lobby.peers() : EMPTY,
+    onPeers: (f, e) => lobby ? lobby.onPeers(f, e) : () => {},
+    connected: () => !!lobby && lobby.connected(),
+    onConnection: (f, e) => lobby ? lobby.onConnection(f, e) : () => {},
+    async join(name) {
+      if (typeof name !== 'string' || !/^[a-z0-9][a-z0-9_.-]{0,47}$/.test(name)) throw { code: 'invalid_argument', message: 'bad room name' };
+      if (!client || !lobby) throw { code: 'upstream_error', message: 'not connected' };
+      const old = byName.get(name);
+      return old && !old.left ? old.api : (await open(name, false)).api;
+    }
+  };
+  // closing the page: leave every channel so the other player sees us go at once instead of after a timeout
+  const close = () => { for (const sc of [...scopes]) kill(sc); try { client && client.removeAllChannels(); } catch (e) { /* page is closing */ } };
+  return { room, start, close, peerId: me.peer };
+}
+
 /* ---------- online 1v1: lobby and room UI ---------- */
 let room = null, netDown = false, netT = 0, busy = false, lobbyT = 0, lobbySig = '';
 // Title-screen online button state. unsubs: listeners of the current init (cleaned before a retry); gen: drops a stale init's late answers.
@@ -2824,6 +3113,7 @@ let nick = null, nickOpen = false;
 const nickOf = nk => nk || T('pvpPlayer');
 function askNick() {
   if ($('#btnOnline').getAttribute('aria-disabled') === 'true') return;
+  sbConnect(); // Supabase transport: load the sdk and join the lobby while the nickname is typed
   nickOpen = true; $('#nick').hidden = false; $('#title').inert = true;
   $('#nickInput').value = ''; syncNick(); $('#nickInput').focus();
 }
@@ -2850,7 +3140,7 @@ function showPanel(which) {
 }
 let lobbyKey = '', emptySince = null;
 const lobbyNote = k => { lobbyKey = k; $('#lobbyNote').textContent = k ? T(k) : ''; }; // k is an i18n key, so a language change can re-render it
-function openLobby() { showPanel('lobby'); lobbyNote(''); emptySince = null; renderLobby(true); clearInterval(lobbyT); lobbyT = setInterval(renderLobby, 500); $('#btnCreate').focus(); }
+function openLobby() { showPanel('lobby'); $('#codeBox').hidden = $('#btnCreatePriv').hidden = onl.transport !== 'supabase'; /* private rooms: Supabase transport only */ lobbyNote(room ? '' : 'onConnecting'); emptySince = null; $('#codeInput').value = ''; syncCode(); renderLobby(true); clearInterval(lobbyT); lobbyT = setInterval(renderLobby, 500); $('#btnCreate').focus(); }
 function closeLobby() { clearInterval(lobbyT); showPanel(null); $('#btnOnline').focus(); }
 function renderLobby(force) {
   if (!room || $('#lobby').hidden) return;
@@ -2883,6 +3173,37 @@ async function createRoom() {
   } catch (e) { lobbyNote('pvpCreateFail'); netFail(e, 'join'); }
   busy = false;
 }
+const rand4 = () => { const a = new Uint8Array(4); if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(a); else for (let i = 0; i < 4; i++) a[i] = Math.random() * 256; return a; };
+// Private room (Supabase transport): the channel is derived from a 4-character code and never advertised in the lobby
+async function createPrivateRoom() {
+  if (busy || pvp || !room) return;
+  busy = true;
+  try {
+    for (let i = 0; i < 3; i++) { // a code somebody is already using is skipped
+      const code = genRoomCode(rand4()), name = privRoomName(code), rm = await room.join(name);
+      if (rm.peers().some(x => !x.isMe)) { await rm.leave().catch(() => {}); continue; }
+      startMatch({ rm, name, code, host: true, hostPeer: null, track: trackId });
+      busy = false; return;
+    }
+    lobbyNote('pvpCreateFail');
+  } catch (e) { lobbyNote('pvpCreateFail'); netFail(e, 'join'); }
+  busy = false;
+}
+async function joinByCode(raw) {
+  const code = normalizeCode(raw);
+  if (busy || pvp || !room || !code) return;
+  busy = true; lobbyNote('pvpJoining');
+  try {
+    const name = privRoomName(code), rm = await room.join(name), t0 = performance.now(), seenOthers = () => rm.peers().filter(x => !x.isMe && x.kind === 'viewer');
+    let others = seenOthers();
+    while (!others.length && performance.now() - t0 < 3000) { await new Promise(r => setTimeout(r, 150)); others = seenOthers(); } // the roster can arrive a moment after the join
+    if (others.length !== 1) { await rm.leave().catch(() => {}); lobbyNote(others.length ? 'pvpCodeFull' : 'pvpCodeNone'); }
+    else startMatch({ rm, name, code, host: false, hostPeer: others[0].peer, track: trackId });
+  } catch (e) { lobbyNote('pvpJoinFail'); netFail(e, 'join'); }
+  busy = false;
+}
+const codeInputVal = () => [...$('#codeInput').value.toUpperCase()].filter(ch => ROOM_CODE_CHARS.includes(ch)).join('').slice(0, 4);
+function syncCode() { const i = $('#codeInput'), v = codeInputVal(); if (i.value !== v) i.value = v; $('#btnJoinCode').disabled = !validRoomCode(v); }
 async function joinRoom(r) {
   if (busy || pvp || !room || !validRoomName(r.room)) return;
   busy = true; lobbyNote('pvpJoining');
@@ -2914,7 +3235,7 @@ function pvpPublish(extra) {
   p.rm.presence({ v: NET.V, st: p.st, car: choice.car, col: choice.color, trk: p.track, go: p.go, opp: p.oppPeer, ft: p.ft, nk: nick, ...extra }).catch(roomFail);
 }
 function advertise(p) {
-  if (!p.host || p !== pvp) return;
+  if (!p.host || p !== pvp || p.code) return;
   room.presence({ lobby: { v: NET.V, room: p.name, track: p.track, open: p.st === 'waiting' || p.st === 'ready' ? 1 : 0, hb: ++p.hb, nk: nick } }).catch(netFail);
 }
 function pvpSetSt(st) { const p = pvp; p.st = st; pvpPublish(); advertise(p); renderRoom(); }
@@ -2922,7 +3243,7 @@ function pvpSetTrack(id) { if (id === trackId) return; buildTrack(id); resetRace
 function startMatch(o) {
   clearInterval(lobbyT);
   const p = pvp = {
-    rm: o.rm, name: o.name, host: o.host, hostPeer: o.hostPeer, track: o.track, prevTrack: trackId, st: 'waiting', go: 0, n: 0, hb: 0, ft: null,
+    rm: o.rm, name: o.name, code: o.code || null, host: o.host, hostPeer: o.hostPeer, track: o.track, prevTrack: trackId, st: 'waiting', go: 0, n: 0, hb: 0, ft: null,
     opp: null, oppPeer: null, oppFt: null, oppLeft: false, seen: false, joinedAt: performance.now(), buf: [], pose: null,
     lastPres: null, oppKey: '', goAt: 0, sentAt: 0, tickAt: 0, finishAt: 0, note: '', unsub: null, unsubConn: null, hbT: 0,
     missingSince: null, synced: false, lastSwitch: -1e9, dnfLocked: false
@@ -2934,7 +3255,7 @@ function startMatch(o) {
   $('#btnLeave').hidden = false;
   renderer.compile(scene, camera); // warm the shaders now so the first countdown has no stall
   pvpPublish();
-  if (o.host) advertise(p); else room.presence({ lobby: { v: NET.V, in: p.name } }).catch(netFail);
+  if (p.code) { /* private: nothing is announced in the lobby */ } else if (o.host) advertise(p); else room.presence({ lobby: { v: NET.V, in: p.name } }).catch(netFail);
   showPanel('room'); renderRoom(); focusRoom();
 }
 function focusRoom() { const b = $('#btnReady'); (b.disabled ? $('#btnRoomLeave') : b).focus(); }
@@ -2947,6 +3268,7 @@ function renderRoom() {
     const s = el.querySelector('.plst'); s.textContent = st ? T('pvpSt_' + st) : ''; s.className = 'plst' + (st === 'ready' || st === 'countdown' ? ' ok' : '');
   };
   $('#roomTrack').textContent = Lz(TRACKS[p.track].name);
+  $('#roomCodeRow').hidden = !p.code; if (p.code) $('#roomCode').textContent = p.code;
   fill('#plMe', T('pvpYouTag', nickOf(nick)), choice.car, p.st);
   if (p.opp && p.oppPeer) fill('#plOpp', nickOf(p.opp.nk), p.opp.car, p.opp.st); else fill('#plOpp', T('pvpWaitJoin'), null, '');
   const b = $('#btnReady'); b.textContent = T(p.st === 'ready' ? 'pvpUnready' : 'pvpReady'); b.disabled = !(p.opp && p.oppPeer);
@@ -3121,7 +3443,7 @@ const safeUse = async name => { try { return await window.claude.use(name); } ca
 const readPerm = async () => { try { return onl.permApi ? await onl.permApi.state('room') : null; } catch (e) { return null; } };
 function renderOnline() {
   const btn = $('#btnOnline'), note = $('#onlineNote'), act = $('#btnOnlineAct');
-  const s = onlineStatus({ hasClaude: onl.hasClaude, room: onl.room, perm: onl.perm, connected: !!(room && room.connected && room.connected()), isMeSeen: onl.isMeSeen, elapsed: performance.now() - onl.t0, errCode: onl.errCode });
+  const s = onlineStatus({ transport: onl.transport, hasClaude: onl.hasClaude, room: onl.room, perm: onl.perm, connected: !!(room && room.connected && room.connected()), isMeSeen: onl.isMeSeen, elapsed: performance.now() - onl.t0, errCode: onl.errCode });
   btn.setAttribute('aria-disabled', s.enabled ? 'false' : 'true');
   note.textContent = s.enabled ? '' : onl.manageFail && s.action === 'manage' ? T('onManageFail') : T('on' + s.key[0].toUpperCase() + s.key.slice(1), onl.errCode);
   act.hidden = !s.action; act.disabled = false; act.dataset.act = s.action || '';
@@ -3131,9 +3453,11 @@ function renderOnline() {
 async function initOnline() {
   const gen = ++onl.gen;
   onl.unsubs.forEach(f => { try { f(); } catch (e) { /* already gone */ } }); onl.unsubs = []; clearTimeout(onl.timer);
-  const mock = typeof BroadcastChannel === 'function' && mockAllowed(location.search, location.hostname, location.protocol);
-  Object.assign(onl, { hasClaude: mock || !!(window.claude && typeof window.claude.use === 'function'), room: 'pending', perm: null, errCode: null, isMeSeen: false, manageFail: false, t0: performance.now() });
+  const tr = pickTransport({ hasClaude: !!(window.claude && typeof window.claude.use === 'function'), mockOk: typeof BroadcastChannel === 'function' && mockAllowed(location.search, location.hostname, location.protocol) });
+  const mock = tr === 'mock';
+  Object.assign(onl, { transport: tr, hasClaude: tr !== 'supabase', room: tr === 'supabase' ? 'idle' : 'pending', perm: null, errCode: null, isMeSeen: false, manageFail: false, t0: performance.now() });
   netDown = false; room = null; renderOnline();
+  if (tr === 'supabase') return; // nothing is loaded or contacted until the player presses Online (sbConnect)
   let r = null;
   try {
     if (mock) r = (onl.mock || (onl.mock = makeMockRoom())).room;
@@ -3144,6 +3468,9 @@ async function initOnline() {
   } catch (e) { r = null; }
   if (gen !== onl.gen) return;
   if (!r || typeof r.join !== 'function') { onl.room = 'null'; renderOnline(); return; }
+  attachRoom(r);
+}
+function attachRoom(r) {
   room = r; onl.room = 'ok';
   const keep = u => { if (typeof u === 'function') onl.unsubs.push(u); };
   keep(room.onPeers(() => { if (!onl.isMeSeen && room.peers().some(p => p.isMe)) onl.isMeSeen = true; renderOnline(); renderLobby(); }, netFail));
@@ -3151,6 +3478,26 @@ async function initOnline() {
   onl.timer = setTimeout(renderOnline, ONLINE_CONNECTED_GRACE_MS + 50); // the "connected but no isMe" case enables the button
   renderOnline();
 }
+// Supabase transport: first press of Online loads the sdk and joins the lobby channel. A failure shows its code on the title screen
+// and the button is usable again after SB_RETRY_MS.
+const SB_RETRY_MS = 20000;
+async function sbConnect() {
+  if (onl.transport !== 'supabase' || room || onl.room === 'pending' || onl.errCode) return;
+  const gen = onl.gen;
+  onl.room = 'pending'; renderOnline();
+  try {
+    const r = await (onl.sb || (onl.sb = makeSupabaseRoom())).start();
+    if (gen !== onl.gen) return;
+    attachRoom(r);
+    if (onlineUI && !pvp) { lobbyNote(''); renderLobby(true); }
+  } catch (e) {
+    if (gen !== onl.gen) return;
+    console.warn('room:', e && e.code, e && e.message);
+    onl.room = 'idle'; hideOnline((e && e.code) || 'sb_unknown');
+    setTimeout(() => { if (gen === onl.gen && !room && onl.errCode) { onl.errCode = null; renderOnline(); } }, SB_RETRY_MS);
+  }
+}
+window.addEventListener('pagehide', e => { if (!e.persisted && onl.sb) onl.sb.close(); });
 $('#btnOnlineAct').addEventListener('click', async e => {
   const p = onl.permApi, act = e.currentTarget.dataset.act; if (!p) return;
   e.currentTarget.disabled = true;
@@ -3172,6 +3519,9 @@ $('#nick').addEventListener('keydown', e => {
 });
 $('#btnLobbyBack').addEventListener('click', closeLobby);
 $('#btnCreate').addEventListener('click', createRoom);
+$('#btnCreatePriv').addEventListener('click', createPrivateRoom);
+$('#codeInput').addEventListener('input', syncCode);
+$('#codeForm').addEventListener('submit', e => { e.preventDefault(); joinByCode($('#codeInput').value); });
 $('#btnRoomLeave').addEventListener('click', pvpLeave);
 $('#btnLeave').addEventListener('click', pvpLeave);
 $('#btnReady').addEventListener('click', () => {
@@ -3185,7 +3535,7 @@ let last = performance.now(), acc = 0;
 const FIX = 1 / 120;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  syncRotate();
+  syncRotate(); controlsTick(dt);
   if (menuOpen && !menuCanOpen(state, nickOpen)) closeMenu(); // the race ended or the match was left under the open menu
   if (pvp) pvpFrame();
   if (state === 'count') {
@@ -3221,7 +3571,7 @@ window.addEventListener('resize', resize); resize();
 /* ---------- controls ---------- */
 const KEYMAP = { ArrowUp: 'gas', KeyW: 'gas', ArrowDown: 'brake', KeyS: 'brake', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'hb' };
 window.addEventListener('keydown', e => {
-  if (nickOpen) return; // typing a nickname must not drive the car or start a race
+  if (nickOpen || e.target.id === 'codeInput') return; // typing a nickname or a room code must not drive the car, toggle music or start a race
   if (e.key === 'Escape') {
     if (e.repeat) return;
     const a = menuEscAction(menuOpen, menuView, state, nickOpen);
@@ -3284,6 +3634,98 @@ for (const b of document.querySelectorAll('#touch button')) {
   zone.addEventListener('contextmenu', e => e.preventDefault());
   touchRelease.push(idle);
 }
+/* tilt / zones steering. Pointers on the canvas are tracked by id with their CURRENT zone; the HUD buttons sit above the canvas and keep their own clicks. */
+const ptrs = new Map(); // pointerId -> 'left' | 'right' | 'bottom' | 'none'
+let tiltRaw = null, tiltCenter = null, tiltSm = 0, tiltAng = null, bottomT = 0, prevState = state;
+let lastPedal = { gas: false, brake: false, hb: false }, lastSide = { left: false, right: false };
+const screenAngle = () => (screen.orientation && typeof screen.orientation.angle === 'number' ? screen.orientation.angle : (Number(window.orientation) || 0));
+function onTilt(e) {
+  const a = screenAngle();
+  if (a !== tiltAng) { tiltAng = a; tiltCenter = null; } // turned the phone round: the old centre means nothing
+  tiltRaw = tiltAngle(e, a);
+  if (tiltRaw !== null && tiltCenter === null) tiltCenter = tiltRaw;
+}
+const tiltCalibrate = () => { if (tiltRaw !== null) tiltCenter = tiltRaw; tiltSm = 0; };
+// Resolves true once a real reading arrives; iOS asks permission here (this must run straight from the click). Failure leaves no listener behind.
+async function enableTilt() {
+  const D = window.DeviceOrientationEvent;
+  if (!D) return false;
+  try { if (typeof D.requestPermission === 'function' && await D.requestPermission() !== 'granted') return false; } catch (_) { return false; }
+  tiltRaw = null; tiltCenter = null;
+  window.addEventListener('deviceorientation', onTilt);
+  const t0 = performance.now();
+  const got = await new Promise(res => { const iv = setInterval(() => { if (tiltRaw !== null || performance.now() - t0 > TILT.WAIT_MS) { clearInterval(iv); res(tiltRaw !== null); } }, 50); });
+  if (!got) window.removeEventListener('deviceorientation', onTilt);
+  return got;
+}
+function applyMode(m) {
+  steerMode = m;
+  if (m !== 'tilt') window.removeEventListener('deviceorientation', onTilt);
+  document.body.classList.toggle('m-tilt', m === 'tilt'); document.body.classList.toggle('m-zones', m === 'zones');
+  releaseTouch(); // zero held controls so nothing carries over from the previous mode
+  if (m === 'tilt') tiltCalibrate();
+  syncZoneUI(); syncSteerUI();
+}
+async function pickSteer(m) {
+  if (!coarse || m === steerMode) return;
+  const tok = ++steerTok;
+  tiltNoteKey = '';
+  if (m === 'tilt' && !(await enableTilt())) { if (tok !== steerTok) return; tiltNoteKey = 'tiltFail'; applyMode('drag'); store.set('yatouge-steer-mode', 'drag'); return; }
+  if (tok !== steerTok) return;
+  applyMode(m); store.set('yatouge-steer-mode', m);
+}
+function syncSteerUI() {
+  const touchUI = document.body.classList.contains('coarse'); // not `coarse` itself: applyLang() reaches here before that const exists
+  $('#igSteerRow').hidden = !touchUI; $('#igTiltRow').hidden = !touchUI || steerMode !== 'tilt';
+  for (const b of document.querySelectorAll('#igSteerRow [data-m]')) b.setAttribute('aria-checked', String(b.dataset.m === steerMode));
+  $('#igTiltSens').value = Math.round(tiltSens * 100); $('#igTiltOut').textContent = Math.round(tiltSens * 100) + '%';
+  const n = $('#igTiltNote'); n.textContent = tiltNoteKey ? T(tiltNoteKey) : ''; n.hidden = !tiltNoteKey;
+}
+function syncZoneUI() {
+  const z = [...ptrs.values()];
+  $('#zones .zl').classList.toggle('on', z.includes('left')); $('#zones .zr').classList.toggle('on', z.includes('right')); $('#zones .zb').classList.toggle('on', z.includes('bottom'));
+}
+touchRelease.push(() => { ptrs.clear(); bottomT = 0; lastPedal = { gas: false, brake: false, hb: false }; lastSide = { left: false, right: false }; tiltSm = 0; if (steerMode === 'tilt') input.steerAxis = null; syncZoneUI(); });
+{
+  const cv = $('#c'), at = e => zoneHit(e.clientX, e.clientY, window.innerWidth, window.innerHeight);
+  cv.addEventListener('pointerdown', e => {
+    if (steerMode === 'drag' || menuOpen) return;
+    e.preventDefault(); try { cv.setPointerCapture(e.pointerId); } catch (_) {}
+    ptrs.set(e.pointerId, at(e)); syncZoneUI();
+  });
+  cv.addEventListener('pointermove', e => { if (ptrs.has(e.pointerId)) { ptrs.set(e.pointerId, at(e)); syncZoneUI(); } });
+  const up = e => { if (ptrs.delete(e.pointerId)) syncZoneUI(); };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up); cv.addEventListener('lostpointercapture', up);
+}
+// Per frame: turn the tracked pointers / tilt reading into input. Writes only on change, so the keyboard still works alongside.
+function controlsTick(dt) {
+  const enteredCount = state === 'count' && prevState !== 'count'; prevState = state;
+  if (steerMode === 'drag') return;
+  if (enteredCount) tiltCalibrate(); // centre = how the phone is held when the countdown starts
+  const live = (state === 'count' || state === 'race') && !menuOpen;
+  if (!live && ptrs.size) { ptrs.clear(); syncZoneUI(); }
+  const zs = [...ptrs.values()], bottom = steerMode === 'zones' ? zs.includes('bottom') : zs.length > 0;
+  const p = live ? pedalState(bottom, bottomT, state === 'race') : { gas: false, brake: false, hb: false };
+  bottomT = bottom ? bottomT + dt : 0;
+  for (const k of ['gas', 'brake', 'hb']) if (p[k] !== lastPedal[k]) { input[k] = p[k]; lastPedal[k] = p[k]; }
+  if (steerMode === 'zones') {
+    const s = live ? zoneSteer({ left: zs.includes('left'), right: zs.includes('right') }) : 0, side = { left: s < 0, right: s > 0 };
+    for (const k of ['left', 'right']) if (side[k] !== lastSide[k]) { input[k] = side[k]; lastSide[k] = side[k]; }
+  } else {
+    if (!live || tiltRaw === null || tiltCenter === null) { input.steerAxis = live ? 0 : null; tiltSm = 0; }
+    else { tiltSm = tiltSmooth(tiltSm, tiltSteer(tiltRaw, tiltCenter, tiltMaxAngle(tiltSens)), dt); input.steerAxis = tiltSm; }
+  }
+}
+for (const b of document.querySelectorAll('#igSteerRow [data-m]')) b.addEventListener('click', () => pickSteer(b.dataset.m));
+$('#igTiltSens').addEventListener('input', e => { tiltSens = tiltSensOf(e.target.value); store.set('yatouge-tilt-sens', String(Math.round(tiltSens * 100))); syncSteerUI(); });
+$('#btnRecenter').addEventListener('click', e => { tiltCalibrate(); e.currentTarget.blur(); });
+tiltSens = tiltSensOf(store.get('yatouge-tilt-sens'));
+if (coarse) { // a saved tilt choice is re-tried quietly: no sensor (or iOS, which needs a tap to grant) just leaves drag on
+  const saved = steerModeOf(store.get('yatouge-steer-mode'));
+  if (saved === 'zones') applyMode('zones');
+  else if (saved === 'tilt') { const tok = ++steerTok; enableTilt().then(ok => { if (ok && tok === steerTok) applyMode('tilt'); }); }
+}
+syncSteerUI();
 document.addEventListener('contextmenu', e => { if (coarse && !e.target.closest('input')) e.preventDefault(); }); // no long-press menu on a phone
 
 // A phone held upright gets a rotate prompt; the lock below is a courtesy that browsers often refuse (iOS Safari, iframes without fullscreen permission).
@@ -3335,6 +3777,7 @@ function syncMenuUI() {
   $('#igMusicVol').value = volPct(musicVol); $('#igMusicOut').textContent = volPct(musicVol) + '%';
   $('#igSfxVol').value = volPct(sfxVol); $('#igSfxOut').textContent = volPct(sfxVol) + '%';
   $('#igCam').value = camMode; $('#igLang').value = lang;
+  syncSteerUI();
 }
 function showMenuView(v, focus) {
   menuView = v;

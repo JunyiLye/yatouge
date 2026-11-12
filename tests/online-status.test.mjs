@@ -48,3 +48,11 @@ test('not_granted 依權限狀態導向 allow / manage，其餘才是錯誤', ()
   assert.equal(S({ errCode: 'not_granted', perm: 'denied' }).action, 'manage');
   assert.equal(S({ errCode: 'not_granted', perm: null }).key, 'error');
 });
+
+test('Supabase 傳輸層（不在 claude.ai）：閒置時啟用、載入中連線中、失敗顯示原因', () => {
+  const sb = { transport: 'supabase', hasClaude: false, room: 'idle', perm: null, connected: false, isMeSeen: false, elapsed: 0, errCode: null };
+  assert.deepEqual(onlineStatus(sb), { key: 'ready', enabled: true, action: null });
+  assert.deepEqual(onlineStatus({ ...sb, room: 'pending' }), { key: 'connecting', enabled: false, action: null });
+  assert.deepEqual(onlineStatus({ ...sb, room: 'ok' }), { key: 'ready', enabled: true, action: null });
+  assert.deepEqual(onlineStatus({ ...sb, room: 'null', errCode: 'sb_timeout' }), { key: 'error', enabled: false, action: null });
+});
