@@ -193,6 +193,25 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 .plrow small { grid-column: 1; font-size: 12px; color: var(--dim); }
 .plst { grid-column: 2; grid-row: 1 / span 2; font-family: var(--mono); font-style: italic; font-size: 13px; color: var(--dim); text-align: right; }
 .plst.ok { color: var(--sodium); }
+.roomrow.live small { color: var(--sodium); }
+.watchn { font-size: 12px; color: var(--dim); margin-top: 6px; }
+/* spectator view: names / gap / result top left, view buttons and leave at the bottom (thumb reach on a phone) */
+#spec { position: fixed; inset: 0; pointer-events: none; }
+.spec-tl { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: calc(12px + env(safe-area-inset-left, 0px)); width: min(300px, calc(100% - 24px)); box-sizing: border-box; }
+.specrow { display: grid; grid-template-columns: 10px auto minmax(0, 1fr) auto; gap: 8px; align-items: center; margin-top: 6px; font-size: 14px; }
+.specrow i { width: 10px; height: 10px; border-radius: 50%; }
+#specA i, #specProgA { background: var(--sodium); } #specB i, #specProgB { background: var(--rival); }
+#specProgA { z-index: 1; }
+.specrow .pos { font-family: var(--mono); font-style: italic; font-weight: 700; color: var(--dim); min-width: 2.2em; }
+.specrow b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.specrow .t { font-family: var(--mono); font-style: italic; font-variant-numeric: tabular-nums; color: var(--dim); text-align: right; }
+.specres { font-family: var(--display); font-size: clamp(22px, 5vw, 32px); color: var(--sodium); margin: 8px 0 0; line-height: 1.2; overflow-wrap: anywhere; }
+.specres.wait { font-family: var(--body); font-size: 13px; color: var(--dim); }
+.spec-bar { position: absolute; left: 50%; transform: translateX(-50%); bottom: calc(14px + env(safe-area-inset-bottom, 0px)); display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: max-content; max-width: calc(100% - 24px); pointer-events: auto; }
+.spec-bar button { min-height: 44px; min-width: 44px; max-width: 42vw; padding: 8px 14px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.spec-bar button[aria-pressed="true"] { border-color: var(--sodium); color: var(--sodium); }
+.spec-bar kbd { margin-right: 6px; }
+@media (orientation: landscape) and (max-height: 500px) { .spec-tl { padding: 6px 10px; } .specrow { margin-top: 3px; font-size: 12px; } .spec-bar button { min-height: 40px; padding: 6px 10px; font-size: 12px; } }
 .netnote { position: fixed; top: calc(10px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); z-index: 9; max-width: calc(100% - 32px); padding: 8px 14px; border: 1px solid var(--tail); border-radius: 6px; background: rgba(90, 14, 24, .94); font-size: 13px; text-align: center; }
 .tools #btnIgm { min-width: 40px; min-height: 36px; font-size: 16px; line-height: 1; }
 .netnote.info { border-color: var(--sodium); background: rgba(9, 12, 26, .94); }
@@ -262,6 +281,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div id="time" class="num">0:00.00</div>
     <div id="gap" class="gap">—</div>
     <div class="prog"><i id="progRival"></i><i id="progMe"></i></div>
+    <div id="watchN" class="watchn" hidden></div>
   </div>
   <div class="hud-tr panel">
     <div class="lbl" data-i18n="score">甩尾分數</div>
@@ -292,6 +312,24 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
   </div>
   <button id="btnRecenter" type="button" data-i18n="recenter">回正</button>
   <div id="shiftPad"><button type="button" data-s="1" data-i18n-aria="shiftUp" aria-label="升檔">▲</button><button type="button" data-s="-1" data-i18n-aria="shiftDown" aria-label="降檔">▼</button></div>
+</div>
+
+<div id="spec" hidden>
+  <div class="spec-tl panel" aria-live="polite">
+    <div class="lbl" data-i18n="specEyebrow">觀戰中</div>
+    <div class="specrow" id="specA"><i></i><span class="pos"></span><b></b><span class="t"></span></div>
+    <div class="specrow" id="specB"><i></i><span class="pos"></span><b></b><span class="t"></span></div>
+    <div id="specGap" class="gap"></div>
+    <div class="prog"><i id="specProgB"></i><i id="specProgA"></i></div>
+    <p id="specRes" class="specres" hidden></p>
+    <div id="specWatch" class="watchn"></div>
+  </div>
+  <div class="spec-bar" role="group" data-i18n-aria="specViewAria" aria-label="觀戰視角">
+    <button type="button" data-v="a" aria-pressed="true"><kbd class="nokb">1</kbd><span></span></button>
+    <button type="button" data-v="b" aria-pressed="false"><kbd class="nokb">2</kbd><span></span></button>
+    <button type="button" data-v="top" aria-pressed="false"><kbd class="nokb">3</kbd><span data-i18n="specOver">全景</span></button>
+    <button type="button" id="btnSpecLeave" data-i18n="specLeave">離開觀戰</button>
+  </div>
 </div>
 
 <div id="title" class="screen">
@@ -639,7 +677,10 @@ const I18N = {
     modeLbl: '模式', modeRace: '比賽', modeRaceD: '跟對手車比誰先衝到山腳。', modeTa: '計時賽', modeTaD: '沒有對手，挑戰自己的最佳時間與幽靈車。',
     leadTa: name => `凌晨兩點的${name}，整條路只屬於你。沒有對手，只有碼表和上一次最快的自己。`,
     taGhost: '幽靈車', taBestIs: t => `最佳 ${t}`, taFirst: '第一次計時', taVsBest: d => `與最佳 ${d} 秒`,
-    taNew: '新紀錄！', taDone: '完賽', taGap: '與最佳差距', taQuit: '放棄', taQuitAsk: '確定放棄這次計時？紀錄不會儲存。', taQuitYes: '是，放棄', taQuitted: '已放棄，紀錄未儲存'
+    taNew: '新紀錄！', taDone: '完賽', taGap: '與最佳差距', taQuit: '放棄', taQuitAsk: '確定放棄這次計時？紀錄不會儲存。', taQuitYes: '是，放棄', taQuitted: '已放棄，紀錄未儲存',
+    specRow: (track, n) => `${track} · 比賽中・觀戰 · ${n} 人觀戰`, specEyebrow: '觀戰中', specOver: '全景', specLeave: '離開觀戰', specViewAria: '觀戰視角',
+    specGap: n => `差距 ${n} m`, specPos: n => `第 ${n}`, specWins: n => `${n} 獲勝`, specWaitOther: '等待另一台衝線…', specBetween: '這場結束了，等待下一場…',
+    specWaitHost: '等待比賽資料…', specWatching: n => `${n} 人觀戰中`, specCarLeft: '已離開'
   },
   en: {
     canvas: 'Night Pass Downhill 3D view', time: 'TIME', score: 'DRIFT SCORE', musicOn: 'Music: on', musicOff: 'Music: off', bgmLbl: 'Music', bgmSynth: 'Original', bgmOwn: n => `Mine — ${n}`, ownPick: 'Choose music', ownClear: 'Remove', ownBad: 'Not an audio file', ownBig: 'File over 50 MB', reset: 'Back on road',
@@ -682,7 +723,10 @@ const I18N = {
     modeLbl: 'Mode', modeRace: 'Race', modeRaceD: 'Beat the rival car to the bottom.', modeTa: 'Time attack', modeTaD: 'No rival. Chase your best time and your ghost car.',
     leadTa: name => `2 a.m. on ${name}, and the road is all yours. No rival, just the clock and the ghost of your fastest run.`,
     taGhost: 'Ghost car', taBestIs: t => `Best ${t}`, taFirst: 'First timed run', taVsBest: d => `${d} s vs best`,
-    taNew: 'NEW RECORD', taDone: 'Finished', taGap: 'Gap to best', taQuit: 'Quit', taQuitAsk: 'Quit this run? Nothing will be saved.', taQuitYes: 'Yes, quit', taQuitted: 'Run abandoned. Nothing saved.'
+    taNew: 'NEW RECORD', taDone: 'Finished', taGap: 'Gap to best', taQuit: 'Quit', taQuitAsk: 'Quit this run? Nothing will be saved.', taQuitYes: 'Yes, quit', taQuitted: 'Run abandoned. Nothing saved.',
+    specRow: (track, n) => `${track} · Racing · Watch · ${n} watching`, specEyebrow: 'Watching', specOver: 'Overview', specLeave: 'Stop watching', specViewAria: 'Spectator view',
+    specGap: n => `Gap ${n} m`, specPos: n => `P${n}`, specWins: n => `${n} wins`, specWaitOther: 'Waiting for the other car…', specBetween: 'Race over. Waiting for the next one…',
+    specWaitHost: 'Waiting for race data…', specWatching: n => `${n} watching`, specCarLeft: 'Left'
   }
 };
 let lang = store.get('yatouge-lang') || ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
@@ -1186,6 +1230,7 @@ function cleanNick(s) {
 // bounds: { x0, x1, z0, z1, s1 } of the course; c (car) is optional because a waiting player has none yet.
 function validatePeerState(p, bounds) {
   if (!p || typeof p !== 'object' || Array.isArray(p) || p.v !== NET.V) return null;
+  if (p.role !== undefined) return null; // a spectator (or any other role) never drives a car or the race
   if (!NET.STATES.includes(p.st) || !NET.CARS.includes(p.car) || !NET.TRACKS.includes(p.trk) || !isNat(p.col, NET.MAX_COL)) return null;
   const go = p.go ?? 0, n = p.n ?? 0, opp = p.opp ?? null;
   if (!isNat(go, NET.MAX_GO) || !isNat(n, NET.MAX_N) || (opp !== null && !validPeerId(opp))) return null;
@@ -1233,27 +1278,33 @@ function interpRemote(buf, now) {
   });
 }
 // Open rooms derived from everybody's lobby presence. A host publishes { lobby: { v, room, track, open: 1, hb, nk } }, a joiner
-// { lobby: { v, in: room } }. A room is dropped when it is full, closed, stale (updatedAt = local time of its last change; the
-// host bumps hb every few seconds), malformed or on an unknown course. Sorted by room name so the list does not jump around.
+// { lobby: { v, in: room } }, a spectator { lobby: { v, watch: room } }. A room is dropped when it is full, closed, stale (updatedAt =
+// local time of its last change; the host bumps hb every few seconds), malformed or on an unknown course. A race in progress
+// (open: 0, race: 1) stays listed as live (watch only). watchers = distinct spectators (not the players), at most 99.
+// Private rooms ('pvt-' names) are never valid room names, so they never show. Sorted by room name so the list does not jump around.
 function lobbyRooms(peers, now, tracks = NET.TRACKS, ttl = NET.LOBBY_TTL) {
-  const hosts = new Map(), joiners = new Map();
+  const hosts = new Map(), joiners = new Map(), watchers = new Map();
   for (const p of Array.isArray(peers) ? peers : []) {
     if (!p || p.kind !== 'viewer' || typeof p.peer !== 'string') continue;
     const l = p.presence && p.presence.lobby;
     if (!l || typeof l !== 'object' || l.v !== NET.V) continue;
     if (validRoomName(l.room)) {
-      if (l.open !== 1 || !tracks.includes(l.track) || !isNum(p.updatedAt) || now - p.updatedAt > ttl) continue;
+      const live = l.open === 0 && l.race === 1;
+      if ((l.open !== 1 && !live) || !tracks.includes(l.track) || !isNum(p.updatedAt) || now - p.updatedAt > ttl) continue;
       const old = hosts.get(l.room);
-      if (!old || p.peer < old.peer) hosts.set(l.room, { room: l.room, peer: p.peer, nk: cleanNick(l.nk), track: l.track, mine: !!p.isMe });
-    } else if (validRoomName(l.in)) {
-      if (!joiners.has(l.in)) joiners.set(l.in, new Set());
-      joiners.get(l.in).add(p.peer);
+      if (!old || p.peer < old.peer) hosts.set(l.room, { room: l.room, peer: p.peer, nk: cleanNick(l.nk), track: l.track, mine: !!p.isMe, live });
+    } else if (validRoomName(l.in) || validRoomName(l.watch)) {
+      const m = validRoomName(l.in) ? joiners : watchers, r = validRoomName(l.in) ? l.in : l.watch;
+      if (!m.has(r)) m.set(r, new Set());
+      m.get(r).add(p.peer);
     }
   }
   const out = [];
   for (const h of hosts.values()) {
-    const others = [...(joiners.get(h.room) || [])].filter(x => x !== h.peer).length;
-    if (others < 1) out.push({ ...h, count: 1 + others });
+    const js = joiners.get(h.room) || new Set(), others = [...js].filter(x => x !== h.peer).length;
+    const w = Math.min(99, [...(watchers.get(h.room) || [])].filter(x => x !== h.peer && !js.has(x)).length);
+    if (h.live) out.push({ ...h, count: Math.min(2, 1 + others), watchers: w });
+    else if (others < 1) out.push({ ...h, count: 1 + others, watchers: w });
   }
   return out.sort((a, b) => a.room < b.room ? -1 : 1).slice(0, NET.MAX_ROOMS);
 }
@@ -1302,7 +1353,8 @@ function oppGrace(missingSince, present, connected, now, grace = 2000) {
 // Who our opponent is. Once locked (oppPeer) nobody else can take over; a guest only ever plays the host; a host takes a new
 // opponent only while waiting / ready, and only a viewer whose presence passes valid() (lowest peer label first, so it is stable).
 function chooseOpp({ host, hostPeer, oppPeer, st, peers, valid }) {
-  const list = Array.isArray(peers) ? peers.filter(x => x && !x.isMe && typeof x.peer === 'string') : [];
+  // a spectator is never an opponent (nor a host), whatever else its presence claims
+  const list = Array.isArray(peers) ? peers.filter(x => x && !x.isMe && typeof x.peer === 'string' && !(x.presence && x.presence.role === 'spectator')) : [];
   if (oppPeer) return list.find(x => x.peer === oppPeer) || null;
   if (!host) return list.find(x => x.peer === hostPeer) || null;
   if (st !== 'waiting' && st !== 'ready') return null;
@@ -1337,6 +1389,37 @@ function mockAllowed(search, hostname, protocol) {
 }
 const emptyShown = (since, now) => since !== null && now - since >= 1500;
 /* @netcode:end */
+/* @spectate:start */
+/* Watching a public race (pure part). A spectator's room presence is { v, role: 'spectator', nk } and nothing else: no car, no
+   ready / go. The players' code ignores it (validatePeerState drops any role, chooseOpp skips it); it only counts as a watcher. */
+const SPEC = { MAX_WATCH: 99 };
+const isSpectator = pres => !!pres && typeof pres === 'object' && !Array.isArray(pres) && pres.role === 'spectator';
+const validSpectator = pres => isSpectator(pres) && pres.v === NET.V;
+// distinct valid spectators among the room's peers (exclude: peer labels that are not to be counted), shown capped at 99
+function watcherCount(peers, exclude = []) {
+  const seen = new Set();
+  for (const x of Array.isArray(peers) ? peers : []) if (x && x.kind === 'viewer' && validPeerId(x.peer) && !exclude.includes(x.peer) && validSpectator(x.presence)) seen.add(x.peer);
+  return Math.min(SPEC.MAX_WATCH, seen.size);
+}
+// The two cars a spectator shows: A = the host (from the lobby listing), B = the opponent the host's own state names. Nobody
+// else can become a car (the same "a third person cannot take over" rule the players follow). valid: presence -> state | null.
+function spectatePair({ hostPeer, peers, valid }) {
+  const list = Array.isArray(peers) ? peers.filter(x => x && !x.isMe && x.kind === 'viewer' && typeof x.peer === 'string' && !isSpectator(x.presence)) : [];
+  const h = list.find(x => x.peer === hostPeer), hv = h ? valid(h.presence) : null;
+  if (!hv) return { a: null, b: null };
+  const g = hv.opp ? list.find(x => x.peer === hv.opp) : null, gv = g ? valid(g.presence) : null;
+  return { a: { peer: h.peer, v: hv, presence: h.presence }, b: gv ? { peer: g.peer, v: gv, presence: g.presence } : null };
+}
+// Who is in front and by how many metres. a / b: { s (m along the course), ft (finish time s or null) } or null (no car).
+// A finished car is ahead of a running one; two finished cars are ordered by time (gap null: the result shows the times).
+function specStandings(a, b) {
+  if (!a || !b) return { lead: a ? 'a' : b ? 'b' : null, gap: null };
+  if (a.ft !== null || b.ft !== null) return { lead: b.ft === null || (a.ft !== null && a.ft <= b.ft) ? 'a' : 'b', gap: null };
+  return { lead: a.s >= b.s ? 'a' : 'b', gap: Math.round(Math.abs(a.s - b.s)) };
+}
+const SPEC_KEYS = { Digit1: 'a', Numpad1: 'a', Digit2: 'b', Numpad2: 'b', Digit3: 'top', Numpad3: 'top' };
+const specViewKey = code => (typeof code === 'string' && Object.hasOwn(SPEC_KEYS, code) ? SPEC_KEYS[code] : null);
+/* @spectate:end */
 /* @supa:start */
 /* Supabase Realtime transport (pure part). Private rooms: a 4-character code, never advertised in the lobby. */
 const ROOM_CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no 0 O 1 I L; 31 symbols, 31^4 ~ 923k codes (a byte % 31 is slightly uneven: fine for a casual code)
@@ -2594,6 +2677,7 @@ function hud(dt) {
   $('#chain').textContent = driftChain > 0 ? '+' + Math.round(driftChain).toLocaleString('zh-TW') : '';
   $('#progMe').style.left = clamp(car.loc.s / FINISH_S * 100, 0, 100) + '%';
   if (popTimer > 0) { popTimer -= dt; if (popTimer <= 0) $('#pop').classList.remove('show'); }
+  const wn = $('#watchN'), nw = pvp ? pvp.watch : 0; wn.hidden = !nw; if (nw) wn.textContent = T('specWatching', nw);
   if (taRun) { taHud(); return; }
   $('#progRival').hidden = false;
   const rs = pvp ? (pvp.pose ? pvp.pose.s : null) : rival.s, gap = (rs ?? car.loc.s) - car.loc.s, el = $('#gap');
@@ -3505,8 +3589,9 @@ function netFail(e, scope = 'lobby') {
   const code = e && e.code;
   if (!warned.has(code)) { warned.add(code); console.warn('room:', code, e && e.message); }
   const a = netAction(code, scope);
-  if (a === 'fallback' || a === 'unavailable') { if (pvp) pvpLeave(); hideOnline(code); } // online is gone until a retry: the button shows the code
+  if (a === 'fallback' || a === 'unavailable') { if (pvp) pvpLeave(); if (spec) specExit('title'); hideOnline(code); } // online is gone until a retry: the button shows the code
   else if (a === 'lobby' && pvp) leaveToLobby('pvpNetLost');
+  else if (a === 'lobby' && spec) specExit('lobby', 'pvpNetLost');
 }
 const roomFail = e => netFail(e, 'room');
 function showPanel(which) {
@@ -3522,7 +3607,7 @@ function renderLobby(force) {
   if (!room || $('#lobby').hidden) return;
   const rooms = lobbyRooms(room.peers(), Date.now(), Object.keys(TRACKS)).filter(r => !r.mine), now = performance.now();
   if (rooms.length) emptySince = null; else if (emptySince === null) emptySince = now;
-  const sig = lang + '|' + emptyShown(emptySince, now) + '|' + rooms.map(r => r.room + r.peer + r.track + (r.nk || '')).join(',');
+  const sig = lang + '|' + emptyShown(emptySince, now) + '|' + rooms.map(r => r.room + r.peer + r.track + (r.nk || '') + (r.live ? 'L' + r.watchers : '')).join(',');
   if (!force && sig === lobbySig) return;
   lobbySig = sig;
   $('#lobbyPick').textContent = T('pvpPick', Lz(TRACKS[trackId].name), Lz(CARS[choice.car].name)) + ' ' + T('pvpNickIs', T('pvpYouTag', nickOf(nick)));
@@ -3530,9 +3615,9 @@ function renderLobby(force) {
   if (!rooms.length) { if (emptyShown(emptySince, now)) { const p = document.createElement('p'); p.className = 'note'; p.textContent = T('pvpEmpty'); el.append(p); } return; }
   for (const r of rooms) {
     const b = document.createElement('button'), n = document.createElement('b'), s = document.createElement('small');
-    b.type = 'button'; b.className = 'carcard roomrow';
-    n.textContent = nickOf(r.nk); s.textContent = T('pvpRoomRow', Lz(TRACKS[r.track].name), r.count);
-    b.append(n, s); b.addEventListener('click', () => joinRoom(r)); el.append(b);
+    b.type = 'button'; b.className = 'carcard roomrow' + (r.live ? ' live' : '');
+    n.textContent = nickOf(r.nk); s.textContent = r.live ? T('specRow', Lz(TRACKS[r.track].name), r.watchers) : T('pvpRoomRow', Lz(TRACKS[r.track].name), r.count);
+    b.append(n, s); b.addEventListener('click', () => r.live ? watchRoom(r) : joinRoom(r)); el.append(b);
   }
 }
 function randName() {
@@ -3612,7 +3697,8 @@ function pvpPublish(extra) {
 }
 function advertise(p) {
   if (!p.host || p !== pvp || p.code) return;
-  room.presence({ lobby: { v: NET.V, room: p.name, track: p.track, open: p.st === 'waiting' || p.st === 'ready' ? 1 : 0, hb: ++p.hb, nk: nick } }).catch(netFail);
+  const open = p.st === 'waiting' || p.st === 'ready' ? 1 : 0; // race: a round is on, so the lobby lists the room for watching
+  room.presence({ lobby: { v: NET.V, room: p.name, track: p.track, open, race: open ? 0 : 1, hb: ++p.hb, nk: nick } }).catch(netFail);
 }
 function pvpSetSt(st) { const p = pvp; p.st = st; pvpPublish(); advertise(p); renderRoom(); }
 function pvpSetTrack(id) { if (id === trackId) return; buildTrack(id); resetRace(); } // a match never touches the saved course choice
@@ -3622,7 +3708,7 @@ function startMatch(o) {
     rm: o.rm, name: o.name, code: o.code || null, host: o.host, hostPeer: o.hostPeer, track: o.track, prevTrack: trackId, st: 'waiting', go: 0, n: 0, hb: 0, ft: null,
     opp: null, oppPeer: null, oppFt: null, oppLeft: false, seen: false, joinedAt: performance.now(), buf: [], pose: null,
     lastPres: null, oppKey: '', goAt: 0, sentAt: 0, tickAt: 0, finishAt: 0, note: '', unsub: null, unsubConn: null, hbT: 0,
-    missingSince: null, synced: false, lastSwitch: -1e9, dnfLocked: false
+    missingSince: null, synced: false, lastSwitch: -1e9, dnfLocked: false, watch: 0
   };
   if (!o.host) pvpSetTrack(o.track);
   p.unsub = p.rm.onPeers(() => pvpPoll(), roomFail);
@@ -3716,6 +3802,7 @@ function ingest(pres, peers, now) {
 function pvpPoll(now = performance.now()) {
   const p = pvp; if (!p) return;
   const peers = p.rm.peers();
+  p.watch = watcherCount(peers, p.oppPeer ? [p.oppPeer] : []);
   const opp = chooseOpp({ host: p.host, hostPeer: p.hostPeer, oppPeer: p.oppPeer, st: p.st, peers, valid: pvpCheck });
   if (opp && !p.oppPeer) {
     Object.assign(p, { oppPeer: opp.peer, seen: true, oppLeft: false, missingSince: null, buf: [], lastPres: null, oppKey: '' });
@@ -3763,26 +3850,31 @@ function pvpBump(c) {
   if (cr.hitSpeed) wallHit(cr.hitSpeed);
 }
 function placeOpp(dt) {
-  const o = pvp.pose, g = rivalCar.g;
-  g.visible = !!o && state !== 'title';
-  if (!o) return;
-  const r = samplePos(o.s, o.lat), spd = Math.hypot(o.vx, o.vz);
+  const o = pvp.pose;
+  rivalCar.g.visible = !!o && state !== 'title';
+  if (o) placePose(rivalCar, o, dt);
+}
+// a car mesh at an interpolated remote pose (the other player's car, or either car for a spectator); returns the road sample
+function placePose(cm, o, dt) {
+  const g = cm.g, r = samplePos(o.s, o.lat), spd = Math.hypot(o.vx, o.vz);
   rival.i = r.i;
   g.position.set(o.x, r.y, o.z);
   g.rotation.set(Math.atan(-r.grade * Math.cos(wrap(o.h - r.h))), o.h, 0, 'YXZ');
-  for (const w of rivalCar.spin) w.rotation.x += Math.sign(o.vx * Math.sin(o.h) + o.vz * Math.cos(o.h)) * spd * dt / 0.34;
-  for (const w of rivalCar.steer) w.rotation.y = -o.sr * 0.45;
-  rivalCar.tailMat.color.setHex(o.bk ? 0xff2a36 : 0x7a0b14);
-  for (const t of rivalCar.tails) t.scale.setScalar(o.bk ? 1.8 : 0.9);
+  for (const w of cm.spin) w.rotation.x += Math.sign(o.vx * Math.sin(o.h) + o.vz * Math.cos(o.h)) * spd * dt / 0.34;
+  for (const w of cm.steer) w.rotation.y = -o.sr * 0.45;
+  cm.tailMat.color.setHex(o.bk ? 0xff2a36 : 0x7a0b14);
+  for (const t of cm.tails) t.scale.setScalar(o.bk ? 1.8 : 0.9);
   if (o.dr && spd > 8) for (const sx of [-0.84, 0.84]) {
     const wx = o.x + Math.cos(o.h) * sx * -1 - Math.sin(o.h) * 1.3, wz = o.z + Math.sin(o.h) * sx - Math.cos(o.h) * 1.3;
     if (Math.random() < 0.7) puff(wx, r.y, wz, o.vx, o.vz, clamp(spd / 25, 0.4, 1));
   }
+  return r;
 }
 // a language change: every shown string is re-rendered from its key
 function pvpRelabel() {
   if (!onlineUI && !pvp) return; // nothing online is on screen (also: this runs once at start-up, before the online section has initialised)
   lobbyNote(lobbyKey); syncNet(); renderLobby(true);
+  if (spec) specRender();
   if (!pvp) return;
   renderRoom();
   if (!$('#result').hidden) { $('#btnAgain').textContent = T('pvpBackRoom'); $('#btnMenu').textContent = T('pvpLeaveEnd'); resNames(); pvpResultTick(); }
@@ -3816,6 +3908,144 @@ function pvpResultTick() {
   o.textContent = r.dnf ? T(p.oppLeft ? 'pvpLeft' : 'pvpDnf') : fmtT(p.oppFt);
   gap.textContent = r.gap === null ? '—' : (r.outcome === 'win' ? '−' : r.outcome === 'lose' ? '+' : '') + r.gap.toFixed(2) + ' s';
 }
+
+/* ---------- online: watching a public race ---------- */
+/* A spectator joins the match room, publishes { v, role: 'spectator', nk } once (on Supabase that is a broadcast; the channel's
+   presence track() still happens once per join, inside the transport) and never sends a car or ready / go. It draws the host (A)
+   and the opponent the host names (B) from their samples, the same interpolation the players use for each other. */
+let spec = null;
+const specCache = new WeakMap(); // frozen presences: each one is validated once
+const specValid = pres => { if (!pres || typeof pres !== 'object') return null; if (!specCache.has(pres)) specCache.set(pres, pvpCheck(pres)); return specCache.get(pres); };
+async function watchRoom(r) {
+  if (busy || pvp || spec || !room || !r.live || !validRoomName(r.room)) return;
+  busy = true; lobbyNote('pvpJoining');
+  try {
+    const rm = await room.join(r.room);
+    startSpectate({ rm, name: r.room, hostPeer: r.peer, track: r.track });
+  } catch (e) { lobbyNote('pvpJoinFail'); netFail(e, 'join'); }
+  busy = false;
+}
+function startSpectate(o) {
+  clearInterval(lobbyT);
+  const side = () => ({ peer: null, v: null, buf: [], pose: null, lastPres: null, ft: null, key: '', mesh: null, i: 0, y: 0, missingSince: null, gone: false });
+  const s = spec = { rm: o.rm, name: o.name, hostPeer: o.hostPeer, track: o.track, prevTrack: trackId, side: { a: side(), b: side() }, view: 'a', seen: false, joinedAt: performance.now(), missingSince: null, watch: 0, uiAt: 0, camH: 0, snap: true, unsub: null, unsubConn: null };
+  if (o.track !== trackId) buildTrack(o.track);
+  resetRace(); state = 'watch';
+  playerCar.g.visible = rivalCar.g.visible = false;
+  s.unsub = s.rm.onPeers(() => {}, roomFail); // peers are read every frame; this is for the room-scoped error callback
+  s.unsubConn = s.rm.onConnection(() => {}, roomFail);
+  s.rm.presence({ v: NET.V, role: 'spectator', nk: nick }).catch(roomFail); // the only room presence a spectator ever sends
+  room.presence({ lobby: { v: NET.V, watch: s.name } }).catch(netFail);
+  for (const id of ['#title', '#lobby', '#room', '#result', '#hud']) $(id).hidden = true;
+  onlineUI = true; syncNet(); camera.clearViewOffset();
+  $('#spec').hidden = false; specRender(); $('#btnSpecLeave').focus();
+}
+function specExit(dest, noteKey) {
+  const s = spec; if (!s) return;
+  spec = null; if (s.unsub) s.unsub(); if (s.unsubConn) s.unsubConn();
+  s.rm.leave().catch(() => {});
+  if (room) room.presence({ lobby: null }).catch(netFail);
+  for (const k of ['a', 'b']) { const m = s.side[k].mesh; if (m) { scene.remove(m.g); disposeCar(m); } }
+  $('#spec').hidden = true;
+  if (trackId !== s.prevTrack) buildTrack(s.prevTrack);
+  buildCars(); resetRace(); camOrbit = 0;
+  if (dest === 'lobby') { openLobby(); lobbyNote(noteKey || ''); } else { showPanel(null); applyLang(); $('#btnStart').focus(); }
+}
+// one car's data: a peer that changes starts a fresh buffer; one that blinks out is kept for oppGrace's grace time
+function specTake(sd, x, conn, now) {
+  if (!x) {
+    if (!sd.peer) return;
+    const g = oppGrace(sd.missingSince, false, conn, now); sd.missingSince = g.missingSince;
+    if (g.gone) Object.assign(sd, { peer: null, buf: [], pose: null, lastPres: null, missingSince: null, gone: true }); // v stays: its nickname labels the "left" row
+    return;
+  }
+  sd.missingSince = null;
+  if (x.peer !== sd.peer) Object.assign(sd, { peer: x.peer, v: null, buf: [], pose: null, lastPres: null, ft: null, gone: false });
+  if (x.presence === sd.lastPres) return;
+  sd.lastPres = x.presence;
+  const v = x.v; if (v.trk !== spec.track) return; // the room's course never changes; anything else is not this race
+  sd.v = v;
+  const it = intake(sd.buf, v, now); sd.buf = it.buf; if (it.reset) sd.pose = null;
+  if (v.st === 'finished' && v.ft !== null) sd.ft = v.ft; else if (v.st === 'countdown' || v.st === 'racing') sd.ft = null; // the last result stays up until the next round
+  const key = v.car + ':' + v.col;
+  if (key !== sd.key) { sd.key = key; if (sd.mesh) { scene.remove(sd.mesh.g); disposeCar(sd.mesh); } sd.mesh = makeCar(v.car, v.col); sd.mesh.g.visible = false; }
+}
+function specPoll(now) {
+  const s = spec, peers = s.rm.peers(), conn = typeof s.rm.connected === 'function' ? s.rm.connected() : true;
+  const pr = spectatePair({ hostPeer: s.hostPeer, peers, valid: specValid });
+  const g = oppGrace(s.missingSince, !!pr.a, conn, now); s.missingSince = g.missingSince;
+  if (pr.a) s.seen = true;
+  else if (s.seen ? g.gone : now - s.joinedAt > JOIN_WAIT_MS) { specExit('lobby', s.seen ? 'pvpHostLeft' : 'pvpGone'); return; }
+  else return; // the host blinked out: hold both cars as they are
+  specTake(s.side.a, pr.a, conn, now); specTake(s.side.b, pr.b, conn, now);
+  s.watch = watcherCount(peers, [pr.a.peer].concat(pr.b ? [pr.b.peer] : []));
+}
+function specFrame(dt) {
+  const s = spec, now = performance.now();
+  specPoll(now); if (spec !== s) return;
+  for (const k of ['a', 'b']) {
+    const sd = s.side[k]; sd.pose = interpRemote(sd.buf, now);
+    if (!sd.mesh) continue;
+    sd.mesh.g.visible = !!sd.pose;
+    if (sd.pose) { rival.i = sd.i; const r = placePose(sd.mesh, sd.pose, dt); sd.i = r.i; sd.y = r.y; }
+  }
+  specCamera(dt);
+  if (now - s.uiAt > 200) { s.uiAt = now; specRender(); }
+}
+// follow A / follow B (a chase camera on the interpolated pose; the other car when that one is missing) or an overview from above
+function specCamera(dt) {
+  const s = spec, A = s.side.a, B = s.side.b;
+  camera.up.set(0, 1, 0);
+  const f = s.view === 'a' ? (A.pose ? A : B.pose ? B : null) : s.view === 'b' ? (B.pose ? B : A.pose ? A : null) : null;
+  if (f) {
+    const o = f.pose, spd = Math.hypot(o.vx, o.vz), fwdV = o.vx * Math.sin(o.h) + o.vz * Math.cos(o.h), wgt = fwdV > 0 ? clamp((spd - 2) / 6, 0, 1) : 0;
+    if (s.snap) s.camH = o.h;
+    s.camH += wrap(o.h + clamp(wrap(Math.atan2(o.vx, o.vz) - o.h) * wgt, -0.44, 0.44) - s.camH) * Math.min(1, 5 * dt);
+    const dist = 6.4 + spd * 0.035;
+    camPos.set(o.x - Math.sin(s.camH) * dist, f.y + 2.5 + spd * 0.012, o.z - Math.cos(s.camH) * dist);
+    if (s.snap) { s.snap = false; camera.position.copy(camPos); } else camera.position.lerp(camPos, Math.min(1, 12 * dt)); // a new car to follow: cut, do not fly across the course
+    camera.position.y = Math.max(camera.position.y, f.y + 1.6);
+    camLook.set(o.x + Math.sin(s.camH) * 4, f.y + 1.1, o.z + Math.cos(s.camH) * 4);
+    camera.lookAt(camLook); easeFov(dt, 64 + clamp(spd / 55, 0, 1) * 14); return;
+  }
+  const cs = [A, B].filter(x => x.pose), p0 = pts[8];
+  const mx = cs.length ? cs.reduce((t, x) => t + x.pose.x, 0) / cs.length : p0.x, mz = cs.length ? cs.reduce((t, x) => t + x.pose.z, 0) / cs.length : p0.z;
+  const my = cs.length ? cs.reduce((t, x) => t + x.y, 0) / cs.length : p0.y, h = cs.length ? cs[0].pose.h : p0.h;
+  const spread = cs.length === 2 ? Math.hypot(A.pose.x - B.pose.x, A.pose.z - B.pose.z) : 0, up = clamp(34 + spread * 0.7, 34, 240);
+  camPos.set(mx - Math.sin(h) * up * 0.45, my + up, mz - Math.cos(h) * up * 0.45);
+  camera.position.lerp(camPos, Math.min(1, 4 * dt));
+  camLook.set(mx, my, mz); camera.lookAt(camLook); easeFov(dt, 58);
+}
+function specView(v) { if (!spec || !['a', 'b', 'top'].includes(v)) return; if (v !== spec.view) spec.snap = v !== 'top'; spec.view = v; specRender(); }
+// names, places, gap, both times and the winner; texts from i18n keys, nicknames only through textContent
+function specRender() {
+  const s = spec; if (!s) return;
+  const A = s.side.a, B = s.side.b, nm = sd => nickOf(sd.v && sd.v.nk);
+  const pos = sd => sd.pose ? { s: sd.pose.s, ft: sd.ft } : sd.ft !== null ? { s: FINISH_S, ft: sd.ft } : null;
+  const st = specStandings(pos(A), pos(B)), both = !!(pos(A) && pos(B));
+  for (const [id, k, sd] of [['#specA', 'a', A], ['#specB', 'b', B]]) {
+    const row = $(id);
+    row.querySelector('b').textContent = sd.peer || sd.gone ? nm(sd) : '—';
+    row.querySelector('.pos').textContent = st.lead === k ? T('specPos', 1) : st.lead && both ? T('specPos', 2) : '';
+    row.querySelector('.t').textContent = sd.ft !== null ? fmtT(sd.ft) : sd.gone ? T('specCarLeft') : sd.v ? T('pvpSt_' + sd.v.st) : '';
+    $(k === 'a' ? '#specProgA' : '#specProgB').style.left = clamp((sd.pose ? sd.pose.s : sd.ft !== null ? FINISH_S : 0) / FINISH_S * 100, 0, 100) + '%';
+  }
+  $('#specGap').textContent = st.gap !== null ? T('specGap', st.gap) : '';
+  const out = sd => !sd.peer || sd.gone || (!!sd.v && !['countdown', 'racing', 'finished'].includes(sd.v.st)); // not (or no longer) in this round
+  let res = '', wait = false;
+  if (A.ft !== null && B.ft !== null) { const r = pvpResult(A.ft, B.ft); res = r.outcome === 'tie' ? T('pvpTie') : T('specWins', nm(r.outcome === 'win' ? A : B)); }
+  else if (A.ft !== null || B.ft !== null) { const w = A.ft !== null ? A : B, l = w === A ? B : A; if (out(l)) res = T('specWins', nm(w)); else { res = T('specWaitOther'); wait = true; } }
+  else if (!A.v) { res = T('specWaitHost'); wait = true; }
+  else if (out(A) && out(B)) { res = T('specBetween'); wait = true; }
+  const re = $('#specRes'); re.hidden = !res; re.textContent = res; re.className = 'specres' + (wait ? ' wait' : '');
+  $('#specWatch').textContent = T('specWatching', s.watch);
+  for (const b of document.querySelectorAll('.spec-bar [data-v]')) {
+    b.setAttribute('aria-pressed', String(b.dataset.v === s.view));
+    if (b.dataset.v !== 'top') b.querySelector('span').textContent = nm(b.dataset.v === 'a' ? A : B);
+  }
+}
+for (const b of document.querySelectorAll('.spec-bar [data-v]')) b.addEventListener('click', () => specView(b.dataset.v));
+$('#btnSpecLeave').addEventListener('click', () => specExit('lobby'));
 const safeUse = async name => { try { return await window.claude.use(name); } catch (e) { return null; } }; // 'room' and the built-in 'permissions' only: the artifact declares no `user`
 const readPerm = async () => { try { return onl.permApi ? await onl.permApi.state('room') : null; } catch (e) { return null; } };
 function renderOnline() {
@@ -3952,9 +4182,9 @@ function frame(now) {
     if (state === 'race') { if (taRun) taSample(false); scoring(dt); if (car.loc.s >= FINISH_S) finishRace(); }
     if (finishTimer > 0) { finishTimer -= dt; if (finishTimer <= 0) showResult(); }
   }
-  placeCars(dt); updateSmoke(dt); updateCamera(dt);
-  if (state !== 'title') hud(dt);
-  updateEngineAudio(dt);
+  if (spec) specFrame(dt);
+  else { placeCars(dt); updateCamera(dt); if (state !== 'title') hud(dt); updateEngineAudio(dt); }
+  updateSmoke(dt);
   sky.position.copy(camera.position);
   const mirrorOn = camMode === 'cockpit' && state !== 'title' && !hudEl.hidden;
   if (mirrorOn) {
@@ -3990,6 +4220,7 @@ window.addEventListener('keydown', e => {
     } else if (e.code === 'KeyM' && !e.repeat && e.target.tagName !== 'SELECT') { setMusic(!musicOn); syncMenuUI(); }
     return;
   }
+  if (spec) { const v = specViewKey(e.code); if (v) { e.preventDefault(); specView(v); } return; } // a spectator has no car: only the view keys
   if (!e.repeat && (e.code === 'ShiftLeft' || e.code === 'ShiftRight')) shiftGear(1);
   if (!e.repeat && e.code === 'KeyZ' && !e.ctrlKey && !e.metaKey && !e.altKey) shiftGear(-1);
   if (KEYMAP[e.code]) { input[KEYMAP[e.code]] = true; if (state !== 'title' || e.code !== 'Space') e.preventDefault(); }
