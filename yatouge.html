@@ -264,6 +264,26 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 .igrow select, .igrow button { background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 4px; padding: 6px 10px; font-size: 14px; color: var(--ink); }
 .igrow select option { background: var(--night); }
 .igrow button[aria-checked="true"] { border-color: var(--sodium); color: var(--sodium); }
+/* key bindings page (over the title or the in-game menu) */
+#kbs { z-index: 8; background: rgba(5,7,15,.94); }
+.kbsheet { width: min(440px, 100%); }
+.kbtabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.kbtabs button { flex: 1; background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; font-size: 14px; }
+.kbtabs button[aria-pressed="true"] { border-color: var(--sodium); color: var(--sodium); }
+.kblist { display: grid; gap: 4px; }
+.kbrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 10px; font-size: 14px; }
+.kbslots { display: flex; gap: 6px; align-items: center; }
+.kbslot { min-width: 74px; min-height: 34px; padding: 4px 8px; font-family: var(--mono); font-size: 13px; background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 4px; white-space: nowrap; }
+.kbslot:hover, .kbx:hover { border-color: var(--sodium); }
+.kbslot.empty { color: var(--dim); }
+.kbslot.cap { border-color: var(--sodium); color: var(--sodium); background: rgba(255,162,58,.14); }
+.kbx { width: 28px; min-height: 34px; padding: 0; background: transparent; border: 1px solid var(--line); border-radius: 4px; color: var(--dim); }
+.kbx:disabled { visibility: hidden; }
+.kbinfo { font-size: 12px; line-height: 1.5; color: var(--dim); margin: 10px 0 0; }
+.kbnote { min-height: 1.5em; font-size: 13px; color: var(--sodium); margin: 6px 0 0; }
+.kbacts { display: flex; gap: 10px; margin-top: 8px; } .kbacts button { flex: 1; padding: 10px 14px; font-size: 15px; }
+@media (max-width: 380px) { .kbslot { min-width: 62px; padding: 4px 6px; } .kbrow { font-size: 13px; } }
+@media (orientation: landscape) and (max-height: 500px) { .kbsheet { padding: 12px 14px; } .kbsheet .stripe { margin: 6px 0 8px; } .kblist { grid-template-columns: 1fr 1fr; gap: 4px 14px; } .kbslot, .kbx { min-height: 30px; } }
 .igq { font-size: 18px; margin: 4px 0 6px; }
 /* short landscape screens (phones on their side): compact HUD, scrollable pages, two-column settings */
 @media (orientation: landscape) and (max-height: 500px) {
@@ -445,6 +465,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     </div>
     <div class="tctl">
       <div class="igrow"><span id="tVibeL" data-i18n="vibe">震動</span><button id="tVibe" type="button" role="switch" aria-labelledby="tVibeL" aria-checked="true"></button></div>
+      <div class="igrow"><span id="tKeysL" data-i18n="kbTitle">按鍵設定</span><button id="tKeys" type="button" aria-haspopup="dialog" aria-describedby="tKeysL" data-i18n="kbOpen">變更</button></div>
     </div>
     <div id="tCtl" class="tctl" hidden>
       <div class="lbl" style="margin-top:16px" data-i18n="ctlLbl">操作設定</div>
@@ -453,14 +474,14 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <p class="igq" id="tTiltNote" role="status" hidden></p>
     </div>
     <div class="keys">
-      <span><kbd>↑</kbd> <kbd>W</kbd></span><span data-i18n="kGas">油門</span>
-      <span><kbd>↓</kbd> <kbd>S</kbd></span><span data-i18n="kBrake">煞車／倒車</span>
-      <span><kbd>←</kbd> <kbd>→</kbd></span><span data-i18n="kSteer">轉向</span>
-      <span><kbd>Space</kbd></span><span data-i18n="kHb">手煞車，轉彎時拉一下讓車尾滑出去</span>
-      <span><kbd>R</kbd> <kbd>M</kbd></span><span data-i18n="kMisc">回到路面／音樂開關</span>
-      <span><kbd>C</kbd></span><span data-i18n="kCam">切換鏡頭（追蹤／近距離／車內）</span>
-      <span><kbd>Shift</kbd> <kbd>Z</kbd></span><span data-i18n="kShift">手排：升檔／降檔</span>
-      <span><kbd>RT</kbd> <kbd>LT</kbd></span><span data-i18n="kPad">手把：左搖桿轉向、RT 油門、LT 煞車、Y 手煞車、LB／RB 降／升檔、十字鍵上 鏡頭、Menu 選單</span>
+      <span id="kGasK"><kbd>↑</kbd> <kbd>W</kbd></span><span data-i18n="kGas">油門</span>
+      <span id="kBrakeK"><kbd>↓</kbd> <kbd>S</kbd></span><span data-i18n="kBrake">煞車／倒車</span>
+      <span id="kSteerK"><kbd>←</kbd> <kbd>→</kbd></span><span data-i18n="kSteer">轉向</span>
+      <span id="kHbK"><kbd>Space</kbd></span><span data-i18n="kHb">手煞車，轉彎時拉一下讓車尾滑出去</span>
+      <span id="kMiscK"><kbd>R</kbd> <kbd>M</kbd></span><span data-i18n="kMisc">回到路面／音樂開關</span>
+      <span id="kCamK"><kbd>C</kbd></span><span data-i18n="kCam">切換鏡頭（追蹤／近距離／車內）</span>
+      <span id="kShiftK"><kbd>Shift</kbd> <kbd>Z</kbd></span><span data-i18n="kShift">手排：升檔／降檔</span>
+      <span id="kPadK"><kbd>RT</kbd> <kbd>LT</kbd></span><span id="kPadTxt">手把：左搖桿轉向、RT 油門、LT 煞車、Y 手煞車、LB／RB 降／升檔、十字鍵上 鏡頭、Menu 選單</span>
     </div>
     <button class="go" id="btnStart" type="button" data-i18n="start">開始下坡</button><button class="ghost" id="btnOnline" type="button" data-i18n="pvpOnline" aria-disabled="true">線上對戰</button><div class="onl-info"><span id="onlineNote" role="status"></span><button class="ghost" id="btnOnlineAct" type="button" hidden></button></div>
     <p class="note" data-i18n="note">不拉手煞車時輪胎會抓地，轉太快只會推頭。入彎先減速，轉向的同時點一下手煞就能甩起來，反打方向盤可以收住車尾。手機上用畫面下方的按鈕操作。</p>
@@ -567,6 +588,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <div class="igrow" id="igChatRow" hidden><span id="igChatOnL" data-i18n="chatMsgs">聊天訊息</span><button id="igChatOn" type="button" role="switch" aria-labelledby="igChatOnL" aria-checked="true"></button></div>
       <div class="igrow"><label for="igCam" data-i18n="igCam">鏡頭</label><select id="igCam"></select></div>
       <div class="igrow"><label for="igLang" data-i18n="igLang">語言</label><select id="igLang"><option value="zh">中文</option><option value="en">English</option></select></div>
+      <div class="igrow"><span id="igKeysL" data-i18n="kbTitle">按鍵設定</span><button id="igKeys" type="button" aria-haspopup="dialog" aria-describedby="igKeysL" data-i18n="kbOpen">變更</button></div>
       <button class="ghost" id="igBack" type="button" data-i18n="igBack">返回</button>
     </div>
     <div id="igConf" class="igview" hidden>
@@ -574,6 +596,18 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <button class="go" id="igYes" type="button" data-i18n="igYes">是，認輸</button>
       <button class="ghost" id="igNo" type="button" data-i18n="igNo">否</button>
     </div>
+  </div>
+</div>
+
+<div id="kbs" class="screen" role="dialog" aria-modal="true" aria-labelledby="kbTitle" hidden>
+  <div class="sheet igsheet kbsheet">
+    <h2 id="kbTitle" class="igh" data-i18n="kbTitle">按鍵設定</h2>
+    <div class="stripe"></div>
+    <div class="kbtabs" role="group" data-i18n-aria="kbTitle" aria-label="按鍵設定"><button type="button" data-p="keys" aria-pressed="true" data-i18n="kbKeys">鍵盤</button><button type="button" data-p="pad" aria-pressed="false" data-i18n="kbPad">控制器</button></div>
+    <div id="kbList" class="kblist"></div>
+    <p id="kbInfo" class="kbinfo"></p>
+    <p id="kbNote" class="kbnote" role="status"></p>
+    <div class="kbacts"><button class="ghost" id="kbReset" type="button" data-i18n="kbReset">恢復預設</button><button class="go" id="kbBack" type="button" data-i18n="igBack">返回</button></div>
   </div>
 </div>
 
@@ -595,7 +629,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div class="stripe"></div>
     <div class="transopts">
       <button class="transbtn" id="transAT" type="button" data-t="auto"><b data-i18n="transAT">自排 AT</b><small data-i18n="transATd">自動換檔，專心過彎。</small></button>
-      <button class="transbtn" id="transMT" type="button" data-t="manual"><b data-i18n="transMT">手排 MT</b><small data-i18n="transMTd">自己換檔：Shift 升檔、Z 降檔。換得好比自排快。</small></button>
+      <button class="transbtn" id="transMT" type="button" data-t="manual"><b data-i18n="transMT">手排 MT</b><small id="transMTd">自己換檔：Shift 升檔、Z 降檔。換得好比自排快。</small></button>
     </div>
     <p class="note" data-i18n="transHint">手機會多出 ▲ ▼ 換檔鈕。每次開賽前都會再問一次。</p>
     <p class="note nokb" data-i18n="transKeys">Enter 或點一下確認，Esc 取消。</p>
@@ -655,6 +689,96 @@ const menuCanOpen = (st, nickOpen) => !nickOpen && (st === 'count' || st === 'ra
 const menuEscAction = (open, view, st, nickOpen) => open ? (view === 'main' ? 'close' : 'back') : menuCanOpen(st, nickOpen) ? 'open' : 'none';
 const forfeitPlan = isPvp => ({ action: isPvp ? 'leave' : 'title', saveBest: false });
 /* @ingame-menu:end */
+/* @keybind:start */
+/* Key bindings (pure part). Keyboard: 1-2 event.code values per action; controller: one standard-mapping button index (or none).
+   Fixed and never bindable: Esc / Enter / Tab / R / the spectator 1-2-3 keys / Win, and the pad's A / B / Menu / d-pad down-left-right
+   (menu navigation; d-pad up stays bindable: in menus it still moves focus). The left stick always steers. Saved as { v, keys, pad }. */
+const KB = {
+  V: 1, STORE: 'yatouge-keys', SLOTS: 2, PAD_N: 16,
+  ACTIONS: ['gas', 'brake', 'left', 'right', 'hb', 'shiftUp', 'shiftDown', 'cam', 'music', 'chat'],
+  FIXED_KEYS: ['Escape', 'Enter', 'NumpadEnter', 'Tab', 'KeyR', 'Digit1', 'Digit2', 'Digit3', 'Numpad1', 'Numpad2', 'Numpad3', 'MetaLeft', 'MetaRight'],
+  FIXED_PAD: [0, 1, 9, 13, 14, 15],
+};
+// the layout the game always had (see tests/keybind.test.mjs)
+const KB_DEF = Object.freeze({
+  keys: Object.freeze({ gas: Object.freeze(['ArrowUp', 'KeyW']), brake: Object.freeze(['ArrowDown', 'KeyS']), left: Object.freeze(['ArrowLeft', 'KeyA']), right: Object.freeze(['ArrowRight', 'KeyD']), hb: Object.freeze(['Space']),
+    shiftUp: Object.freeze(['ShiftLeft', 'ShiftRight']), shiftDown: Object.freeze(['KeyZ']), cam: Object.freeze(['KeyC']), music: Object.freeze(['KeyM']), chat: Object.freeze(['KeyT']) }),
+  pad: Object.freeze({ gas: 7, brake: 6, left: null, right: null, hb: 3, shiftUp: 5, shiftDown: 4, cam: 12, music: 8, chat: null }),
+});
+const kbIsAction = a => KB.ACTIONS.includes(a);
+const kbCodeOk = c => typeof c === 'string' && /^[A-Za-z][A-Za-z0-9]{0,31}$/.test(c) && c !== 'Unidentified';
+const kbPadOk = i => Number.isInteger(i) && i >= 0 && i < KB.PAD_N;
+const kbDefSide = side => Object.fromEntries(KB.ACTIONS.map(a => [a, side === 'keys' ? [...KB_DEF.keys[a]] : KB_DEF.pad[a]]));
+const kbOwn = (o, k) => !!o && typeof o === 'object' && !Array.isArray(o) && Object.hasOwn(o, k);
+// a saved value per action, else that action's default; a page whose result uses one key / button twice falls back whole
+function kbLoad(raw) {
+  let o = null;
+  try { o = typeof raw === 'string' ? JSON.parse(raw) : null; } catch (_) { o = null; }
+  if (!o || typeof o !== 'object' || Array.isArray(o) || o.v !== KB.V) return { keys: kbDefSide('keys'), pad: kbDefSide('pad') };
+  const keyOk = v => Array.isArray(v) && v.length >= 1 && v.length <= KB.SLOTS && v.every(c => kbCodeOk(c) && !KB.FIXED_KEYS.includes(c)) && new Set(v).size === v.length;
+  const padOk = v => v === null || (kbPadOk(v) && !KB.FIXED_PAD.includes(v));
+  const keys = Object.fromEntries(KB.ACTIONS.map(a => [a, kbOwn(o.keys, a) && keyOk(o.keys[a]) ? [...o.keys[a]] : [...KB_DEF.keys[a]]]));
+  const pad = Object.fromEntries(KB.ACTIONS.map(a => [a, kbOwn(o.pad, a) && padOk(o.pad[a]) ? o.pad[a] : KB_DEF.pad[a]]));
+  const allK = KB.ACTIONS.flatMap(a => keys[a]), allP = KB.ACTIONS.map(a => pad[a]).filter(v => v !== null);
+  return { keys: new Set(allK).size === allK.length ? keys : kbDefSide('keys'), pad: new Set(allP).size === allP.length ? pad : kbDefSide('pad') };
+}
+const kbSave = b => JSON.stringify({ v: KB.V, keys: b.keys, pad: b.pad });
+const kbKeyAction = (b, code) => KB.ACTIONS.find(a => b.keys[a].includes(code)) || null;
+const kbPadAction = (b, i) => (i === null || i === undefined ? null : KB.ACTIONS.find(a => b.pad[a] === i) || null);
+const kbWith = (b, side, a, v) => ({ ...b, [side]: { ...b[side], [a]: v } });
+// res: 'set' | 'same' | 'swap' (the other action got our old key) | 'moved' (taken from another action that keeps a key)
+//      | 'last' (refused: it is the other action's only key) | 'fixed' | 'bad'; with: the other action
+function kbSetKey(b, a, slot, code) {
+  const no = res => ({ b, res });
+  if (!kbIsAction(a) || !Number.isInteger(slot) || slot < 0 || slot >= KB.SLOTS || !kbCodeOk(code)) return no('bad');
+  if (KB.FIXED_KEYS.includes(code)) return no('fixed');
+  const cur = b.keys[a], at = Math.min(slot, cur.length);
+  if (cur[at] === code) return no('same');
+  const mine = cur.indexOf(code);
+  if (mine >= 0) { const n = [...cur]; n[mine] = cur[at]; n[at] = code; return { b: kbWith(b, 'keys', a, n), res: 'set' }; }
+  const n = [...cur]; n[at] = code;
+  const o = kbKeyAction(b, code);
+  if (!o) return { b: kbWith(b, 'keys', a, n), res: 'set' };
+  const ok = b.keys[o], j = ok.indexOf(code);
+  if (at < cur.length) { const m = [...ok]; m[j] = cur[at]; return { b: kbWith(kbWith(b, 'keys', a, n), 'keys', o, m), res: 'swap', with: o }; }
+  if (ok.length < 2) return { b, res: 'last', with: o };
+  return { b: kbWith(kbWith(b, 'keys', a, n), 'keys', o, ok.filter(c => c !== code)), res: 'moved', with: o };
+}
+function kbClearKey(b, a, slot) {
+  if (!kbIsAction(a) || b.keys[a].length < 2 || !Number.isInteger(slot) || slot < 0 || slot >= b.keys[a].length) return { b, res: 'last' };
+  return { b: kbWith(b, 'keys', a, b.keys[a].filter((_, i) => i !== slot)), res: 'cleared' };
+}
+function kbSetPad(b, a, i) {
+  if (!kbIsAction(a) || !kbPadOk(i)) return { b, res: 'bad' };
+  if (KB.FIXED_PAD.includes(i)) return { b, res: 'fixed' };
+  if (b.pad[a] === i) return { b, res: 'same' };
+  const o = kbPadAction(b, i), n = kbWith(b, 'pad', a, i);
+  if (!o) return { b: n, res: 'set' };
+  return { b: kbWith(n, 'pad', o, b.pad[a]), res: b.pad[a] === null ? 'moved' : 'swap', with: o };
+}
+const kbReset = (b, side) => ({ ...b, [side]: kbDefSide(side) });
+const KB_NAMES = { ArrowUp: '↑', ArrowDown: '↓', ArrowLeft: '←', ArrowRight: '→', Escape: 'Esc', Backquote: '`', Minus: '-', Equal: '=', BracketLeft: '[', BracketRight: ']', Backslash: '\\',
+  Semicolon: ';', Quote: "'", Comma: ',', Period: '.', Slash: '/', CapsLock: 'Caps', PageUp: 'PgUp', PageDown: 'PgDn', Delete: 'Del', Insert: 'Ins', NumpadAdd: 'Num +', NumpadSubtract: 'Num -',
+  NumpadMultiply: 'Num *', NumpadDivide: 'Num /', NumpadDecimal: 'Num .', ContextMenu: 'Menu' };
+const KB_SIDED = { Shift: 'Shift', Control: 'Ctrl', Alt: 'Alt', Meta: 'Win' };
+// readable key name; short = without the side (hints: both Shift keys read "Shift")
+function kbKeyLabel(code, lang, short = false) {
+  if (typeof code !== 'string') return '—';
+  if (Object.hasOwn(KB_NAMES, code)) return KB_NAMES[code];
+  const m = /^(Shift|Control|Alt|Meta)(Left|Right)$/.exec(code);
+  if (m) { const k = KB_SIDED[m[1]]; return short ? k : lang === 'zh' ? (m[2] === 'Left' ? '左 ' : '右 ') + k : m[2] + ' ' + k; }
+  let x = /^(?:Key|Digit)(.)$/.exec(code); if (x) return x[1];
+  x = /^Numpad(\d)$/.exec(code); if (x) return 'Num ' + x[1];
+  return code;
+}
+const KB_PAD_NAMES = ['A', 'B', 'X', 'Y', 'LB', 'RB', 'LT', 'RT', 'View', 'Menu', 'LS', 'RS'];
+const KB_DPAD = { zh: ['十字鍵上', '十字鍵下', '十字鍵左', '十字鍵右'], en: ['D-pad up', 'D-pad down', 'D-pad left', 'D-pad right'] };
+const kbPadLabel = (i, lang) => (!kbPadOk(i) ? '—' : i < 12 ? KB_PAD_NAMES[i] : KB_DPAD[lang === 'zh' ? 'zh' : 'en'][i - 12]);
+// the short names of an action's keys for the hint rows, duplicates merged, in binding order
+const kbShort = (b, a, lang) => [...new Set(b.keys[a].map(c => kbKeyLabel(c, lang, true)))];
+/* @keybind:end */
+let kb = kbLoad(store.get(KB.STORE)); // the player's bindings; the page that edits them is next to the in-game menu
+let kbOpen = false, kbCap = null, kbFrom = 'title', kbSide = 'keys', kbSwallow = null; // kbCap: { side, a, s } while waiting for the new key / button
 /* @kx-chime:start */
 // KX-2 only: speed warning chime, the original timing: rings above 100 km/h, repeats every 0.9 s while over.
 const KXCHIME = { ON: 100, GAP: 0.9 };
@@ -853,8 +977,13 @@ const I18N = {
     igAria: '選單', igTitle: '選單', igResume: '繼續', igSettings: '設定', igForfeit: '認輸', igBack: '返回', igMusic: '音樂', igMusicVol: '音樂音量', igSfxVol: '音效音量', igCam: '鏡頭', igLang: '語言',
     igOn: '開', igOff: '關', kxChime: '時速警示音', kxLetter: '車門字樣', vibe: '震動', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
     ctlLbl: '操作設定', igSteer: '轉向方式', stDrag: '拖曳', stTilt: '傾斜', stZones: '分區', igTiltSens: '傾斜靈敏度', recenter: '回正', zoneBrake: '煞車 + 手煞', tiltFail: '此環境無法使用傾斜轉向，已改回拖曳',
-    transTitle: '選擇變速箱', transAT: '自排 AT', transATd: '自動換檔，專心過彎。', transMT: '手排 MT', transMTd: '自己換檔：Shift 升檔、Z 降檔。換得好比自排快。', transHint: '手機會多出 ▲ ▼ 換檔鈕。每次開賽前都會再問一次。', transKeys: 'Enter 或點一下確認，Esc 取消。',
-    kShift: '手排：升檔／降檔', kPad: '手把：左搖桿轉向、RT 油門、LT 煞車、Y 手煞車、LB／RB 降／升檔、十字鍵上 鏡頭、Menu 選單', shiftUp: '升檔', shiftDown: '降檔',
+    transTitle: '選擇變速箱', transAT: '自排 AT', transATd: '自動換檔，專心過彎。', transMT: '手排 MT', transMTd: (u, d) => `自己換檔：${u} 升檔、${d} 降檔。換得好比自排快。`, transHint: '手機會多出 ▲ ▼ 換檔鈕。每次開賽前都會再問一次。', transKeys: 'Enter 或點一下確認，Esc 取消。',
+    kShift: '手排：升檔／降檔', kPad: p => `手把：左搖桿轉向、${p.gas} 油門、${p.brake} 煞車、${p.hb} 手煞車、${p.shiftDown}／${p.shiftUp} 降／升檔、${p.cam} 鏡頭、Menu 選單`,
+    kbTitle: '按鍵設定', kbOpen: '變更', kbKeys: '鍵盤', kbPad: '控制器', kbReset: '恢復預設', kbPress: '請按鍵…', kbAdd: '加入第二個鍵', kbClear: (a, k) => `移除「${a}」的 ${k}`,
+    kbA_gas: '油門', kbA_brake: '煞車／倒車', kbA_left: '左轉', kbA_right: '右轉', kbA_hb: '手煞車', kbA_shiftUp: '升檔', kbA_shiftDown: '降檔', kbA_cam: '切換鏡頭', kbA_music: '音樂開關', kbA_chat: '聊天',
+    kbInfoKeys: '點一下格子再按新的鍵，每個動作可設 1–2 個鍵。Esc、Enter、Tab、R 與觀戰的 1／2／3 固定不變。', kbInfoPad: '點一下格子（或用十字鍵選到後按 A）再按手把按鈕。左搖桿固定為轉向；A、B、Menu 與十字鍵的選單操作固定不變。',
+    kbCapKey: '請按新的鍵，Esc 取消', kbCapPad: '請按手把按鈕，B 取消', kbSet: (a, k) => `「${a}」設為 ${k}`, kbSwap: a => `已與「${a}」互換`, kbMoved: a => `已從「${a}」移過來`,
+    kbLast: a => `「${a}」只剩這個鍵，不能移走`, kbFixed: k => `${k} 是固定按鍵，不能設定`, kbBad: '這個鍵不能使用', kbCancel: '已取消', kbCleared: '已移除', kbDone: '已恢復預設', shiftUp: '升檔', shiftDown: '降檔',
     modeLbl: '模式', modeRace: '比賽', modeRaceD: '跟對手車比誰先衝到山腳。', modeTa: '計時賽', modeTaD: '沒有對手，挑戰自己的最佳時間與幽靈車。',
     leadTa: name => `凌晨兩點的${name}，整條路只屬於你。沒有對手，只有碼表和上一次最快的自己。`,
     taGhost: '幽靈車', taBestIs: t => `最佳 ${t}`, taFirst: '第一次計時', taVsBest: d => `與最佳 ${d} 秒`,
@@ -862,7 +991,7 @@ const I18N = {
     specRow: (track, n) => `${track} · 比賽中・觀戰 · ${n} 人觀戰`, specEyebrow: '觀戰中', specOver: '全景', specLeave: '離開觀戰', specViewAria: '觀戰視角',
     specGap: n => `差距 ${n} m`, specPos: n => `第 ${n}`, specWins: n => `${n} 獲勝`, specWaitOther: '等待另一台衝線…', specBetween: '這場結束了，等待下一場…',
     specWaitHost: '等待比賽資料…', specWatching: n => `${n} 人觀戰中`, specCarLeft: '已離開',
-    chatLbl: '聊天', chatMsgs: '聊天訊息', chatSend: '送出', chatSpec: '觀戰', chatPh: '按 T 或點這裡輸入訊息', chatPhRace: 'Enter 送出，Esc 關閉', chatWait: s => `傳太快了，${s} 秒後再試`,
+    chatLbl: '聊天', chatMsgs: '聊天訊息', chatSend: '送出', chatSpec: '觀戰', chatPh: k => `按 ${k} 或點這裡輸入訊息`, chatPhRace: 'Enter 送出，Esc 關閉', chatWait: s => `傳太快了，${s} 秒後再試`,
     modeSake: '送酒模式', modeSakeD: '開白色 KX-2 從青嵐峠送一杯酒下山。限時 3:15，碰牆第三次就失敗。',
     leadSake: name => `凌晨兩點的${name}，杯架上放著一杯要送下山的酒。3 分 15 秒內送到山腳，別讓車子擦到護欄。`,
     sakeLocked: '送酒模式固定使用白色 KX-2、青嵐峠與車內視角，不會改動你原本的選擇。',
@@ -918,8 +1047,13 @@ const I18N = {
     igAria: 'Menu', igTitle: 'Menu', igResume: 'Resume', igSettings: 'Settings', igForfeit: 'Forfeit', igBack: 'Back', igMusic: 'Music', igMusicVol: 'Music volume', igSfxVol: 'Sound effects volume', igCam: 'Camera', igLang: 'Language',
     igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', vibe: 'Vibration', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
     ctlLbl: 'Controls', igSteer: 'Steering', stDrag: 'Drag', stTilt: 'Tilt', stZones: 'Zones', igTiltSens: 'Tilt sensitivity', recenter: 'Re-center', zoneBrake: 'BRAKE + E-BRAKE', tiltFail: 'Tilt steering is unavailable here; switched back to drag.',
-    transTitle: 'Choose a gearbox', transAT: 'Automatic AT', transATd: 'Shifts for you. Focus on the corners.', transMT: 'Manual MT', transMTd: 'Shift yourself: Shift = up, Z = down. Shift well and you beat the automatic.', transHint: 'On a phone, ▲ ▼ shift buttons appear. You are asked again before every race.', transKeys: 'Enter or a tap confirms, Esc cancels.',
-    kShift: 'Manual: shift up / down', kPad: 'Controller: left stick steer, RT gas, LT brake, Y handbrake, LB / RB shift down / up, D-pad up camera, Menu menu', shiftUp: 'Shift up', shiftDown: 'Shift down',
+    transTitle: 'Choose a gearbox', transAT: 'Automatic AT', transATd: 'Shifts for you. Focus on the corners.', transMT: 'Manual MT', transMTd: (u, d) => `Shift yourself: ${u} = up, ${d} = down. Shift well and you beat the automatic.`, transHint: 'On a phone, ▲ ▼ shift buttons appear. You are asked again before every race.', transKeys: 'Enter or a tap confirms, Esc cancels.',
+    kShift: 'Manual: shift up / down', kPad: p => `Controller: left stick steer, ${p.gas} gas, ${p.brake} brake, ${p.hb} handbrake, ${p.shiftDown} / ${p.shiftUp} shift down / up, ${p.cam} camera, Menu menu`,
+    kbTitle: 'Key bindings', kbOpen: 'Change', kbKeys: 'Keyboard', kbPad: 'Controller', kbReset: 'Restore defaults', kbPress: 'Press…', kbAdd: 'Add a second key', kbClear: (a, k) => `Remove ${k} from ${a}`,
+    kbA_gas: 'Gas', kbA_brake: 'Brake / reverse', kbA_left: 'Steer left', kbA_right: 'Steer right', kbA_hb: 'Handbrake', kbA_shiftUp: 'Shift up', kbA_shiftDown: 'Shift down', kbA_cam: 'Camera', kbA_music: 'Music', kbA_chat: 'Chat',
+    kbInfoKeys: 'Click a slot, then press the new key. 1–2 keys per action. Esc, Enter, Tab, R and the spectator keys 1 / 2 / 3 are fixed.', kbInfoPad: 'Click a slot (or pick it with the D-pad and press A), then press a pad button. The left stick always steers; A, B, Menu and the D-pad menu controls are fixed.',
+    kbCapKey: 'Press the new key. Esc cancels.', kbCapPad: 'Press a pad button. B cancels.', kbSet: (a, k) => `${a} set to ${k}`, kbSwap: a => `Swapped with ${a}`, kbMoved: a => `Moved from ${a}`,
+    kbLast: a => `${a} needs at least one key`, kbFixed: k => `${k} is fixed and can't be bound`, kbBad: "That key can't be used", kbCancel: 'Cancelled', kbCleared: 'Removed', kbDone: 'Defaults restored', shiftUp: 'Shift up', shiftDown: 'Shift down',
     modeLbl: 'Mode', modeRace: 'Race', modeRaceD: 'Beat the rival car to the bottom.', modeTa: 'Time attack', modeTaD: 'No rival. Chase your best time and your ghost car.',
     leadTa: name => `2 a.m. on ${name}, and the road is all yours. No rival, just the clock and the ghost of your fastest run.`,
     taGhost: 'Ghost car', taBestIs: t => `Best ${t}`, taFirst: 'First timed run', taVsBest: d => `${d} s vs best`,
@@ -927,7 +1061,7 @@ const I18N = {
     specRow: (track, n) => `${track} · Racing · Watch · ${n} watching`, specEyebrow: 'Watching', specOver: 'Overview', specLeave: 'Stop watching', specViewAria: 'Spectator view',
     specGap: n => `Gap ${n} m`, specPos: n => `P${n}`, specWins: n => `${n} wins`, specWaitOther: 'Waiting for the other car…', specBetween: 'Race over. Waiting for the next one…',
     specWaitHost: 'Waiting for race data…', specWatching: n => `${n} watching`, specCarLeft: 'Left',
-    chatLbl: 'Chat', chatMsgs: 'Chat messages', chatSend: 'Send', chatSpec: 'Watching', chatPh: 'Press T or tap here to chat', chatPhRace: 'Enter to send, Esc to close', chatWait: s => `Too fast. Try again in ${s} s`,
+    chatLbl: 'Chat', chatMsgs: 'Chat messages', chatSend: 'Send', chatSpec: 'Watching', chatPh: k => `Press ${k} or tap here to chat`, chatPhRace: 'Enter to send, Esc to close', chatWait: s => `Too fast. Try again in ${s} s`,
     modeSake: 'Sake Run', modeSakeD: 'Carry a cup of sake down Seiran in the white KX-2. 3:15 on the clock; the third wall hit ends the run.',
     leadSake: name => `2 a.m. on ${name}, with a cup of sake in the holder. Get it to the bottom within 3:15, and keep off the rails.`,
     sakeLocked: 'Sake Run always uses the white KX-2, Seiran Pass and the cockpit view. Your own picks are left as they are.',
@@ -1846,9 +1980,9 @@ const chatShown = (list, on) => (on ? list : list.filter(m => m.me)); // "chat m
 const chatLive = (m, now) => now - m.at < CHAT.FADE_MS;
 // who may talk to us in a match room: its players (peer labels) and valid spectators, never ourselves
 const chatFrom = (peers, players) => (Array.isArray(peers) ? peers : []).filter(x => x && !x.isMe && x.kind === 'viewer' && validPeerId(x.peer) && (players.includes(x.peer) || validSpectator(x.presence)));
-// T: 'room' (focus the room's box), 'race' (open the one-line input), 'spec' (the spectator's box) or null (single player: nothing)
-function chatKey({ code, repeat, mod, online, spec, room, state }) {
-  if (code !== 'KeyT' || repeat || mod) return null;
+// T (or the bound chat key): 'room' (focus the room's box), 'race' (open the one-line input), 'spec' (the spectator's box) or null (single player: nothing)
+function chatKey({ code, repeat, mod, online, spec, room, state, keys = ['KeyT'] }) { // keys: the chat key binding
+  if (!keys.includes(code) || repeat || mod) return null;
   if (spec) return 'spec';
   if (!online) return null;
   if (room) return 'room';
@@ -3842,6 +3976,7 @@ function applyLang() {
   ownRelabel();
   renderTrackPicker(); renderPicker();
   menuRelabel();
+  kbRelabel();
   pvpRelabel();
 }
 $('#langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'zh'; store.set('yatouge-lang', lang); applyLang(); renderOnline(); });
@@ -4948,7 +5083,7 @@ function chatSyncUI() {
   $('#igChatRow').hidden = $('#igChat').hidden = !pvp;
 }
 function chatRelabel() {
-  for (const id of ['#roomChatIn', '#specChatIn']) $(id).placeholder = T('chatPh');
+  for (const id of ['#roomChatIn', '#specChatIn']) $(id).placeholder = T('chatPh', kbJoin(kbShort(kb, 'chat', lang)));
   $('#chatBarIn').placeholder = T('chatPhRace');
   chatSyncUI(); chatRender();
 }
@@ -5140,8 +5275,9 @@ function resize() { const w = window.innerWidth, h = window.innerHeight; rendere
 window.addEventListener('resize', resize); resize();
 
 /* ---------- controls ---------- */
-const KEYMAP = { ArrowUp: 'gas', KeyW: 'gas', ArrowDown: 'brake', KeyS: 'brake', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'hb' };
+const KB_DRIVE = ['gas', 'brake', 'left', 'right', 'hb']; // held while down (input.* of the same name)
 window.addEventListener('keydown', e => {
+  if (kbOpen) { kbKeydown(e); return; } // the key-binding page owns the keyboard: no hotkey fires there
   if (nickOpen || transOpen || e.target.id === 'codeInput' || e.target.classList.contains('chatin')) return; // typing a nickname, a room code or a chat message must not drive the car, toggle music or start a race
   if (e.key === 'Escape') {
     if (e.repeat) return;
@@ -5150,25 +5286,29 @@ window.addEventListener('keydown', e => {
     e.preventDefault(); menuEsc(a);
     return;
   }
+  const act = kbKeyAction(kb, e.code);
   if (menuOpen) { // the menu owns the keyboard: nothing below may drive the car
     if (e.key === 'Tab') {
       const f = [...$('#igmenu').querySelectorAll('button, input, select')].filter(el => !el.disabled && !el.closest('[hidden]')), n = f.length, i = f.indexOf(document.activeElement);
       e.preventDefault(); if (n) f[i < 0 ? (e.shiftKey ? n - 1 : 0) : (i + (e.shiftKey ? n - 1 : 1)) % n].focus();
-    } else if (e.code === 'KeyM' && !e.repeat && e.target.tagName !== 'SELECT') { setMusic(!musicOn); syncMenuUI(); }
+    } else if (act === 'music' && !e.repeat && e.target.tagName !== 'SELECT') { setMusic(!musicOn); syncMenuUI(); }
     return;
   }
-  const ck = chatKey({ code: e.code, repeat: e.repeat, mod: e.ctrlKey || e.metaKey || e.altKey, online: !!pvp, spec: !!spec, room: !!pvp && !$('#room').hidden, state });
+  const ck = chatKey({ code: e.code, repeat: e.repeat, mod: e.ctrlKey || e.metaKey || e.altKey, online: !!pvp, spec: !!spec, room: !!pvp && !$('#room').hidden, state, keys: kb.keys.chat });
   if (ck) { e.preventDefault(); chatFocus(ck); return; } // T: chat, online only (no 't' typed into the box it opens)
   if (spec) { const v = specViewKey(e.code); if (v) { e.preventDefault(); specView(v); } return; } // a spectator has no car: only the view keys
-  if (!e.repeat && (e.code === 'ShiftLeft' || e.code === 'ShiftRight')) shiftGear(1);
-  if (!e.repeat && e.code === 'KeyZ' && !e.ctrlKey && !e.metaKey && !e.altKey) shiftGear(-1);
-  if (KEYMAP[e.code]) { input[KEYMAP[e.code]] = true; if (state !== 'title' || e.code !== 'Space') e.preventDefault(); }
+  if (!e.repeat && act === 'shiftUp') shiftGear(1);
+  if (!e.repeat && act === 'shiftDown' && !e.ctrlKey && !e.metaKey && !e.altKey) shiftGear(-1);
+  if (KB_DRIVE.includes(act)) { input[act] = true; if (state !== 'title' || e.code !== 'Space') e.preventDefault(); }
   if (e.code === 'KeyR' && (state === 'race')) resetCar();
-  if (e.code === 'KeyM') setMusic(!musicOn);
-  if (e.code === 'KeyC' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && !hudEl.hidden) setCamMode(nextCam(camMode), true);
-  if (e.code === 'Enter' && state === 'title' && !onlineUI && !e.target.closest('.music, #tKx, #tTa')) { e.preventDefault(); askTrans(startRace); } // Enter on a music button or a KX-2 option activates it, not the race
+  if (act === 'music') setMusic(!musicOn);
+  if (act === 'cam' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && !hudEl.hidden) setCamMode(nextCam(camMode), true);
+  if (e.code === 'Enter' && state === 'title' && !onlineUI && !e.target.closest('.music, #tKx, #tTa, #tKeys')) { e.preventDefault(); askTrans(startRace); } // Enter on a music button, a KX-2 option or "key bindings" activates it, not the race
 });
-window.addEventListener('keyup', e => { if (KEYMAP[e.code]) input[KEYMAP[e.code]] = false; });
+window.addEventListener('keyup', e => {
+  if (kbOpen && kbSwallow === e.code) { kbSwallow = null; e.preventDefault(); } // the key just bound must not also press the focused slot (Space clicks on keyup)
+  const act = kbKeyAction(kb, e.code); if (KB_DRIVE.includes(act)) input[act] = false;
+});
 window.addEventListener('blur', () => { for (const k in input) input[k] = k === 'steerAxis' ? null : false; releaseTouch(); });
 function menuEsc(a) { if (a === 'open') openMenu(); else if (a === 'close') closeMenu(); else if (a === 'back') showMenuView('main', menuView === 'settings' ? '#igSettings' : '#igForfeit'); }
 // Manual only, countdown or race, menu closed. A refused downshift (it would over-rev) is told to the player.
@@ -5214,14 +5354,23 @@ const gpRepeat = (prevMs, ms) => {
   const n = t => (t < 0 ? -1 : t < GP.REPEAT_DELAY ? 0 : 1 + Math.floor((t - GP.REPEAT_DELAY) / GP.REPEAT_MS));
   return n(ms) > n(prevMs);
 };
-const gpDrive = (b, x) => { const s = gpAxis(x); return { gas: b[GP.BTN.RT], brake: b[GP.BTN.LT], hb: b[GP.BTN.Y], steer: s === 0 ? null : s }; };
+// m: the player's button per action (null = none; the key-binding page); left out = the standard layout
+const GP_PAD = { gas: GP.BTN.RT, brake: GP.BTN.LT, left: null, right: null, hb: GP.BTN.Y, shiftUp: GP.BTN.RB, shiftDown: GP.BTN.LB, cam: GP.BTN.UP, music: GP.BTN.VIEW, chat: null };
+const gpOn = (b, i) => i !== null && i !== undefined && !!b[i];
+// a bound left / right button is full lock; a deflected stick wins
+const gpDrive = (b, x, m = GP_PAD) => {
+  const s = gpAxis(x), l = gpOn(b, m.left), r = gpOn(b, m.right);
+  return { gas: gpOn(b, m.gas), brake: gpOn(b, m.brake), hb: gpOn(b, m.hb), steer: s !== 0 ? s : l !== r ? (l ? -1 : 1) : null };
+};
 const gpContext = ({ spec, overlay, hud }) => (spec ? 'spec' : overlay ? 'ui' : hud ? 'drive' : 'ui');
-const GP_ACTIONS = {
-  drive: { 12: 'cam', 4: 'shiftDown', 5: 'shiftUp', 9: 'menu', 8: 'music' },
-  ui: { 12: 'up', 13: 'down', 14: 'left', 15: 'right', 0: 'ok', 1: 'back', 9: 'menu', 8: 'music' },
+// fixed per context (Menu, menu navigation, spectator views), then what the player bound
+const GP_FIXED = {
+  drive: { 9: 'menu' },
+  ui: { 12: 'up', 13: 'down', 14: 'left', 15: 'right', 0: 'ok', 1: 'back', 9: 'menu' },
   spec: { 14: 'viewPrev', 15: 'viewNext', 13: 'down', 0: 'ok' },
 };
-const gpAction = (i, ctx) => (GP_ACTIONS[ctx] && GP_ACTIONS[ctx][i]) || null;
+const GP_BOUND = { drive: ['cam', 'shiftDown', 'shiftUp', 'music', 'chat'], ui: ['music'], spec: [] };
+const gpAction = (i, ctx, m = GP_PAD) => (GP_FIXED[ctx] && GP_FIXED[ctx][i]) || (GP_BOUND[ctx] || []).find(a => m[a] === i) || null;
 const gpCycle = (i, n, d) => (((i < 0 ? (d > 0 ? -1 : 0) : i) + d) % n + n) % n;
 // Nearest rect in a direction (its centre beyond ours): the edge gap along it plus 3x the gap across it (0 when they overlap across),
 // so a wide card in the next row does not beat the neighbour in this one. Nothing that way: wrap to the far end.
@@ -5250,7 +5399,7 @@ const shiftBuzz = ({ on, ok, dir, vf, top }) => {
 const GP_IDLE = { gas: false, brake: false, hb: false, steer: null }, GP_DPAD = [12, 13, 14, 15], SPEC_VIEWS = ['a', 'b', 'top'];
 const gp = { btn: Array(GP.N).fill(false), down: {}, held: {}, last: { ...GP_IDLE }, pad: null };
 function gpScope() {
-  if (transOpen) return $('#trans'); if (nickOpen) return $('#nick'); if (menuOpen) return $('#igmenu'); if (spec) return $('#spec');
+  if (kbOpen) return $('#kbs'); if (transOpen) return $('#trans'); if (nickOpen) return $('#nick'); if (menuOpen) return $('#igmenu'); if (spec) return $('#spec');
   return ['#result', '#room', '#lobby', '#title'].map(s => $(s)).find(el => !el.hidden) || null;
 }
 const gpFocusables = root => [...root.querySelectorAll('button, input, select')].filter(el => !el.disabled && el.getAttribute('aria-disabled') !== 'true' && el.tabIndex >= 0 && !el.closest('[hidden], [inert]') && el.getClientRects().length);
@@ -5278,7 +5427,7 @@ function gpOk() {
   else gpNav('down'); // nothing focused yet: the first press only shows where focus is
 }
 function gpBack() {
-  if (transOpen) transCancel(); else if (nickOpen) nickCancel();
+  if (kbOpen) { if (kbCap) kbCancel(); else kbClose(); } else if (transOpen) transCancel(); else if (nickOpen) nickCancel();
   else if (menuOpen) menuEsc(menuEscAction(menuOpen, menuView, state, nickOpen));
   else if (!$('#lobby').hidden) closeLobby();
 }
@@ -5287,32 +5436,34 @@ function gpDo(act) {
     case 'up': case 'down': case 'left': case 'right': gpNav(act); break;
     case 'ok': gpOk(); break;
     case 'back': gpBack(); break;
-    case 'menu': if (menuOpen) closeMenu(); else if (!transOpen && !nickOpen) openMenu(); break;
-    case 'music': if (!transOpen && !nickOpen) { setMusic(!musicOn); if (menuOpen) syncMenuUI(); } break;
+    case 'menu': if (kbOpen) kbClose(); else if (menuOpen) closeMenu(); else if (!transOpen && !nickOpen) openMenu(); break;
+    case 'music': if (!transOpen && !nickOpen && !kbOpen) { setMusic(!musicOn); if (menuOpen) syncMenuUI(); } break;
     case 'cam': if (!hudEl.hidden) setCamMode(nextCam(camMode), true); break;
     case 'shiftUp': shiftGear(1); break;
     case 'shiftDown': shiftGear(-1); break;
+    case 'chat': chatOpenBar(); break; // online, countdown or race only
     case 'viewPrev': case 'viewNext': if (spec) specView(SPEC_VIEWS[gpCycle(SPEC_VIEWS.indexOf(spec.view), SPEC_VIEWS.length, act === 'viewNext' ? 1 : -1)]); break;
   }
 }
-const gpCtx = () => gpContext({ spec: !!spec, overlay: menuOpen || transOpen || nickOpen, hud: !hudEl.hidden });
+const gpCtx = () => gpContext({ spec: !!spec, overlay: menuOpen || transOpen || nickOpen || kbOpen, hud: !hudEl.hidden });
 function gamepadTick(now) {
   let pad = null;
   try { pad = gpPick(navigator.getGamepads ? navigator.getGamepads() : null); } catch (_) { pad = null; } // blocked by permissions policy (e.g. an iframe): no pad
   gp.pad = pad;
   const b = gpButtons(pad), live = gpCtx() === 'drive' && (state === 'count' || state === 'race');
-  const want = live ? gpDrive(b, pad && pad.axes ? pad.axes[0] : 0) : GP_IDLE;
+  const want = live ? gpDrive(b, pad && pad.axes ? pad.axes[0] : 0, kb.pad) : GP_IDLE;
   for (const k of ['gas', 'brake', 'hb']) if (want[k] !== gp.last[k]) { input[k] = want[k]; gp.last[k] = want[k]; }
   if (want.steer !== gp.last.steer) { input.steerAxis = want.steer; gp.last.steer = want.steer; }
-  const fire = gpRises(gp.btn, b).filter(i => !GP_DPAD.includes(i));
+  const rises = gpRises(gp.btn, b), fire = rises.filter(i => !GP_DPAD.includes(i));
   for (const i of GP_DPAD) { // the d-pad repeats while held, for moving focus only
     const prev = gp.held[i] ?? -1;
     if (b[i] && !gp.btn[i]) gp.down[i] = now;
     const ms = b[i] ? now - gp.down[i] : -1; gp.held[i] = ms;
-    if (gpRepeat(prev, ms) && (prev < 0 || ['up', 'down', 'left', 'right'].includes(gpAction(i, gpCtx())))) fire.push(i);
+    if (gpRepeat(prev, ms) && (prev < 0 || ['up', 'down', 'left', 'right'].includes(gpAction(i, gpCtx(), kb.pad)))) fire.push(i);
   }
   gp.btn = b;
-  for (const i of fire) gpDo(gpAction(i, gpCtx()));
+  if (kbCap) { if (rises.length) kbPadPress(rises[0]); return; } // waiting for a new button: the press is the answer, not an action
+  for (const i of fire) gpDo(gpAction(i, gpCtx(), kb.pad));
 }
 function gpRumble(ms, strong, weak) {
   try { const a = gp.pad && gp.pad.vibrationActuator; if (a && typeof a.playEffect === 'function') Promise.resolve(a.playEffect('dual-rumble', { duration: ms, strongMagnitude: strong, weakMagnitude: weak })).catch(() => {}); } catch (_) {}
@@ -5532,7 +5683,7 @@ function openMenu() {
   releaseTouch();
   syncMenuUI(); chatSyncUI(); $('#igmenu').hidden = false; showMenuView('main');
 }
-function closeMenu() { if (!menuOpen) return; menuOpen = false; $('#igmenu').hidden = true; if (document.activeElement) document.activeElement.blur(); }
+function closeMenu() { if (!menuOpen) return; if (kbFrom === 'menu') kbClose(); menuOpen = false; $('#igmenu').hidden = true; if (document.activeElement) document.activeElement.blur(); }
 function forfeit() {
   const plan = forfeitPlan(!!pvp), quit = !!(taRun || sakeRun); // never saves a best time
   closeMenu();
@@ -5552,6 +5703,110 @@ $('#igMusicVol').addEventListener('input', e => { setVolume('music', volFromPct(
 $('#igSfxVol').addEventListener('input', e => { setVolume('sfx', volFromPct(e.target.value)); syncMenuUI(); });
 $('#igCam').addEventListener('change', e => { if (CAM_MODES.includes(e.target.value)) setCamMode(e.target.value, true); });
 $('#igLang').addEventListener('change', e => { if (!I18N[e.target.value]) return; lang = e.target.value; store.set('yatouge-lang', lang); applyLang(); });
+
+/* ---------- key bindings page: from the title settings or the in-game menu settings ---------- */
+function kbName(a) { return T('kbA_' + a); }
+function kbJoin(l) { return l.join(lang === 'zh' ? '／' : ' / '); }
+function kbds(el, labels) {
+  el.textContent = '';
+  labels.forEach((l, i) => { if (i) el.append(' '); const k = document.createElement('kbd'); k.textContent = l; el.append(k); });
+}
+// every hint that names a key or a button shows the current binding
+function kbRelabel() {
+  const kk = a => kbShort(kb, a, lang), pk = a => kbPadLabel(kb.pad[a], lang);
+  kbds($('#kGasK'), kk('gas')); kbds($('#kBrakeK'), kk('brake')); kbds($('#kSteerK'), [kk('left')[0], kk('right')[0]]);
+  kbds($('#kHbK'), kk('hb')); kbds($('#kMiscK'), ['R', ...kk('music')]); kbds($('#kCamK'), kk('cam')); kbds($('#kShiftK'), [...kk('shiftUp'), ...kk('shiftDown')]);
+  kbds($('#kPadK'), [pk('gas'), pk('brake')]);
+  $('#kPadTxt').textContent = T('kPad', Object.fromEntries(KB.ACTIONS.map(a => [a, pk(a)])));
+  $('#transMTd').textContent = T('transMTd', kbJoin(kk('shiftUp')), kbJoin(kk('shiftDown')));
+}
+const kbSel = (a, s) => `.kbslot[data-a="${a}"][data-s="${s}"]`;
+function kbRender(focus) {
+  const list = $('#kbList'); list.textContent = '';
+  for (const a of KB.ACTIONS) {
+    const row = document.createElement('div'), name = document.createElement('span'), slots = document.createElement('div');
+    row.className = 'kbrow'; name.className = 'kbname'; name.textContent = kbName(a); slots.className = 'kbslots';
+    for (let s = 0; s < (kbSide === 'keys' ? KB.SLOTS : 1); s++) {
+      const v = kbSide === 'keys' ? kb.keys[a][s] : kb.pad[a], cap = !!kbCap && kbCap.side === kbSide && kbCap.a === a && kbCap.s === s;
+      const empty = v === undefined || v === null, add = kbSide === 'keys' && empty;
+      const btn = document.createElement('button');
+      btn.type = 'button'; btn.className = 'kbslot' + (cap ? ' cap' : empty ? ' empty' : ''); btn.dataset.a = a; btn.dataset.s = String(s);
+      btn.textContent = cap ? T('kbPress') : add ? '＋' : kbSide === 'keys' ? kbKeyLabel(v, lang) : kbPadLabel(v, lang);
+      btn.setAttribute('aria-label', `${kbName(a)}: ${add && !cap ? T('kbAdd') : btn.textContent}`);
+      btn.addEventListener('click', () => kbStart(a, s));
+      slots.append(btn);
+    }
+    if (kbSide === 'keys') {
+      const x = document.createElement('button'), two = kb.keys[a].length > 1;
+      x.type = 'button'; x.className = 'kbx'; x.textContent = '×'; x.disabled = !two;
+      x.setAttribute('aria-label', two ? T('kbClear', kbName(a), kbKeyLabel(kb.keys[a][1], lang)) : T('kbClear', kbName(a), ''));
+      x.addEventListener('click', () => { const r = kbClearKey(kb, a, 1); kbCap = null; if (r.res === 'cleared') { kbStore(r.b); kbNote(T('kbCleared')); } kbRender(kbSel(a, 0)); });
+      slots.append(x);
+    }
+    row.append(name, slots); list.append(row);
+  }
+  for (const b of document.querySelectorAll('.kbtabs button')) b.setAttribute('aria-pressed', String(b.dataset.p === kbSide));
+  $('#kbInfo').textContent = T(kbSide === 'keys' ? 'kbInfoKeys' : 'kbInfoPad');
+  const f = focus && $('#kbs').querySelector(focus); if (f) f.focus();
+}
+function kbNote(s) { $('#kbNote').textContent = s; }
+function kbStore(b) { kb = b; store.set(KB.STORE, kbSave(kb)); kbRelabel(); if (pvp || spec) chatRelabel(); }
+function kbStart(a, s) {
+  if (kbCap && kbCap.side === kbSide && kbCap.a === a && kbCap.s === s) { kbCancel(); return; } // a second click on the waiting slot
+  kbCap = { side: kbSide, a, s: kbSide === 'keys' ? Math.min(s, kb.keys[a].length) : 0 };
+  kbNote(T(kbSide === 'keys' ? 'kbCapKey' : 'kbCapPad')); kbRender(kbSel(a, kbCap.s));
+}
+function kbCancel() { const c = kbCap; kbCap = null; kbNote(T('kbCancel')); kbRender(c ? kbSel(c.a, c.s) : null); }
+// r: what kbSetKey / kbSetPad said; what: the key or button's name. A refusal keeps waiting for another key.
+function kbApply(r, what) {
+  if (r.res === 'fixed') { kbNote(T('kbFixed', what)); return; }
+  if (r.res === 'bad') { kbNote(T('kbBad')); return; }
+  if (r.res === 'last') { kbNote(T('kbLast', kbName(r.with))); return; }
+  const c = kbCap; kbCap = null;
+  if (r.res !== 'same') kbStore(r.b);
+  kbNote(r.res === 'swap' ? T('kbSwap', kbName(r.with)) : r.res === 'moved' ? T('kbMoved', kbName(r.with)) : T('kbSet', kbName(c.a), what));
+  kbRender(kbSel(c.a, c.s));
+}
+function kbKeydown(e) {
+  if (kbCap) {
+    e.preventDefault();
+    if (e.repeat) return;
+    if (e.code === 'Escape') { kbCancel(); return; }
+    if (kbCap.side === 'keys') { kbSwallow = e.code; kbApply(kbSetKey(kb, kbCap.a, kbCap.s, e.code), kbKeyLabel(e.code, lang)); }
+    return;
+  }
+  if (e.key === 'Escape') { e.preventDefault(); if (!e.repeat) kbClose(); return; }
+  if (e.key === 'Tab') { // keep focus inside the page
+    const f = gpFocusables($('#kbs')), n = f.length, i = f.indexOf(document.activeElement);
+    e.preventDefault(); if (n) f[i < 0 ? (e.shiftKey ? n - 1 : 0) : (i + (e.shiftKey ? n - 1 : 1)) % n].focus();
+  }
+}
+function kbPadPress(i) {
+  if (i === GP.BTN.B) { kbCancel(); return; }
+  if (kbCap.side === 'pad') kbApply(kbSetPad(kb, kbCap.a, i), kbPadLabel(i, lang));
+}
+function kbSetSide(side) { kbSide = side; kbCap = null; kbNote(''); kbRender(`.kbtabs [data-p="${side}"]`); }
+function kbOpenPage() {
+  if (kbOpen) return;
+  kbOpen = true; kbFrom = menuOpen ? 'menu' : 'title'; kbCap = null; kbSwallow = null;
+  for (const k in input) input[k] = k === 'steerAxis' ? null : false; // nothing keeps driving under the page
+  releaseTouch();
+  $(kbFrom === 'menu' ? '#igmenu' : '#title').inert = true;
+  $('#kbs').hidden = false; kbNote(''); kbRender(kbSel(KB.ACTIONS[0], 0));
+}
+function kbClose() {
+  if (!kbOpen) return;
+  kbOpen = false; kbCap = null; $('#kbs').hidden = true;
+  const from = kbFrom; kbFrom = 'title';
+  $(from === 'menu' ? '#igmenu' : '#title').inert = false;
+  if (from === 'menu' ? menuOpen : !$('#title').hidden) $(from === 'menu' ? '#igKeys' : '#tKeys').focus();
+}
+$('#tKeys').addEventListener('click', kbOpenPage);
+$('#igKeys').addEventListener('click', kbOpenPage);
+$('#kbBack').addEventListener('click', kbClose);
+for (const b of document.querySelectorAll('.kbtabs button')) b.addEventListener('click', () => kbSetSide(b.dataset.p));
+$('#kbReset').addEventListener('click', () => { kbCap = null; kbStore(kbReset(kb, kbSide)); kbNote(T('kbDone')); kbRender('#kbReset'); });
+kbRelabel();
 requestAnimationFrame(frame);
 })();
 </script>
