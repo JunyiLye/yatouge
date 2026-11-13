@@ -116,8 +116,8 @@ if (process.env.RV4_DUMP) {
   for (const k of KEYS) { const m = M[k]; console.log(k.padEnd(6), m.t60.toFixed(2), m.t100.toFixed(2).padStart(6), m.top.toFixed(0).padStart(5), m.c22.toFixed(2).padStart(5), m.c30.toFixed(2).padStart(5), m.peak.toFixed(2).padStart(6), m.dur.toFixed(2).padStart(8), m.vEnd.toFixed(1).padStart(9), m.exit.toFixed(1).padStart(10), m.sust.toFixed(1).padStart(11)); }
 }
 
-test('平衡：起步（0–60 km/h）四台車最快；0–100 介於 GT-32 與 SR-7 之間、貼近 SR-7', () => {
-  for (const k of ['hatch', 'coupe', 'gtr']) assert.ok(M.rally.t60 < M[k].t60, `rally ${M.rally.t60} < ${k} ${M[k].t60}`);
+test('平衡：起步（0–60 km/h）快於 SR-7 與 KX-2（不必是四台最快，GT-32 動力更大）；0–100 介於 GT-32 與 SR-7 之間、貼近 SR-7', () => {
+  for (const k of ['hatch', 'coupe']) assert.ok(M.rally.t60 < M[k].t60, `rally ${M.rally.t60} < ${k} ${M[k].t60}`);
   assert.ok(M.gtr.t100 < M.rally.t100 && M.rally.t100 < M.coupe.t100, `0-100 ${M.gtr.t100} < ${M.rally.t100} < ${M.coupe.t100}`);
   assert.ok(M.rally.t100 > M.coupe.t100 * 0.85, `0-100 與 SR-7 相差不到 15%：${M.rally.t100} vs ${M.coupe.t100}`);
 });
@@ -138,8 +138,10 @@ test('平衡：短甩尾出彎的速度（driftExit）高於 GT-32，與 SR-7 / 
 test('平衡：持續 4 秒的長甩尾，RV-4 的車速低於 SR-7 與 KX-2（甩尾不划算）、高於 GT-32', () => {
   assert.ok(M.rally.sust < M.coupe.sust && M.rally.sust < M.hatch.sust && M.rally.sust > M.gtr.sust, `${M.gtr.sust} < ${M.rally.sust} < ${M.coupe.sust}, ${M.hatch.sust}`);
 });
-test('平衡：全油門帶方向盤出彎（powerExit）勝過 KX-2 與 SR-7；GT-32 的純直線動力更大，不在此比較', () => {
-  for (const k of ['hatch', 'coupe']) assert.ok(M.rally.exit > M[k].exit + 0.3, `rally ${M.rally.exit} > ${k} ${M[k].exit}`);
+// 試玩第 2 輪（engine 12.5）：使用者接受出彎與 SR-7 打平，只要不輸 SR-7、明顯勝過 KX-2
+test('平衡：全油門帶方向盤出彎（powerExit）不輸 SR-7、明顯勝過 KX-2；GT-32 的純直線動力更大，不在此比較', () => {
+  assert.ok(M.rally.exit > M.hatch.exit + 0.3, `rally ${M.rally.exit} > hatch ${M.hatch.exit}`);
+  assert.ok(M.rally.exit >= M.coupe.exit - 0.05, `rally ${M.rally.exit} ≈ coupe ${M.coupe.exit}`);
 });
 test('RV-4 資料：星等 [4, 3, 2, 5]、AI 表合理、模擬是決定性的', () => {
   assert.deepEqual(CARS.rally.stats.map(s => s[1]), [4, 3, 2, 5]);
