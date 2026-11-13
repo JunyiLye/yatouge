@@ -196,6 +196,26 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 .plst.ok { color: var(--sodium); }
 .roomrow.live small { color: var(--sodium); }
 .watchn { font-size: 12px; color: var(--dim); margin-top: 6px; }
+/* room picks: compact pill rows (course / mode / distance votes, car, colour); two columns on a phone on its side */
+.rpicks { display: grid; gap: 8px; margin: 0 0 14px; }
+.rprow[hidden] { display: none; }
+.rpseg { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.rpseg .rpbtn { min-height: 38px; background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; font-size: 13px; color: var(--ink); }
+.rpseg .rpbtn:hover:not(:disabled) { border-color: var(--sodium); }
+.rpseg .rpbtn[aria-checked="true"] { border-color: var(--sodium); background: rgba(255,162,58,.1); }
+.rpseg .rpbtn:disabled { opacity: .45; cursor: not-allowed; }
+.rpseg .rpbtn small { margin-left: 6px; font-size: 11px; color: var(--dim); }
+.rpseg .swatch { min-height: 38px; margin: 0; }
+.rpseg .swatch:disabled { opacity: .45; cursor: not-allowed; }
+#rpOpp { margin-top: 2px; }
+.transmatch { margin: 6px 0 0; font-size: 16px; color: var(--sodium); }
+.transmatch[hidden] { display: none; }
+@media (orientation: landscape) and (max-height: 500px) {
+  .sheet.roomsheet { width: min(860px, 100%); display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-areas: "picks head" "picks side"; column-gap: 22px; align-items: start; }
+  .roomsheet .rhead { grid-area: head; } .roomsheet .rpicks { grid-area: picks; margin: 0; gap: 6px; } .roomsheet .rside { grid-area: side; }
+  .roomsheet .plrows { margin: 0 0 10px; } .roomsheet .plrow { padding: 6px 10px; }
+  .rpseg .rpbtn, .rpseg .swatch { min-height: 36px; padding-top: 4px; padding-bottom: 4px; }
+}
 /* Sake Run HUD: one cup per wall contact still allowed, then the sake level */
 .sakehud { display: flex; align-items: center; gap: 10px; font-size: 13px; margin-top: 4px; font-variant-numeric: tabular-nums; }
 .sakehud[hidden] { display: none; }
@@ -429,17 +449,29 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 </div>
 
 <div id="room" class="screen" hidden>
-  <div class="sheet">
-    <div class="eyebrow" data-i18n="pvpRoomEyebrow">線上對戰 · 房間</div>
-    <h2 id="roomTrack" class="pvp-h"></h2>
-    <div class="stripe"></div>
-    <p id="roomCodeRow" class="codeshow" hidden><span data-i18n="pvpCodeIs">房間代碼</span> <b id="roomCode"></b></p>
-    <div class="plrows" aria-live="polite">
-      <div class="plrow" id="plMe"><b></b><small></small><span class="plst"></span></div>
-      <div class="plrow" id="plOpp"><b></b><small></small><span class="plst"></span></div>
+  <div class="sheet roomsheet">
+    <div class="rhead">
+      <div class="eyebrow" data-i18n="pvpRoomEyebrow">線上對戰 · 房間</div>
+      <h2 id="roomTrack" class="pvp-h" role="status"></h2>
+      <div class="stripe"></div>
+      <p id="roomCodeRow" class="codeshow" hidden><span data-i18n="pvpCodeIs">房間代碼</span> <b id="roomCode"></b></p>
     </div>
-    <div class="actions"><button class="go" id="btnReady" type="button">準備</button><button class="ghost" id="btnRoomLeave" type="button" data-i18n="pvpLeaveRoom">離開房間</button></div>
-    <p id="roomNote" class="note" role="status"></p>
+    <div class="rpicks">
+      <div class="rprow"><span class="lbl" id="rpTrackL" data-i18n="rpTrack">賽道投票</span><div class="rpseg" id="rpTrack" role="radiogroup" aria-labelledby="rpTrackL"></div></div>
+      <div class="rprow"><span class="lbl" id="rpModeL" data-i18n="rpMode">模式投票</span><div class="rpseg" id="rpMode" role="radiogroup" aria-labelledby="rpModeL"></div></div>
+      <div class="rprow" id="rpGapRow" hidden><span class="lbl" id="rpGapL" data-i18n="rpGap">判定距離投票</span><div class="rpseg" id="rpGap" role="radiogroup" aria-labelledby="rpGapL"></div></div>
+      <div class="rprow"><span class="lbl" id="rpCarL" data-i18n="rpCar">你的車</span><div class="rpseg" id="rpCar" role="radiogroup" aria-labelledby="rpCarL"></div></div>
+      <div class="rprow"><span class="lbl" id="rpColL" data-i18n="rpColor">顏色</span><div class="rpseg" id="rpCol" role="radiogroup" aria-labelledby="rpColL"></div></div>
+      <p id="rpOpp" class="note" aria-live="polite"></p>
+    </div>
+    <div class="rside">
+      <div class="plrows" aria-live="polite">
+        <div class="plrow" id="plMe"><b></b><small></small><span class="plst"></span></div>
+        <div class="plrow" id="plOpp"><b></b><small></small><span class="plst"></span></div>
+      </div>
+      <div class="actions"><button class="go" id="btnReady" type="button">準備</button><button class="ghost" id="btnRoomLeave" type="button" data-i18n="pvpLeaveRoom">離開房間</button></div>
+      <p id="roomNote" class="note" role="status"></p>
+    </div>
   </div>
 </div>
 
@@ -489,6 +521,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 <div id="trans" class="screen" role="dialog" aria-modal="true" aria-labelledby="transTitle" hidden>
   <div class="sheet">
     <h2 id="transTitle" class="pvp-h" data-i18n="transTitle">選擇變速箱</h2>
+    <p id="transMatch" class="transmatch" hidden></p>
     <div class="stripe"></div>
     <div class="transopts">
       <button class="transbtn" id="transAT" type="button" data-t="auto"><b data-i18n="transAT">自排 AT</b><small data-i18n="transATd">自動換檔，專心過彎。</small></button>
@@ -724,8 +757,8 @@ const I18N = {
     onConnecting: '連線中…', onNotClaude: '線上對戰只能在 claude.ai 內使用', onNeedPerm: '需要允許線上連線', onAllow: '允許線上',
     onDenied: '線上權限已被拒絕', onManage: '開啟權限設定', onManageFail: '無法開啟設定，請從這個 artifact 右上角的權限選單開啟', onError: c => `線上暫時無法使用 (${c})`,
     pvpOnline: '線上對戰', pvpEyebrow: '1 對 1 · 即時連線', pvpLobby: '線上對戰大廳', pvpRoomsLbl: '開著的房間',
-    pvpPick: (track, car) => `賽道：${track} · 車：${car}。要更換請先返回主畫面。`, pvpEmpty: '目前沒有開著的房間，自己開一間吧。',
-    pvpRoomRow: (track, n) => `${track} · ${n}/2 人`, pvpCreate: '建立公開房間', pvpCreatePriv: '建立私人房間', pvpBack: '返回', pvpJoining: '正在加入…',
+    pvpPick: '賽道、模式與車子在房間裡選。', pvpEmpty: '目前沒有開著的房間，自己開一間吧。',
+    pvpRoomRow: n => `${n}/2 人 · 等待對手`, pvpCreate: '建立公開房間', pvpCreatePriv: '建立私人房間', pvpBack: '返回', pvpJoining: '正在加入…',
     pvpCodeLbl: '用代碼加入私人房間', pvpJoinCode: '加入', pvpCodeIs: '房間代碼', pvpCodeNone: '找不到這個代碼的房間。', pvpCodeFull: '這個房間已經滿了。',
     pvpJoinFail: '加入失敗，房間可能已關閉或已滿。', pvpCreateFail: '建立房間失敗，請稍後再試。', pvpFull: '房間已滿，已返回大廳。',
     pvpGone: '找不到房主，已返回大廳。', pvpNetLost: '連線中斷，已返回大廳。', pvpHostLeft: '房主已離開，已返回大廳。',
@@ -733,6 +766,9 @@ const I18N = {
     pvpSt_waiting: '未準備', pvpSt_ready: '已準備', pvpSt_countdown: '倒數中', pvpSt_racing: '比賽中', pvpSt_finished: '已完賽',
     pvpReady: '準備', pvpUnready: '取消準備', pvpLeaveRoom: '離開房間', pvpLeaveMatch: '離開對戰',
     pvpLeft: '對手已離開', pvpLeftRoom: '對手已離開，回到等待狀態。', pvpNet: '連線中斷，正在嘗試重新連線…',
+    rpHead: '選擇賽道與車子', rpTrack: '賽道投票', rpMode: '模式投票', rpGap: '判定距離投票', rpCar: '你的車', rpColor: '顏色',
+    modeFirst: '先到者勝', modeCat: '貓捉老鼠', rpSoon: '即將推出', rpGapV: g => `${g} m`, rpDraw: '（抽籤）', rpMatch: d => `本場：${d}`,
+    rpOppVote: d => `對手投：${d}`, rpChanged: '選擇有變更，請重新準備。', rpWaitTrans: '等待對手選擇變速箱…', rpWaitSeed: '等待房主抽籤…',
     pvpLine: '衝線！', pvpOppDone: '對手已完賽', pvpWaitOpp: '等待對手衝線…', pvpTie: '平手', pvpDnf: '對手未完賽',
     pvpOppTime: '對手完賽時間', pvpBackRoom: '回房間再來一場', pvpLeaveEnd: '離開並回主畫面',
     nickTitle: '你的暱稱', nickLbl: '暱稱', nickHint: '1 到 16 個字，只在這次線上對戰使用，不會被記住；其他玩家看得到。', nickOk: '確定', nickCancel: '取消',
@@ -778,8 +814,8 @@ const I18N = {
     onConnecting: 'Connecting…', onNotClaude: 'Online only works inside claude.ai', onNeedPerm: 'Online needs your permission', onAllow: 'Allow online',
     onDenied: 'Online permission was denied', onManage: 'Open permissions', onManageFail: "Couldn't open settings. Use this artifact's Permissions menu (top right)", onError: c => `Online unavailable (${c})`,
     pvpOnline: 'Online 1v1', pvpEyebrow: '1v1 · live', pvpLobby: 'Online lobby', pvpRoomsLbl: 'Open rooms',
-    pvpPick: (track, car) => `Course: ${track} · Car: ${car}. Go back to the title screen to change them.`, pvpEmpty: 'No open rooms right now. Create one.',
-    pvpRoomRow: (track, n) => `${track} · ${n}/2 players`, pvpCreate: 'Create public room', pvpCreatePriv: 'Create private room', pvpBack: 'Back', pvpJoining: 'Joining…',
+    pvpPick: 'You pick the course, mode and car in the room.', pvpEmpty: 'No open rooms right now. Create one.',
+    pvpRoomRow: n => `${n}/2 players · Waiting for an opponent`, pvpCreate: 'Create public room', pvpCreatePriv: 'Create private room', pvpBack: 'Back', pvpJoining: 'Joining…',
     pvpCodeLbl: 'Join a private room with a code', pvpJoinCode: 'Join', pvpCodeIs: 'Room code', pvpCodeNone: 'No room found for that code.', pvpCodeFull: 'That room is full.',
     pvpJoinFail: 'Could not join. The room may be closed or full.', pvpCreateFail: 'Could not create the room. Try again later.', pvpFull: 'The room is full. Back in the lobby.',
     pvpGone: 'The host could not be found. Back in the lobby.', pvpNetLost: 'Connection lost. Back in the lobby.', pvpHostLeft: 'The host left. Back in the lobby.',
@@ -787,6 +823,9 @@ const I18N = {
     pvpSt_waiting: 'Not ready', pvpSt_ready: 'Ready', pvpSt_countdown: 'Starting', pvpSt_racing: 'Racing', pvpSt_finished: 'Finished',
     pvpReady: 'Ready', pvpUnready: 'Not ready', pvpLeaveRoom: 'Leave room', pvpLeaveMatch: 'Leave match',
     pvpLeft: 'Opponent left', pvpLeftRoom: 'Your opponent left. Waiting again.', pvpNet: 'Connection lost. Trying to reconnect…',
+    rpHead: 'Pick a course and a car', rpTrack: 'Course vote', rpMode: 'Mode vote', rpGap: 'Catch distance vote', rpCar: 'Your car', rpColor: 'Colour',
+    modeFirst: 'First to finish', modeCat: 'Cat and mouse', rpSoon: 'Coming soon', rpGapV: g => `${g} m`, rpDraw: ' (draw)', rpMatch: d => `This race: ${d}`,
+    rpOppVote: d => `Opponent votes: ${d}`, rpChanged: 'A pick changed. Ready up again.', rpWaitTrans: 'Waiting for your opponent to pick a gearbox…', rpWaitSeed: 'Waiting for the host to draw…',
     pvpLine: 'Across the line!', pvpOppDone: 'Opponent finished', pvpWaitOpp: 'Waiting for your opponent…', pvpTie: 'Tie', pvpDnf: 'Opponent did not finish',
     pvpOppTime: "Opponent's time", pvpBackRoom: 'Back to the room', pvpLeaveEnd: 'Leave and go to title',
     nickTitle: 'Your nickname', nickLbl: 'Nickname', nickHint: '1 to 16 characters. Used for this online session only and never saved; other players can see it.', nickOk: 'Confirm', nickCancel: 'Cancel',
@@ -1331,15 +1370,15 @@ function cleanNick(s) {
 }
 // presence of a peer in a match room -> a clean copy, or null when any field is wrong (the whole state is dropped).
 // bounds: { x0, x1, z0, z1, s1 } of the course; c (car) is optional because a waiting player has none yet.
-function validatePeerState(p, bounds) {
-  if (!p || typeof p !== 'object' || Array.isArray(p) || p.v !== NET.V) return null;
+function validatePeerState(p, bounds, v = NET.V) { // v: the protocol version expected (room picks use RP.V)
+  if (!p || typeof p !== 'object' || Array.isArray(p) || p.v !== v) return null;
   if (p.role !== undefined) return null; // a spectator (or any other role) never drives a car or the race
   if (!NET.STATES.includes(p.st) || !NET.CARS.includes(p.car) || !NET.TRACKS.includes(p.trk) || !isNat(p.col, NET.MAX_COL)) return null;
   const go = p.go ?? 0, n = p.n ?? 0, opp = p.opp ?? null;
   if (!isNat(go, NET.MAX_GO) || !isNat(n, NET.MAX_N) || (opp !== null && !validPeerId(opp))) return null;
   const hasFt = p.ft !== undefined && p.ft !== null;
   if (hasFt && !inRange(p.ft, 0.001, NET.MAX_TIME)) return null;
-  const out = { v: NET.V, st: p.st, car: p.car, col: p.col, trk: p.trk, go, n, opp, ft: hasFt && p.st === 'finished' ? p.ft : null, nk: cleanNick(p.nk), c: null, badC: false };
+  const out = { v, st: p.st, car: p.car, col: p.col, trk: p.trk, go, n, opp, ft: hasFt && p.st === 'finished' ? p.ft : null, nk: cleanNick(p.nk), c: null, badC: false };
   if (p.c === undefined || p.c === null) return out;
   out.c = validCarState(p.c, bounds);
   out.badC = out.c === null; // a bad car only costs this one sample; st / ft stay usable
@@ -1385,12 +1424,12 @@ function interpRemote(buf, now) {
 // local time of its last change; the host bumps hb every few seconds), malformed or on an unknown course. A race in progress
 // (open: 0, race: 1) stays listed as live (watch only). watchers = distinct spectators (not the players), at most 99.
 // Private rooms ('pvt-' names) are never valid room names, so they never show. Sorted by room name so the list does not jump around.
-function lobbyRooms(peers, now, tracks = NET.TRACKS, ttl = NET.LOBBY_TTL) {
+function lobbyRooms(peers, now, tracks = NET.TRACKS, ttl = NET.LOBBY_TTL, v = NET.V) {
   const hosts = new Map(), joiners = new Map(), watchers = new Map();
   for (const p of Array.isArray(peers) ? peers : []) {
     if (!p || p.kind !== 'viewer' || typeof p.peer !== 'string') continue;
     const l = p.presence && p.presence.lobby;
-    if (!l || typeof l !== 'object' || l.v !== NET.V) continue;
+    if (!l || typeof l !== 'object' || l.v !== v) continue;
     if (validRoomName(l.room)) {
       const live = l.open === 0 && l.race === 1;
       if ((l.open !== 1 && !live) || !tracks.includes(l.track) || !isNum(p.updatedAt) || now - p.updatedAt > ttl) continue;
@@ -1463,14 +1502,6 @@ function chooseOpp({ host, hostPeer, oppPeer, st, peers, valid }) {
   if (st !== 'waiting' && st !== 'ready') return null;
   return list.filter(x => x.kind === 'viewer').sort((a, b) => a.peer < b.peer ? -1 : 1).find(x => valid(x.presence)) || null;
 }
-// Must the other player's course be ours? The host's course is the truth: a host never follows; a guest follows once (its first
-// sync), only while waiting / ready, and at most one rebuild per 2 s (retry = try again with the next frame).
-function trackRule({ host, track, theirs, synced, st, lastSwitch, now }) {
-  if (theirs === track) return { accept: true, switchTo: null, retry: false };
-  if (host || synced || (st !== 'waiting' && st !== 'ready')) return { accept: false, switchTo: null, retry: false };
-  if (now - lastSwitch < 2000) return { accept: false, switchTo: null, retry: true };
-  return { accept: true, switchTo: theirs, retry: false };
-}
 // After "opponent did not finish" has been shown, the win stays; a finish that turns up later only fills in their time and the gap.
 function lockedResult(myT, otherT) {
   const t = inRange(otherT, 0.001, NET.MAX_TIME);
@@ -1523,6 +1554,56 @@ function specStandings(a, b) {
 const SPEC_KEYS = { Digit1: 'a', Numpad1: 'a', Digit2: 'b', Numpad2: 'b', Digit3: 'top', Numpad3: 'top' };
 const specViewKey = code => (typeof code === 'string' && Object.hasOwn(SPEC_KEYS, code) ? SPEC_KEYS[code] : null);
 /* @spectate:end */
+/* @roompick:start */
+/* Picking the course, mode and car inside the room (pure part). Each player votes { t: course, m: mode, g: catch distance m } and
+   picks a car / colour; the host draws between two different votes with a seed it publishes, so both sides get the same result.
+   V: room states and lobby entries with room picks carry v 2; older clients (v 1) and this one never see each other's rooms. */
+const RP = { V: 2, MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 4, coupe: 4, gtr: 4 } };
+const validSeed = v => Number.isInteger(v) && v >= 0 && v <= 0xffffffff;
+function validVote(x) {
+  if (!x || typeof x !== 'object' || Array.isArray(x)) return null;
+  return NET.TRACKS.includes(x.t) && RP.MODES.includes(x.m) && RP.GAPS.includes(x.g) ? { t: x.t, m: x.m, g: x.g } : null;
+}
+// a room-pick player state: validatePeerState (v 2) plus the vote, gb (gearbox chosen for this draw), sd (the host's seed) and a colour the car has
+function roomState(p, bounds) {
+  const v = validatePeerState(p, bounds, RP.V); if (!v) return null;
+  const vote = validVote(p.vote), gb = p.gb ?? 0, sd = p.sd ?? null;
+  if (!vote || v.col >= RP.COLS[v.car] || !bit(gb) || (sd !== null && !validSeed(sd))) return null;
+  return { ...v, vote, gb, sd };
+}
+// mulberry32: a small deterministic generator, the same on every client
+function rpRand(seed) {
+  let a = seed >>> 0;
+  return () => { a = (a + 0x6d2b79f5) >>> 0; let t = Math.imul(a ^ (a >>> 15), a | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+// host vote a, guest vote b (always in this order on both sides). Same vote = used (d false); different = drawn with the seed.
+// The distance only counts for a cat-and-mouse result, and only from the players who voted for it. -> { t, m, g, dt, dm, dg } | null
+function resolveVote(a, b, seed) {
+  const A = validVote(a), B = validVote(b); if (!A || !B || !validSeed(seed)) return null;
+  const r = rpRand(seed), pick = (x, y) => (x === y ? { v: x, d: false } : { v: r() < 0.5 ? x : y, d: true });
+  const t = pick(A.t, B.t), m = pick(A.m, B.m), gs = [A, B].filter(x => x.m === 'cat').map(x => x.g);
+  const g = m.v !== 'cat' ? { v: null, d: false } : gs.length === 2 ? pick(gs[0], gs[1]) : { v: gs[0], d: false };
+  return { t: t.v, m: m.v, g: g.v, dt: t.d, dm: m.d, dg: g.d };
+}
+// Where the room stands. me / other: { st, gb, sd }. pick: still choosing; seed: the host must draw; trans: the result is known, ask
+// AT / MT; wait: for the other side (or for the host's seed / countdown); go: the host starts the countdown; race: a round is on.
+function roomPhase({ host, me, other }) {
+  if (me.st !== 'waiting' && me.st !== 'ready') return 'race';
+  if (!other || me.st !== 'ready') return 'pick';
+  if (other.st === 'countdown' && !host) return 'wait';
+  if (other.st !== 'ready') return 'pick';
+  const sd = host ? me.sd : other.sd;
+  if (sd === null || sd === undefined) return host ? 'seed' : 'wait';
+  if (!me.gb) return 'trans';
+  if (!other.gb) return 'wait';
+  return host ? 'go' : 'wait';
+}
+const pickSig = v => `${v.car}:${v.col}:${v.vote.t}:${v.vote.m}:${v.vote.g}`;
+// any change of a pick (ours or theirs; not their first state) takes a ready player back to waiting
+const cancelReady = (st, before, after) => (st === 'ready' && before !== null && before !== after ? 'waiting' : st);
+// a spectator follows the host onto the course of a new round
+const specTrackSwitch = (cur, hv) => (hv && hv.trk !== cur && (hv.st === 'countdown' || hv.st === 'racing') ? hv.trk : null);
+/* @roompick:end */
 /* @supa:start */
 /* Supabase Realtime transport (pure part). Private rooms: a 4-character code, never advertised in the lobby. */
 const ROOM_CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no 0 O 1 I L; 31 symbols, 31^4 ~ 923k codes (a byte % 31 is slightly uneven: fine for a casual code)
@@ -3854,6 +3935,8 @@ let room = null, netDown = false, netT = 0, busy = false, lobbyT = 0, lobbySig =
 const onl = { hasClaude: false, room: 'pending', perm: null, permApi: null, errCode: null, isMeSeen: false, manageFail: false, t0: 0, timer: 0, gen: 0, unsubs: [], mock: null };
 // The nickname typed for this online session (null outside one). It is the only identity shown or sent: no account data at all.
 let nick = null, nickOpen = false;
+// The last room picks of this online session ({ car, col, vote }); kept across rooms and rounds, dropped back on the title screen.
+let rpLast = null;
 const nickOf = nk => nk || T('pvpPlayer');
 function askNick() {
   if ($('#btnOnline').getAttribute('aria-disabled') === 'true') return;
@@ -3880,7 +3963,7 @@ function netFail(e, scope = 'lobby') {
 }
 const roomFail = e => netFail(e, 'room');
 function showPanel(which) {
-  onlineUI = !!which; if (!which) nick = null; // back to the title screen: the next online battle asks again
+  onlineUI = !!which; if (!which) { nick = null; rpLast = null; } // back to the title screen: the next online battle asks again (and starts from the title's car and course)
   $('#title').hidden = onlineUI; $('#lobby').hidden = which !== 'lobby'; $('#room').hidden = which !== 'room';
   syncNet();
 }
@@ -3890,18 +3973,18 @@ function openLobby() { showPanel('lobby'); $('#codeBox').hidden = $('#btnCreateP
 function closeLobby() { clearInterval(lobbyT); showPanel(null); $('#btnOnline').focus(); }
 function renderLobby(force) {
   if (!room || $('#lobby').hidden) return;
-  const rooms = lobbyRooms(room.peers(), Date.now(), Object.keys(TRACKS)).filter(r => !r.mine), now = performance.now();
+  const rooms = lobbyRooms(room.peers(), Date.now(), Object.keys(TRACKS), NET.LOBBY_TTL, RP.V).filter(r => !r.mine), now = performance.now();
   if (rooms.length) emptySince = null; else if (emptySince === null) emptySince = now;
   const sig = lang + '|' + emptyShown(emptySince, now) + '|' + rooms.map(r => r.room + r.peer + r.track + (r.nk || '') + (r.live ? 'L' + r.watchers : '')).join(',');
   if (!force && sig === lobbySig) return;
   lobbySig = sig;
-  $('#lobbyPick').textContent = T('pvpPick', Lz(TRACKS[trackId].name), Lz(CARS[choice.car].name)) + ' ' + T('pvpNickIs', T('pvpYouTag', nickOf(nick)));
+  $('#lobbyPick').textContent = T('pvpPick') + ' ' + T('pvpNickIs', T('pvpYouTag', nickOf(nick)));
   const el = $('#roomList'); el.textContent = '';
   if (!rooms.length) { if (emptyShown(emptySince, now)) { const p = document.createElement('p'); p.className = 'note'; p.textContent = T('pvpEmpty'); el.append(p); } return; }
   for (const r of rooms) {
     const b = document.createElement('button'), n = document.createElement('b'), s = document.createElement('small');
     b.type = 'button'; b.className = 'carcard roomrow' + (r.live ? ' live' : '');
-    n.textContent = nickOf(r.nk); s.textContent = r.live ? T('specRow', Lz(TRACKS[r.track].name), r.watchers) : T('pvpRoomRow', Lz(TRACKS[r.track].name), r.count);
+    n.textContent = nickOf(r.nk); s.textContent = r.live ? T('specRow', Lz(TRACKS[r.track].name), r.watchers) : T('pvpRoomRow', r.count);
     b.append(n, s); b.addEventListener('click', () => r.live ? watchRoom(r) : joinRoom(r)); el.append(b);
   }
 }
@@ -3915,7 +3998,7 @@ async function createRoom() {
   busy = true;
   try {
     const name = randName(), rm = await room.join(name);
-    startMatch({ rm, name, host: true, hostPeer: null, track: trackId });
+    startMatch({ rm, name, host: true, hostPeer: null });
   } catch (e) { lobbyNote('pvpCreateFail'); netFail(e, 'join'); }
   busy = false;
 }
@@ -3928,7 +4011,7 @@ async function createPrivateRoom() {
     for (let i = 0; i < 3; i++) { // a code somebody is already using is skipped
       const code = genRoomCode(rand4()), name = privRoomName(code), rm = await room.join(name);
       if (rm.peers().some(x => !x.isMe)) { await rm.leave().catch(() => {}); continue; }
-      startMatch({ rm, name, code, host: true, hostPeer: null, track: trackId });
+      startMatch({ rm, name, code, host: true, hostPeer: null });
       busy = false; return;
     }
     lobbyNote('pvpCreateFail');
@@ -3944,7 +4027,7 @@ async function joinByCode(raw) {
     let others = seenOthers();
     while (!others.length && performance.now() - t0 < 3000) { await new Promise(r => setTimeout(r, 150)); others = seenOthers(); } // the roster can arrive a moment after the join
     if (others.length !== 1) { await rm.leave().catch(() => {}); lobbyNote(others.length ? 'pvpCodeFull' : 'pvpCodeNone'); }
-    else startMatch({ rm, name, code, host: false, hostPeer: others[0].peer, track: trackId });
+    else startMatch({ rm, name, code, host: false, hostPeer: others[0].peer });
   } catch (e) { lobbyNote('pvpJoinFail'); netFail(e, 'join'); }
   busy = false;
 }
@@ -3955,14 +4038,15 @@ async function joinRoom(r) {
   busy = true; lobbyNote('pvpJoining');
   try {
     const rm = await room.join(r.room);
-    startMatch({ rm, name: r.room, host: false, hostPeer: r.peer, track: r.track });
+    startMatch({ rm, name: r.room, host: false, hostPeer: r.peer });
   } catch (e) { lobbyNote('pvpJoinFail'); netFail(e, 'join'); }
   busy = false;
 }
 
 /* ---------- online 1v1: match ---------- */
-/* Room presence of each player: { v, st, car, col, trk, go, opp, ft, nk, n, c: {x, z, h, vx, vz, w, s, lat, sr, dr, bk} }.
-   Both carry nk (the nickname, the only identity). Lobby presence: host { lobby: { v, room, track, open, hb, nk } }, guest { lobby: { v, in: room } }. Own car is simulated locally;
+/* Room presence of each player: { v: RP.V, st, car, col, trk, go, opp, ft, nk, vote: { t, m, g }, gb, sd, n, c: {x, z, h, vx, vz, w, s, lat, sr, dr, bk} }.
+   car / col / vote are the room picks (see @roompick); gb = gearbox chosen for this draw; sd = the host's draw seed (null from the guest).
+   Both carry nk (the nickname, the only identity). Lobby presence (v RP.V): host { lobby: { v, room, track, open, hb, nk } }, guest { lobby: { v, in: room } }. Own car is simulated locally;
    the other car is interpolated from received samples and acts as an obstacle for our car only. */
 const DNF_WAIT_S = 60, JOIN_WAIT_MS = 8000, boxCache = {};
 function courseBox(id) {
@@ -3975,35 +4059,49 @@ function courseBox(id) {
 }
 // free the GPU side of a car we are done with (the shared glow / badge textures stay)
 function disposeCar(c) { disposeTree(c.g, new Set([glowTex, badgeTex, tougeTex, doorTex[true], doorTex[false], trimTex[true], trimTex[false]])); }
-const pvpCheck = pres => validatePeerState(pres, courseBox(pres && NET.TRACKS.includes(pres.trk) ? pres.trk : trackId));
+const pvpCheck = pres => roomState(pres, courseBox(pres && NET.TRACKS.includes(pres.trk) ? pres.trk : trackId));
 function pvpPublish(extra) {
   const p = pvp; if (!p) return;
-  p.rm.presence({ v: NET.V, st: p.st, car: choice.car, col: choice.color, trk: p.track, go: p.go, opp: p.oppPeer, ft: p.ft, nk: nick, ...extra }).catch(roomFail);
+  p.rm.presence({ v: RP.V, st: p.st, car: choice.car, col: choice.color, trk: p.track, go: p.go, opp: p.oppPeer, ft: p.ft, nk: nick, vote: p.pick.vote, gb: p.gb, sd: p.host ? p.sd : null, ...extra }).catch(roomFail);
 }
 function advertise(p) {
   if (!p.host || p !== pvp || p.code) return;
   const open = p.st === 'waiting' || p.st === 'ready' ? 1 : 0; // race: a round is on, so the lobby lists the room for watching
-  room.presence({ lobby: { v: NET.V, room: p.name, track: p.track, open, race: open ? 0 : 1, hb: ++p.hb, nk: nick } }).catch(netFail);
+  room.presence({ lobby: { v: RP.V, room: p.name, track: p.track, open, race: open ? 0 : 1, hb: ++p.hb, nk: nick } }).catch(netFail);
 }
-function pvpSetSt(st) { const p = pvp; p.st = st; pvpPublish(); advertise(p); renderRoom(); }
+function pvpSetSt(st) {
+  const p = pvp; p.st = st;
+  if (st === 'waiting') rpReset(p); // back to choosing: the draw and the gearbox answer are void
+  pvpPublish(); advertise(p); renderRoom();
+}
+// the draw of this round is void (somebody un-readied or changed a pick, or the round is over); a gearbox question still open goes away
+function rpReset(p) {
+  Object.assign(p, { gb: 0, sd: null, match: null });
+  if (p.asking) { p.asking = false; if (transOpen) { closeTrans(); if (!$('#room').hidden) focusRoom(); } }
+}
 function pvpSetTrack(id) { if (id === trackId) return; buildTrack(id); resetRace(); } // a match never touches the saved course choice
 function startMatch(o) {
   clearInterval(lobbyT);
+  // the room starts from the last picks of this session, else from the title's car and course (a copy: the saved ones are never written)
+  const col0 = Number.isInteger(choice.color) && choice.color >= 0 && choice.color < RP.COLS[choice.car] ? choice.color : 0;
+  const pick = rpLast || { car: choice.car, col: col0, vote: { t: trackId, m: 'first', g: RP.GAP } };
   const p = pvp = {
-    rm: o.rm, name: o.name, code: o.code || null, host: o.host, hostPeer: o.hostPeer, track: o.track, prevTrack: trackId, st: 'waiting', go: 0, n: 0, hb: 0, ft: null,
+    rm: o.rm, name: o.name, code: o.code || null, host: o.host, hostPeer: o.hostPeer, track: trackId, prevTrack: trackId, prevChoice: choice, st: 'waiting', go: 0, n: 0, hb: 0, ft: null,
     opp: null, oppPeer: null, oppFt: null, oppLeft: false, seen: false, joinedAt: performance.now(), buf: [], pose: null,
     lastPres: null, oppKey: '', goAt: 0, sentAt: 0, tickAt: 0, finishAt: 0, note: '', unsub: null, unsubConn: null, hbT: 0,
-    missingSince: null, synced: false, lastSwitch: -1e9, dnfLocked: false, watch: 0
+    missingSince: null, dnfLocked: false, watch: 0,
+    pick: { car: pick.car, col: pick.col, vote: { ...pick.vote } }, oppSig: null, gb: 0, sd: null, match: null, asking: false, phase: 'pick'
   };
-  if (!o.host) pvpSetTrack(o.track);
+  rpLast = p.pick;
+  if (choice.car !== pick.car || choice.color !== pick.col) { choice = { car: pick.car, color: pick.col }; buildCars(); syncKxUI(); } // in memory only, like Sake Run's forced car
   p.unsub = p.rm.onPeers(() => pvpPoll(), roomFail);
   p.unsubConn = p.rm.onConnection(() => {}, roomFail); // only to hear that this room ended (the room-scoped error callback)
   p.hbT = setInterval(() => advertise(p), 5000);
   $('#btnLeave').hidden = false;
   renderer.compile(scene, camera); // warm the shaders now so the first countdown has no stall
   pvpPublish();
-  if (p.code) { /* private: nothing is announced in the lobby */ } else if (o.host) advertise(p); else room.presence({ lobby: { v: NET.V, in: p.name } }).catch(netFail);
-  showPanel('room'); renderRoom(); focusRoom();
+  if (p.code) { /* private: nothing is announced in the lobby */ } else if (o.host) advertise(p); else room.presence({ lobby: { v: RP.V, in: p.name } }).catch(netFail);
+  showPanel('room'); rpBuild(); renderRoom(); focusRoom();
 }
 function focusRoom() { const b = $('#btnReady'); (b.disabled ? $('#btnRoomLeave') : b).focus(); }
 function renderRoom() {
@@ -4014,12 +4112,73 @@ function renderRoom() {
     el.querySelector('small').textContent = carKey ? Lz(CARS[carKey].name) : '';
     const s = el.querySelector('.plst'); s.textContent = st ? T('pvpSt_' + st) : ''; s.className = 'plst' + (st === 'ready' || st === 'countdown' ? ' ok' : '');
   };
-  $('#roomTrack').textContent = Lz(TRACKS[p.track].name);
+  $('#roomTrack').textContent = p.match ? T('rpMatch', rpMatchText(p.match)) : T('rpHead');
   $('#roomCodeRow').hidden = !p.code; if (p.code) $('#roomCode').textContent = p.code;
   fill('#plMe', T('pvpYouTag', nickOf(nick)), choice.car, p.st);
-  if (p.opp && p.oppPeer) fill('#plOpp', nickOf(p.opp.nk), p.opp.car, p.opp.st); else fill('#plOpp', T('pvpWaitJoin'), null, '');
-  const b = $('#btnReady'); b.textContent = T(p.st === 'ready' ? 'pvpUnready' : 'pvpReady'); b.disabled = !(p.opp && p.oppPeer);
-  $('#roomNote').textContent = p.note ? T(p.note) : ''; // p.note is an i18n key
+  const opp = p.opp && p.oppPeer ? p.opp : null;
+  if (opp) fill('#plOpp', nickOf(opp.nk), opp.car, opp.st); else fill('#plOpp', T('pvpWaitJoin'), null, '');
+  for (const [sel, c] of [['#plMe', { car: p.pick.car, col: p.pick.col }], ['#plOpp', opp]]) if (c) $(sel).querySelector('small').textContent = Lz(CARS[c.car].name) + '・' + Lz(CARS[c.car].colors[c.col].n);
+  const b = $('#btnReady'); b.textContent = T(p.st === 'ready' ? 'pvpUnready' : 'pvpReady'); b.disabled = !opp;
+  // the pickers: state only (the buttons are built by rpBuild, so a d-pad / keyboard focus stays where it is)
+  const v = p.pick.vote, open = p.st === 'waiting' || p.st === 'ready';
+  const mark = (sel, on) => { for (const x of $(sel).children) { x.setAttribute('aria-checked', String(on(x.dataset.v))); x.disabled = !open || x.dataset.off === '1'; } };
+  mark('#rpTrack', k => k === v.t); mark('#rpMode', k => k === v.m); mark('#rpGap', k => Number(k) === v.g);
+  mark('#rpCar', k => k === p.pick.car); mark('#rpCol', k => Number(k) === p.pick.col);
+  $('#rpGapRow').hidden = v.m !== 'cat';
+  $('#rpOpp').textContent = opp ? T('rpOppVote', rpVoteText(opp.vote)) : '';
+  const wait = p.phase === 'wait' ? (p.gb ? 'rpWaitTrans' : 'rpWaitSeed') : '';
+  $('#roomNote').textContent = p.note ? T(p.note) : wait ? T(wait) : ''; // p.note is an i18n key
+}
+const rpModeName = m => T(m === 'cat' ? 'modeCat' : 'modeFirst');
+const rpVoteText = v => Lz(TRACKS[v.t].name) + '・' + rpModeName(v.m) + (v.m === 'cat' ? '・' + T('rpGapV', v.g) : '');
+const rpMatchText = r => Lz(TRACKS[r.t].name) + (r.dt ? T('rpDraw') : '') + '・' + rpModeName(r.m) + (r.dm ? T('rpDraw') : '') + (r.m === 'cat' ? '・' + T('rpGapV', r.g) + (r.dg ? T('rpDraw') : '') : '');
+// Cat and mouse is shown but cannot be picked until its gameplay exists (its votes, distance and draw already work end to end).
+const RP_CAT_OPEN = false;
+// (Re)build the room's pick buttons: on entering the room, a language change and a car change (each car has its own colour names).
+function rpBuild() {
+  const p = pvp; if (!p) return;
+  const fill = (sel, items) => {
+    const el = $(sel); el.textContent = '';
+    for (const it of items) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = it.dot ? 'swatch' : 'rpbtn'; b.setAttribute('role', 'radio'); b.dataset.v = String(it.v);
+      if (it.dot) { const i = document.createElement('i'); i.style.background = it.dot; b.append(i); }
+      b.append(it.label);
+      if (it.sub) { const sm = document.createElement('small'); sm.textContent = it.sub; b.append(sm); }
+      if (it.off) b.dataset.off = '1';
+      b.addEventListener('click', it.go); el.append(b);
+    }
+  };
+  fill('#rpTrack', Object.keys(TRACKS).map(t => ({ v: t, label: Lz(TRACKS[t].name), go: () => rpSet({ vote: { t } }) })));
+  fill('#rpMode', RP.MODES.map(m => ({ v: m, label: rpModeName(m), sub: m === 'cat' && !RP_CAT_OPEN ? T('rpSoon') : '', off: m === 'cat' && !RP_CAT_OPEN, go: () => rpSet({ vote: { m } }) })));
+  fill('#rpGap', RP.GAPS.map(g => ({ v: g, label: T('rpGapV', g), go: () => rpSet({ vote: { g } }) })));
+  fill('#rpCar', Object.keys(CARS).map(k => ({ v: k, label: Lz(CARS[k].name), go: () => rpSet({ car: k }) })));
+  const hex = n => '#' + n.toString(16).padStart(6, '0');
+  fill('#rpCol', CARS[p.pick.car].colors.map((c, i) => ({ v: i, label: Lz(c.n), dot: c.low !== undefined && c.low !== c.top ? `linear-gradient(180deg, ${hex(c.top)} 50%, ${hex(c.low)} 50%)` : hex(c.top), go: () => rpSet({ col: i }) })));
+}
+// One pick changed in the room. Never saved: the title's car and course stay as they are. A ready player goes back to waiting.
+function rpSet(o) {
+  const p = pvp; if (!p || (p.st !== 'waiting' && p.st !== 'ready') || transOpen) return;
+  const car = o.car || p.pick.car, next = { car, col: o.col ?? (car !== p.pick.car ? 0 : p.pick.col), vote: { ...p.pick.vote, ...(o.vote || {}) } };
+  if (!validVote(next.vote) || !NET.CARS.includes(next.car) || !(next.col >= 0 && next.col < RP.COLS[next.car]) || (next.vote.m === 'cat' && !RP_CAT_OPEN)) return;
+  if (pickSig(next) === pickSig(p.pick)) return;
+  const carChanged = next.car !== p.pick.car || next.col !== p.pick.col, newCar = next.car !== p.pick.car;
+  p.pick = rpLast = next;
+  if (carChanged) { choice = { car: next.car, color: next.col }; pvpBuildCars(); if (newCar) rpBuild(); }
+  if (p.st === 'ready') { p.note = 'rpChanged'; pvpSetSt('waiting'); } else { p.note = ''; pvpPublish(); renderRoom(); }
+}
+// our car rebuilt in the room; the other player's car is put back at once (buildCars would leave the single-player rival there)
+function pvpBuildCars() {
+  const p = pvp; buildCars(); syncKxUI();
+  if (p && p.opp) { scene.remove(rivalCar.g); disposeCar(rivalCar); rivalCar = makeCar(p.opp.car, p.opp.col); rivalCar.g.visible = false; p.oppKey = p.opp.car + ':' + p.opp.col; }
+}
+// The draw: host vote first on both sides, with the host's seed. The course is built now, while the gearbox question is open.
+function rpResolve() {
+  const p = pvp, other = p.opp; if (!other) return;
+  const r = resolveVote(p.host ? p.pick.vote : other.vote, p.host ? other.vote : p.pick.vote, p.host ? p.sd : other.sd);
+  if (!r) return;
+  p.match = r;
+  if (r.t !== p.track) { pvpSetTrack(r.t); p.track = r.t; pvpPublish(); }
+  renderRoom();
 }
 function pvpLeave() {
   const p = pvp; if (!p) return;
@@ -4029,24 +4188,28 @@ function pvpLeave() {
   room.presence({ lobby: null }).catch(netFail);
   startLat = 2.2;
   if (trackId !== p.prevTrack) buildTrack(p.prevTrack);
-  buildCars(); state = 'title'; resetRace(); camOrbit = 0;
+  choice = p.prevChoice; // the title's car again (room picks were never saved)
+  buildCars(); syncKxUI(); state = 'title'; resetRace(); camOrbit = 0;
   for (const s of ['#hud', '#result', '#resOppBox', '#btnLeave']) $(s).hidden = true;
   $('#count').textContent = ''; $('#pop').classList.remove('show');
   showPanel(null); applyLang(); $('#btnStart').focus();
 }
-function leaveToLobby(noteKey) { const n = nick; pvpLeave(); nick = n; openLobby(); lobbyNote(noteKey); } // still the same online session
+function leaveToLobby(noteKey) { const n = nick, k = rpLast; pvpLeave(); nick = n; rpLast = k; openLobby(); lobbyNote(noteKey); } // still the same online session
 function pvpToRoom() {
   const p = pvp;
   state = 'title'; resetRace();
   for (const s of ['#hud', '#result']) $(s).hidden = true;
   $('#count').textContent = ''; $('#pop').classList.remove('show');
-  Object.assign(p, { st: 'waiting', ft: null, buf: [], pose: null });
+  Object.assign(p, { st: 'waiting', ft: null, buf: [], pose: null }); rpReset(p); // the picks stay; the next round votes again
   pvpPublish({ c: null }); advertise(p);
   showPanel('room'); renderRoom(); focusRoom();
 }
 function pvpBackToRoom() { const p = pvp; if (!p) return; if (!p.host && !p.oppPeer) leaveToLobby('pvpHostLeft'); else pvpToRoom(); }
 function beginCountdown(go) {
   const p = pvp;
+  if (!p.match) rpResolve(); // normally done when the gearbox was asked
+  // p.match: { t, m, g } of this round. Cat and mouse ('cat') is not playable yet: the round runs as first-to-finish, with m / g kept as data.
+  if (!p.match) p.match = { t: p.track, m: 'first', g: null, dt: false, dm: false, dg: false };
   Object.assign(p, { go, st: 'countdown', oppFt: null, ft: null, note: '' });
   startLat = p.host ? 2.2 : -2.2; p.goAt = performance.now();
   pvpPublish(); advertise(p);
@@ -4055,7 +4218,7 @@ function beginCountdown(go) {
 // the opponent we locked on is no longer in the room
 function oppGone() {
   const p = pvp, was = p.st;
-  Object.assign(p, { oppPeer: null, opp: null, buf: [], pose: null, oppLeft: true, lastPres: null, oppKey: '' });
+  Object.assign(p, { oppPeer: null, opp: null, buf: [], pose: null, oppLeft: true, lastPres: null, oppKey: '', oppSig: null });
   if (!p.host && was !== 'racing' && was !== 'finished') { leaveToLobby('pvpHostLeft'); return; }
   if (was === 'racing' || was === 'finished') { showPop(T('pvpLeft')); pvpPublish(); return; } // finish the run alone; the result says "left"
   p.note = 'pvpLeftRoom';
@@ -4064,23 +4227,22 @@ function oppGone() {
 }
 // Returns 'retry' when the state could not be taken yet (a debounced course switch) so the same presence is looked at again.
 function ingest(pres, peers, now) {
-  const p = pvp, v = pvpCheck(pres);
-  if (!v) return 'drop'; // invalid or hostile data is dropped whole
+  const p = pvp, v0 = pvpCheck(pres);
+  if (!v0) return 'drop'; // invalid or hostile data is dropped whole
+  const v = v0.trk === p.track ? v0 : { ...v0, c: null, badC: v0.c !== null }; // a car on another course (a moment around a draw) is not drawn here
   if (!p.host) {
     const mine = peers.find(x => x.isMe && x.sameTab);
     if (v.opp && mine && v.opp !== mine.peer && peers.some(x => x.peer === v.opp)) { leaveToLobby('pvpFull'); return 'drop'; }
   }
-  const tr = trackRule({ host: p.host, track: p.track, theirs: v.trk, synced: p.synced, st: p.st, lastSwitch: p.lastSwitch, now });
-  if (!tr.accept) return tr.retry ? 'retry' : 'drop';
-  if (tr.switchTo) { pvpSetTrack(tr.switchTo); p.track = tr.switchTo; p.lastSwitch = now; }
-  p.synced = true;
   const prev = p.opp; p.opp = v;
   const it = intake(p.buf, v, now); p.buf = it.buf; if (it.reset) p.pose = null;
   if (v.st === 'finished' && v.ft !== null) p.oppFt = v.ft;
   if (v.st === 'finished' && (!prev || prev.st !== 'finished') && state === 'race') showPop(T('pvpOppDone'), v.ft !== null ? fmtT(v.ft) : '');
   const key = v.car + ':' + v.col;
   if (key !== p.oppKey) { p.oppKey = key; scene.remove(rivalCar.g); disposeCar(rivalCar); rivalCar = makeCar(v.car, v.col); rivalCar.g.visible = false; renderer.compile(scene, camera); }
-  p.note = '';
+  const sig = pickSig(v), was = p.oppSig, st = cancelReady(p.st, was, sig); p.oppSig = sig;
+  if (p.note !== 'rpChanged') p.note = '';
+  if (st !== p.st) { p.note = 'rpChanged'; pvpSetSt(st); } // their pick changed: our ready is cancelled too
   renderRoom();
   return 'ok';
 }
@@ -4090,7 +4252,7 @@ function pvpPoll(now = performance.now()) {
   p.watch = watcherCount(peers, p.oppPeer ? [p.oppPeer] : []);
   const opp = chooseOpp({ host: p.host, hostPeer: p.hostPeer, oppPeer: p.oppPeer, st: p.st, peers, valid: pvpCheck });
   if (opp && !p.oppPeer) {
-    Object.assign(p, { oppPeer: opp.peer, seen: true, oppLeft: false, missingSince: null, buf: [], lastPres: null, oppKey: '' });
+    Object.assign(p, { oppPeer: opp.peer, seen: true, oppLeft: false, missingSince: null, buf: [], lastPres: null, oppKey: '', oppSig: null });
     if (p.host) { pvpPublish(); advertise(p); }
   }
   // a locked opponent that blinks out of peers() is only gone after oppGrace says so
@@ -4100,15 +4262,28 @@ function pvpPoll(now = performance.now()) {
     p.missingSince = g.missingSince;
     if (!opp && g.gone) oppGone(); else holding = !opp;
   } else if (!opp && !p.host && !p.seen && now - p.joinedAt > JOIN_WAIT_MS) leaveToLobby('pvpGone');
-  if (opp && opp.presence !== p.lastPres) {
-    p.lastPres = opp.presence;
-    if (ingest(opp.presence, peers, now) === 'retry') p.lastPres = null;
-  }
+  if (opp && opp.presence !== p.lastPres) { p.lastPres = opp.presence; ingest(opp.presence, peers, now); }
   if (pvp !== p) return;
-  const r = raceSync({ st: p.st, host: p.host, go: p.go }, opp || holding ? p.opp : null);
+  const other = opp || holding ? p.opp : null;
+  rpStep(other);
+  // the host starts only once both gearboxes are chosen (phase go); before that the guest counts as not ready for raceSync
+  const r = raceSync({ st: p.st, host: p.host, go: p.go }, p.host && p.st === 'ready' && p.phase !== 'go' && other ? { ...other, st: 'waiting' } : other);
   if (r.abort) pvpToRoom();
   else if (r.start) beginCountdown(r.go);
   else if (r.st !== p.st) pvpSetSt(r.st);
+}
+// Room phase (see roomPhase): the host draws a seed; with the result known each side asks AT / MT (the result is shown above it).
+function rpStep(other) {
+  const p = pvp, ph = roomPhase({ host: p.host, me: p, other });
+  if (ph !== p.phase) { p.phase = ph; renderRoom(); }
+  if (ph === 'pick' && (p.gb || p.sd !== null || p.match)) { rpReset(p); pvpPublish(); renderRoom(); return; }
+  if (ph === 'seed') { p.sd = rand4().reduce((a, b) => a * 256 + b, 0); pvpPublish(); return; } // 0 .. 2^32 - 1
+  if (ph === 'trans' && !p.match) rpResolve();
+  if (ph === 'trans' && p.match && !p.asking && !transOpen) {
+    p.asking = true;
+    $('#transMatch').textContent = T('rpMatch', rpMatchText(p.match)); $('#transMatch').hidden = false;
+    askTrans(() => { const q = pvp; if (q !== p) return; q.asking = false; initAudio(); q.gb = 1; pvpPublish(); renderRoom(); pvpPoll(); }, '#btnReady', () => { if (pvp === p) { p.asking = false; pvpSetSt('waiting'); } });
+  }
 }
 function pvpFrame() {
   const p = pvp, now = performance.now();
@@ -4161,7 +4336,7 @@ function pvpRelabel() {
   lobbyNote(lobbyKey); syncNet(); renderLobby(true);
   if (spec) specRender();
   if (!pvp) return;
-  renderRoom();
+  rpBuild(); renderRoom();
   if (!$('#result').hidden) { $('#btnAgain').textContent = T('pvpBackRoom'); $('#btnMenu').textContent = T('pvpLeaveEnd'); resNames(); pvpResultTick(); }
 }
 function pvpFinished() { const p = pvp; p.ft = playerFinishT; p.finishAt = performance.now(); pvpSetSt('finished'); }
@@ -4220,7 +4395,7 @@ function startSpectate(o) {
   s.unsub = s.rm.onPeers(() => {}, roomFail); // peers are read every frame; this is for the room-scoped error callback
   s.unsubConn = s.rm.onConnection(() => {}, roomFail);
   s.rm.presence({ v: NET.V, role: 'spectator', nk: nick }).catch(roomFail); // the only room presence a spectator ever sends
-  room.presence({ lobby: { v: NET.V, watch: s.name } }).catch(netFail);
+  room.presence({ lobby: { v: RP.V, watch: s.name } }).catch(netFail);
   for (const id of ['#title', '#lobby', '#room', '#result', '#hud']) $(id).hidden = true;
   onlineUI = true; syncNet(); camera.clearViewOffset();
   $('#spec').hidden = false; specRender(); $('#btnSpecLeave').focus();
@@ -4248,12 +4423,22 @@ function specTake(sd, x, conn, now) {
   if (x.peer !== sd.peer) Object.assign(sd, { peer: x.peer, v: null, buf: [], pose: null, lastPres: null, ft: null, gone: false });
   if (x.presence === sd.lastPres) return;
   sd.lastPres = x.presence;
-  const v = x.v; if (v.trk !== spec.track) return; // the room's course never changes; anything else is not this race
+  const v = x.v;
+  if (sd === spec.side.a) { const t = specTrackSwitch(spec.track, v); if (t) specSetTrack(t); } // a new round on another course: follow the host
   sd.v = v;
+  if (v.trk !== spec.track) return; // its car is on another course (not this race yet): name and state only
   const it = intake(sd.buf, v, now); sd.buf = it.buf; if (it.reset) sd.pose = null;
   if (v.st === 'finished' && v.ft !== null) sd.ft = v.ft; else if (v.st === 'countdown' || v.st === 'racing') sd.ft = null; // the last result stays up until the next round
   const key = v.car + ':' + v.col;
   if (key !== sd.key) { sd.key = key; if (sd.mesh) { scene.remove(sd.mesh.g); disposeCar(sd.mesh); } sd.mesh = makeCar(v.car, v.col); sd.mesh.g.visible = false; }
+}
+function specSetTrack(t) {
+  const s = spec; s.track = t;
+  buildTrack(t); resetRace(); state = 'watch';
+  playerCar.g.visible = rivalCar.g.visible = false;
+  for (const k of ['a', 'b']) Object.assign(s.side[k], { buf: [], pose: null, ft: null, i: 0 }); // poses (and road indices) on the old course mean nothing here
+  rival.i = 0;
+  s.side.b.lastPres = null; s.snap = true;
 }
 function specPoll(now) {
   const s = spec, peers = s.rm.peers(), conn = typeof s.rm.connected === 'function' ? s.rm.connected() : true;
@@ -4410,18 +4595,18 @@ $('#nick').addEventListener('keydown', e => {
   }
 });
 /* gearbox question: asked before every race (single-player Start / Again, online Ready). `trans` is the preselected last choice. */
-let transCb = null, transBack = null;
+let transCb = null, transBack = null, transNo = null;
 const TRANS_SCREENS = ['#title', '#result', '#room'];
-function askTrans(cb, back = '#btnStart') {
+function askTrans(cb, back = '#btnStart', no = null) { // no: called on cancel
   if (transOpen) return;
-  transCb = cb; transBack = back; transOpen = true;
+  transCb = cb; transBack = back; transNo = no; transOpen = true;
   for (const id of TRANS_SCREENS) $(id).inert = true;
   for (const b of document.querySelectorAll('#trans .transbtn')) b.classList.toggle('sel', b.dataset.t === trans);
   $('#trans').hidden = false; $(trans === 'manual' ? '#transMT' : '#transAT').focus();
 }
-function closeTrans() { transOpen = false; transCb = transBack = null; $('#trans').hidden = true; for (const id of TRANS_SCREENS) $(id).inert = false; }
+function closeTrans() { transOpen = false; transCb = transBack = transNo = null; $('#trans').hidden = true; $('#transMatch').hidden = true; for (const id of TRANS_SCREENS) $(id).inert = false; }
 function transPick(m) { trans = m; store.set('yatouge-trans', m); const cb = transCb; closeTrans(); if (cb) cb(); }
-function transCancel() { const b = transBack; closeTrans(); if (b) $(b).focus(); }
+function transCancel() { const b = transBack, no = transNo; closeTrans(); if (no) no(); if (b) $(b).focus(); }
 for (const b of document.querySelectorAll('#trans .transbtn')) b.addEventListener('click', () => transPick(b.dataset.t));
 $('#transCancel').addEventListener('click', transCancel);
 $('#trans').addEventListener('keydown', e => {
@@ -4442,9 +4627,8 @@ $('#codeForm').addEventListener('submit', e => { e.preventDefault(); joinByCode(
 $('#btnRoomLeave').addEventListener('click', pvpLeave);
 $('#btnLeave').addEventListener('click', pvpLeave);
 $('#btnReady').addEventListener('click', () => {
-  const p = pvp; if (!p || !p.opp || !p.oppPeer) return;
-  const flip = () => { const q = pvp; if (q !== p || !q.opp || !q.oppPeer) return; initAudio(); pvpSetSt(q.st === 'ready' ? 'waiting' : 'ready'); pvpPoll(); };
-  if (p.st === 'ready') flip(); else askTrans(flip); // ready is sent only after the gearbox is chosen; un-ready needs no question
+  const p = pvp; if (!p || !p.opp || !p.oppPeer || (p.st !== 'waiting' && p.st !== 'ready')) return;
+  initAudio(); p.note = ''; pvpSetSt(p.st === 'ready' ? 'waiting' : 'ready'); pvpPoll(); // the gearbox is asked once both are ready and the draw is shown
 });
 initOnline();
 

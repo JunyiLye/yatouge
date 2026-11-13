@@ -9,7 +9,7 @@ function block(name) {
   assert.ok(s >= 0 && e > s, `找不到 @${name} 區塊`);
   return html.slice(s + open.length, e);
 }
-const NAMES = 'NET, validRoomName, validatePeerState, pushSample, interpRemote, lobbyRooms, raceSync, pvpResult, remoteAsRival, countdownLeft, validPeerId, intake, oppGrace, chooseOpp, trackRule, lockedResult, pushOut, netAction, mockAllowed, emptyShown, cleanNick';
+const NAMES = 'NET, validRoomName, validatePeerState, pushSample, interpRemote, lobbyRooms, raceSync, pvpResult, remoteAsRival, countdownLeft, validPeerId, intake, oppGrace, chooseOpp, lockedResult, pushOut, netAction, mockAllowed, emptyShown, cleanNick';
 const load = () => new Function(`${block('netcode')}\nreturn { ${NAMES} };`)();
 const loadWithCollision = () => new Function(`${block('collision')}\n${block('netcode')}\nreturn { ${NAMES}, carStep, COLL, CAR_BOX };`)();
 
@@ -412,29 +412,6 @@ test('chooseOpp：房客只認房主，不是自己，且不看有效性', () =>
   assert.equal(chooseOpp({ ...g, hostPeer: 'nope' }), null);
   assert.equal(chooseOpp({ ...g, peers: [PEER('host1', { isMe: true })] }), null);
   assert.equal(chooseOpp({ ...g, peers: null }), null);
-});
-
-test('trackRule：賽道一致才接受；房主不一致一律拒絕', () => {
-  const { trackRule } = load();
-  const b = { host: true, track: 'kurosagi', theirs: 'kurosagi', synced: false, st: 'waiting', lastSwitch: -1e9, now: 1000 };
-  assert.deepEqual(trackRule(b), { accept: true, switchTo: null, retry: false });
-  assert.deepEqual(trackRule({ ...b, theirs: 'seiran' }), { accept: false, switchTo: null, retry: false });
-});
-
-test('trackRule：房客第一次同步可以改賽道，之後不一致一律拒絕', () => {
-  const { trackRule } = load();
-  const g = { host: false, track: 'kurosagi', theirs: 'seiran', synced: false, st: 'waiting', lastSwitch: -1e9, now: 5000 };
-  assert.deepEqual(trackRule(g), { accept: true, switchTo: 'seiran', retry: false });
-  assert.equal(trackRule({ ...g, synced: true }).accept, false);
-  assert.equal(trackRule({ ...g, synced: true }).switchTo, null);
-});
-
-test('trackRule：倒數 / 比賽 / 完賽中不重建；兩秒內只換一次（先不接受，稍後重試）', () => {
-  const { trackRule } = load();
-  const g = { host: false, track: 'kurosagi', theirs: 'seiran', synced: false, st: 'waiting', lastSwitch: -1e9, now: 5000 };
-  for (const st of ['countdown', 'racing', 'finished']) assert.deepEqual(trackRule({ ...g, st }), { accept: false, switchTo: null, retry: false }, st);
-  assert.deepEqual(trackRule({ ...g, lastSwitch: 4500 }), { accept: false, switchTo: null, retry: true });
-  assert.equal(trackRule({ ...g, lastSwitch: 3000 }).accept, true);
 });
 
 test('lockedResult：判定對手未完賽後維持勝利，之後對手完賽只更新時間與差距', () => {
