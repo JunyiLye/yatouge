@@ -219,6 +219,13 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 /* Sake Run HUD: one cup per wall contact still allowed, then the sake level */
 .sakehud { display: flex; align-items: center; gap: 10px; font-size: 13px; margin-top: 4px; font-variant-numeric: tabular-nums; }
 .sakehud[hidden] { display: none; }
+.cathud { display: flex; flex-direction: column; gap: 1px; white-space: pre-line; font-size: 13px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.cathud b { color: var(--sodium); font-weight: 600; }
+.cathud span { color: var(--dim); }
+.cathud[hidden], .rescat[hidden] { display: none; }
+.rescat { margin: 14px 0 18px; }
+.rescat .note { margin: 0 0 8px; }
+.cathist { margin: 0 0 10px; padding: 0; list-style: none; max-height: 9.5em; overflow-y: auto; font-size: 13px; line-height: 1.55; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .cups { display: inline-flex; gap: 4px; }
 .cups i { width: 11px; height: 14px; background: var(--sodium); clip-path: polygon(0 0, 100% 0, 82% 100%, 18% 100%); }
 .cups i.off { background: rgba(255,255,255,.16); }
@@ -284,6 +291,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
   .coarse .lbl { font-size: 9px; }
   .coarse .num { font-size: 19px; }
   .coarse .gap { font-size: 11px; margin-top: 1px; }
+  .coarse .cathud { font-size: 11px; margin-top: 1px; }
   .coarse .prog { margin-top: 5px; }
   .coarse .chain { font-size: 11px; min-height: 13px; }
   .coarse .tools { top: calc(6px + env(safe-area-inset-top, 0px)); left: 50%; right: auto; transform: translateX(-50%); width: max-content; max-width: calc(100% - 290px); flex-wrap: wrap; justify-content: center; gap: 6px; }
@@ -308,6 +316,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div class="lbl" id="timeLbl" data-i18n="time">時間</div>
     <div id="time" class="num">0:00.00</div>
     <div id="gap" class="gap">—</div>
+    <div id="catHud" class="cathud" hidden><b id="catRound"></b><span id="catRule"></span></div>
     <div id="sakeHud" class="sakehud" hidden><span id="sakeCups" class="cups" role="img"></span><span id="sakeLiq"></span></div>
     <div class="prog"><i id="progRival"></i><i id="progMe"></i></div>
     <div id="watchN" class="watchn" hidden></div>
@@ -349,6 +358,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div class="specrow" id="specA"><i></i><span class="pos"></span><b></b><span class="t"></span></div>
     <div class="specrow" id="specB"><i></i><span class="pos"></span><b></b><span class="t"></span></div>
     <div id="specGap" class="gap"></div>
+    <div id="specCat" class="cathud" hidden><b id="specCatLine"></b><span id="specCatHist"></span></div>
     <div class="prog"><i id="specProgB"></i><i id="specProgA"></i></div>
     <p id="specRes" class="specres" hidden></p>
     <div id="specWatch" class="watchn"></div>
@@ -426,6 +436,15 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <div><div class="lbl" id="resBestLbl" data-i18n="resBest">個人最佳</div><div id="resBest" class="num">—</div></div>
       <div id="resSakeBox" hidden><div class="lbl" data-i18n="sakeLiqLbl">剩餘酒量</div><div id="resSake" class="num">—</div></div>
       <div id="resOppBox" hidden><div class="lbl" id="resOppLbl" data-i18n="pvpOppTime">對手完賽時間</div><div id="resOpp" class="num">—</div></div>
+    </div>
+    <div id="resCat" class="rescat" hidden>
+      <p id="resCatNote" class="note" role="status"></p>
+      <ol id="resCatHist" class="cathist"></ol>
+      <div id="resNext" class="rprow" hidden>
+        <span class="lbl" id="nextGapL" data-i18n="catNextLbl">下一回合判定距離</span>
+        <div class="rpseg" id="nextGap" role="radiogroup" aria-labelledby="nextGapL"></div>
+        <p id="nextOpp" class="note" aria-live="polite"></p>
+      </div>
     </div>
     <div class="actions"><button class="go" id="btnMenu" type="button" data-i18n="menu">回主畫面選車</button><button class="ghost" id="btnAgain" type="button" data-i18n="again">同一台再跑</button></div>
   </div>
@@ -768,6 +787,13 @@ const I18N = {
     pvpLeft: '對手已離開', pvpLeftRoom: '對手已離開，回到等待狀態。', pvpNet: '連線中斷，正在嘗試重新連線…',
     rpHead: '選擇賽道與車子', rpTrack: '賽道投票', rpMode: '模式投票', rpGap: '判定距離投票', rpCar: '你的車', rpColor: '顏色',
     modeFirst: '先到者勝', modeCat: '貓捉老鼠', rpSoon: '即將推出', rpGapV: g => `${g} m`, rpDraw: '（抽籤）', rpMatch: d => `本場：${d}`,
+    catEyebrow: r => `貓捉老鼠 · 第 ${r} 回合`, catLead: '領先', catChase: '追擊', catHudRound: (r, role) => `第 ${r} 回合・${role}`,
+    catRuleChase: g => `保持在 ${g} m 內`, catRuleLead: g => `甩開 ${g} m 以上`, catJudging: '等待判定…', catDraw: '平手：交換角色', catLose: '你輸了', catDrawT: '平手', catSwap: role => `交換角色：下一回合你${role}`,
+    catWhyPass: '追擊者在終點前超車', catWhyAway: g => `領先者甩開 ${g} m 以上`, catWhyLeft: '對手離開了', catYou: '你',
+    catNote: (role, g) => `你本回合${role}・判定距離 ${g} m`, catHistRow: (r, lead, out) => `第 ${r} 回合・${lead} 領先：${out}`,
+    catOutD: gap => `平手（差 ${gap} m）`, catOutL: (n, gap) => `${n} 甩開獲勝（差 ${gap} m）`, catOutF: n => `${n} 超車獲勝`,
+    catNextLbl: '下一回合判定距離', catReady: '準備下一回合', catUnready: '取消準備', catOppNext: (g, ok) => `對手投：${g} m${ok ? '・已準備' : ''}`,
+    catSpecLine: (r, a, b, g) => `貓捉老鼠・第 ${r} 回合\n${a} 領先・${b} 追擊・判定 ${g} m`,
     rpOppVote: d => `對手投：${d}`, rpChanged: '選擇有變更，請重新準備。', rpWaitTrans: '等待對手選擇變速箱…', rpWaitSeed: '等待房主抽籤…',
     pvpLine: '衝線！', pvpOppDone: '對手已完賽', pvpWaitOpp: '等待對手衝線…', pvpTie: '平手', pvpDnf: '對手未完賽',
     pvpOppTime: '對手完賽時間', pvpBackRoom: '回房間再來一場', pvpLeaveEnd: '離開並回主畫面',
@@ -825,6 +851,13 @@ const I18N = {
     pvpLeft: 'Opponent left', pvpLeftRoom: 'Your opponent left. Waiting again.', pvpNet: 'Connection lost. Trying to reconnect…',
     rpHead: 'Pick a course and a car', rpTrack: 'Course vote', rpMode: 'Mode vote', rpGap: 'Catch distance vote', rpCar: 'Your car', rpColor: 'Colour',
     modeFirst: 'First to finish', modeCat: 'Cat and mouse', rpSoon: 'Coming soon', rpGapV: g => `${g} m`, rpDraw: ' (draw)', rpMatch: d => `This race: ${d}`,
+    catEyebrow: r => `Cat and mouse · Round ${r}`, catLead: 'Lead', catChase: 'Chase', catHudRound: (r, role) => `Round ${r} · ${role}`,
+    catRuleChase: g => `Stay within ${g} m`, catRuleLead: g => `Pull away more than ${g} m`, catJudging: 'Waiting for the call…', catDraw: 'Draw: roles swap', catLose: 'You lose', catDrawT: 'Draw', catSwap: role => `Roles swap: next round you ${role.toLowerCase()}`,
+    catWhyPass: 'The chaser passed before the line', catWhyAway: g => `The leader got more than ${g} m away`, catWhyLeft: 'Your opponent left', catYou: 'You',
+    catNote: (role, g) => `You: ${role} this round · catch distance ${g} m`, catHistRow: (r, lead, out) => `Round ${r} · ${lead} led: ${out}`,
+    catOutD: gap => `draw (${gap} m)`, catOutL: (n, gap) => `${n} got away and won (${gap} m)`, catOutF: n => `${n} passed and won`,
+    catNextLbl: 'Next round: catch distance', catReady: 'Ready for the next round', catUnready: 'Not ready', catOppNext: (g, ok) => `Opponent votes ${g} m${ok ? ' · ready' : ''}`,
+    catSpecLine: (r, a, b, g) => `Cat and mouse · Round ${r}\n${a} leads · ${b} chases · ${g} m`,
     rpOppVote: d => `Opponent votes: ${d}`, rpChanged: 'A pick changed. Ready up again.', rpWaitTrans: 'Waiting for your opponent to pick a gearbox…', rpWaitSeed: 'Waiting for the host to draw…',
     pvpLine: 'Across the line!', pvpOppDone: 'Opponent finished', pvpWaitOpp: 'Waiting for your opponent…', pvpTie: 'Tie', pvpDnf: 'Opponent did not finish',
     pvpOppTime: "Opponent's time", pvpBackRoom: 'Back to the room', pvpLeaveEnd: 'Leave and go to title',
@@ -1604,6 +1637,85 @@ const cancelReady = (st, before, after) => (st === 'ready' && before !== null &&
 // a spectator follows the host onto the course of a new round
 const specTrackSwitch = (cur, hv) => (hv && hv.trk !== cur && (hv.st === 'countdown' || hv.st === 'racing') ? hv.trk : null);
 /* @roompick:end */
+/* @catmouse:start */
+/* Cat and mouse (pure part). Each round has a leader ('h' host or 'g' guest) who starts LEAD m ahead; the round is judged at the
+   finish: the follower crossing strictly first wins the match, the leader crossing with the follower more than g m behind wins it,
+   anything else is a draw (roles swap, the next round starts from the line). The host judges and publishes { r, L, g, dg, hist }. */
+const CAT = { LEAD: 10, WAIT_MS: 1000, HIST: 20, MAX_R: 9999, MAX_GAP: 100000, TRAIL_DT: 0.05, WINS: ['l', 'f', 'd'] };
+const catOther = L => (L === 'h' ? 'g' : 'h');
+// round 1's leader from the host's draw seed (its own stream, so it does not follow the course / mode draw)
+const catFirstLeader = seed => (validSeed(seed) ? (rpRand((seed ^ 0x5bd1e995) >>> 0)() < 0.5 ? 'h' : 'g') : null);
+function catInit(seed, g, dg = false) {
+  const L = catFirstLeader(seed);
+  return L && RP.GAPS.includes(g) ? { r: 1, L, g, dg: !!dg, hist: [] } : null;
+}
+const catRole = (L, me) => (L === me ? 'lead' : 'chase');
+const catStart = (L, me) => (L === me ? CAT.LEAD : 0); // metres ahead of the normal grid slot (lanes stay as in a normal race)
+const okFt = t => inRange(t, 0.001, NET.MAX_TIME);
+// ftL / ftF: finish times (s) of leader / follower or null; gap: metres the follower was behind when the leader crossed (or null);
+// sure: no earlier finish of the other car can still be on its way. -> null (not decided yet) | { w: 'f' | 'l' | 'd', gap }
+function judgeRound({ ftL, ftF, gap, g, sure }) {
+  if ((ftL !== null && !okFt(ftL)) || (ftF !== null && !okFt(ftF)) || !RP.GAPS.includes(g) || (gap !== null && !isNum(gap))) return null;
+  if (ftF !== null && (ftL === null || ftF < ftL)) return ftL !== null || sure ? { w: 'f', gap: null } : null;
+  if (ftL === null || gap === null || (ftF === null && !sure)) return null;
+  const d = Math.max(0, gap);
+  return { w: d > g ? 'l' : 'd', gap: d };
+}
+// From one side: myFt is local (known at once), oppFt arrives over the network. Sure once the other side's earlier finish is ruled out.
+function catSure(myFt, oppFt, raceT, sinceMyFin) {
+  if (oppFt !== null) return myFt !== null || raceT >= oppFt;
+  return myFt !== null && isNum(sinceMyFin) && sinceMyFin >= CAT.WAIT_MS;
+}
+const catResult = c => { const e = c.hist[c.hist.length - 1]; return e && e.r === c.r ? e : null; };
+function catRecord(c, res) {
+  if (catResult(c) || !res || !CAT.WINS.includes(res.w)) return c;
+  const gap = res.gap === null || res.gap === undefined ? null : Math.min(CAT.MAX_GAP, Math.round(res.gap));
+  return { ...c, hist: [...c.hist, { r: c.r, L: c.L, w: res.w, gap, g: c.g }].slice(-CAT.HIST) };
+}
+const catWinner = c => { const e = catResult(c); return !e || e.w === 'd' ? null : e.w === 'l' ? e.L : catOther(e.L); };
+function catNext(c, g, dg) {
+  const e = catResult(c);
+  return e && e.w === 'd' && RP.GAPS.includes(g) && c.r < CAT.MAX_R ? { r: c.r + 1, L: catOther(c.L), g, dg: !!dg, hist: c.hist } : null;
+}
+// the next round's distance: host vote first, the same rule as the room (resolveVote, with the host's new seed)
+function catNextGap(hostG, guestG, seed) {
+  const r = resolveVote({ t: NET.TRACKS[0], m: 'cat', g: hostG }, { t: NET.TRACKS[0], m: 'cat', g: guestG }, seed);
+  return r ? { g: r.g, dg: r.dg } : null;
+}
+const validGapVote = v => (RP.GAPS.includes(v) ? v : null);
+const catMsg = c => ({ r: c.r, L: c.L, g: c.g, dg: c.dg ? 1 : 0, hist: c.hist.map(e => ({ ...e })) });
+// the host's round state as received: every entry checked, and the record must agree with itself and with the current round
+function validCat(x) {
+  if (!x || typeof x !== 'object' || Array.isArray(x)) return null;
+  if (!Number.isInteger(x.r) || x.r < 1 || x.r > CAT.MAX_R || (x.L !== 'h' && x.L !== 'g') || !RP.GAPS.includes(x.g) || !bit(x.dg)) return null;
+  if (!Array.isArray(x.hist) || x.hist.length > CAT.HIST) return null;
+  const hist = [];
+  for (const e of x.hist) {
+    if (!e || typeof e !== 'object' || !Number.isInteger(e.r) || e.r < 1 || e.r > CAT.MAX_R || (e.L !== 'h' && e.L !== 'g') || !CAT.WINS.includes(e.w) || !RP.GAPS.includes(e.g)) return null;
+    if (e.gap !== null && !isNat(e.gap, CAT.MAX_GAP)) return null;
+    const p = hist[hist.length - 1];
+    if (p && (e.r !== p.r + 1 || p.w !== 'd' || e.L !== catOther(p.L))) return null; // only a draw continues, and it swaps the roles
+    hist.push({ r: e.r, L: e.L, w: e.w, gap: e.gap, g: e.g });
+  }
+  const last = hist[hist.length - 1];
+  if (!last ? x.r !== 1 : last.r === x.r ? last.L !== x.L : last.r !== x.r - 1 || last.w !== 'd' || x.L !== catOther(last.L)) return null;
+  return { r: x.r, L: x.L, g: x.g, dg: x.dg === 1, hist };
+}
+// a room state with the cat-and-mouse fields: cm (host's round state) and cg (next-round distance vote); a bad one drops the whole state
+function catState(p, bounds) {
+  const v = roomState(p, bounds); if (!v) return null;
+  const cm = p.cm === undefined || p.cm === null ? null : validCat(p.cm), cg = p.cg === undefined || p.cg === null ? null : validGapVote(p.cg);
+  if ((p.cm !== undefined && p.cm !== null && !cm) || (p.cg !== undefined && p.cg !== null && cg === null)) return null;
+  return { ...v, cm, cg };
+}
+// own position (m along the course) at race time t, from samples { t, s } in time order
+function trailAt(tr, t) {
+  if (!tr.length) return null;
+  if (t <= tr[0].t) return tr[0].s;
+  for (let i = 1; i < tr.length; i++) if (tr[i].t >= t) { const a = tr[i - 1], b = tr[i]; return a.s + (b.s - a.s) * (b.t > a.t ? (t - a.t) / (b.t - a.t) : 1); }
+  return tr[tr.length - 1].s;
+}
+/* @catmouse:end */
 /* @supa:start */
 /* Supabase Realtime transport (pure part). Private rooms: a 4-character code, never advertised in the lobby. */
 const ROOM_CODE_CHARS = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; // no 0 O 1 I L; 31 symbols, 31^4 ~ 923k codes (a byte % 31 is slightly uneven: fine for a casual code)
@@ -2378,7 +2490,7 @@ let playerWon = false, driftTotal = 0, driftChain = 0, driftIdle = 0, rivalFinis
 let menuOpen = false, menuView = 'main'; // in-game menu (never pauses the race)
 let steerMode = 'drag', tiltSens = TILT.SENS_DEF, tiltNoteKey = '', steerTok = 0; // 'drag' | 'tilt' | 'zones'; the touch-control code is in the controls section
 let trans = store.get('yatouge-trans') === 'manual' ? 'manual' : 'auto', transOpen = false; // 'auto' | 'manual': the last choice, asked again before every race; gear / shift-cut state lives on `car`
-let pvp = null, startLat = 2.2, onlineUI = false; // pvp: the online match in progress (null = single player); startLat: grid slot, + right of the centreline
+let pvp = null, startLat = 2.2, startS = 0, onlineUI = false; // pvp: the online match in progress (null = single player); startLat: grid slot, + right of the centreline; startS: m ahead of it (cat-and-mouse leader)
 
 function locate(o) {
   let best = o.idx, bd = Infinity;
@@ -2404,6 +2516,7 @@ function samplePos(s, lat) {
 function resetRace() {
   const p = pts[8];
   Object.assign(car, { x: p.x - Math.cos(p.h) * startLat, z: p.z + Math.sin(p.h) * startLat, h: p.h, vx: 0, vz: 0, w: 0, steer: 0, drift: false, idx: 8, rpm: 1000, gear: 1, autoGear: 1, shiftT: 0, penalty: 0, gutSide: 0, gutT: 0, gutLat: 0, gutCool: 0, gutDrop: 0, gutDropSide: 1, railAgo: Infinity, toll: { paid: [], warned: [] } });
+  if (startS) { const q = samplePos(p.s + startS, startLat); Object.assign(car, { x: q.x, z: q.z, h: q.h, idx: q.i }); }
   car.loc = locate(car);
   Object.assign(rival, { s: pts[24].s, v: 0, lat: -2.2, latV: 0, i: 0, vis: 0 });
   state = 'title'; raceT = 0; driftTotal = 0; driftChain = 0; driftIdle = 0; rivalFinishT = null; playerFinishT = null; finishTimer = -1; lastGapSign = 1;
@@ -2881,6 +2994,7 @@ function hud(dt) {
   $('#progMe').style.left = clamp(car.loc.s / FINISH_S * 100, 0, 100) + '%';
   if (popTimer > 0) { popTimer -= dt; if (popTimer <= 0) $('#pop').classList.remove('show'); }
   const wn = $('#watchN'), nw = pvp ? pvp.watch : 0; wn.hidden = !nw; if (nw) wn.textContent = T('specWatching', nw);
+  catHud();
   if (taRun) { taHud(); return; }
   if (sakeRun) { sakeHud(); return; }
   $('#progRival').hidden = false;
@@ -3506,7 +3620,7 @@ function sakeVisual(dt) {
 }
 function showResult() {
   for (const el of $('#result').querySelectorAll('[data-i18n]')) el.textContent = T(el.dataset.i18n); // a Sake Run result relabels these
-  $('#resSakeBox').hidden = true;
+  $('#resSakeBox').hidden = true; $('#resCat').hidden = true; $('#result .stats').hidden = false; $('#btnAgain').disabled = false;
   $('#resGapLbl').textContent = T(taRun ? 'taGap' : 'resGap');
   if (pvp) { showPvpResult(); return; }
   if (taRun) { showTaResult(); return; }
@@ -4059,14 +4173,14 @@ function courseBox(id) {
 }
 // free the GPU side of a car we are done with (the shared glow / badge textures stay)
 function disposeCar(c) { disposeTree(c.g, new Set([glowTex, badgeTex, tougeTex, doorTex[true], doorTex[false], trimTex[true], trimTex[false]])); }
-const pvpCheck = pres => roomState(pres, courseBox(pres && NET.TRACKS.includes(pres.trk) ? pres.trk : trackId));
+const pvpCheck = pres => catState(pres, courseBox(pres && NET.TRACKS.includes(pres.trk) ? pres.trk : trackId));
 function pvpPublish(extra) {
   const p = pvp; if (!p) return;
-  p.rm.presence({ v: RP.V, st: p.st, car: choice.car, col: choice.color, trk: p.track, go: p.go, opp: p.oppPeer, ft: p.ft, nk: nick, vote: p.pick.vote, gb: p.gb, sd: p.host ? p.sd : null, ...extra }).catch(roomFail);
+  p.rm.presence({ v: RP.V, st: p.st, car: choice.car, col: choice.color, trk: p.track, go: p.go, opp: p.oppPeer, ft: p.ft, nk: nick, vote: p.pick.vote, gb: p.gb, sd: p.host ? p.sd : null, cm: p.host && p.cat ? catMsg(p.cat) : null, cg: p.ck ? p.ck.cg : null, ...extra }).catch(roomFail);
 }
 function advertise(p) {
   if (!p.host || p !== pvp || p.code) return;
-  const open = p.st === 'waiting' || p.st === 'ready' ? 1 : 0; // race: a round is on, so the lobby lists the room for watching
+  const open = (p.st === 'waiting' || p.st === 'ready') && !catOn(p) ? 1 : 0; // race: a round is on (or a cat-and-mouse match, also between rounds), so the lobby lists the room for watching
   room.presence({ lobby: { v: RP.V, room: p.name, track: p.track, open, race: open ? 0 : 1, hb: ++p.hb, nk: nick } }).catch(netFail);
 }
 function pvpSetSt(st) {
@@ -4090,7 +4204,8 @@ function startMatch(o) {
     opp: null, oppPeer: null, oppFt: null, oppLeft: false, seen: false, joinedAt: performance.now(), buf: [], pose: null,
     lastPres: null, oppKey: '', goAt: 0, sentAt: 0, tickAt: 0, finishAt: 0, note: '', unsub: null, unsubConn: null, hbT: 0,
     missingSince: null, dnfLocked: false, watch: 0,
-    pick: { car: pick.car, col: pick.col, vote: { ...pick.vote } }, oppSig: null, gb: 0, sd: null, match: null, asking: false, phase: 'pick'
+    pick: { car: pick.car, col: pick.col, vote: { ...pick.vote } }, oppSig: null, gb: 0, sd: null, match: null, asking: false, phase: 'pick',
+    cat: null, ck: null // cat and mouse: the round state (see @catmouse) and this side's own part of it (catBegin)
   };
   rpLast = p.pick;
   if (choice.car !== pick.car || choice.color !== pick.col) { choice = { car: pick.car, color: pick.col }; buildCars(); syncKxUI(); } // in memory only, like Sake Run's forced car
@@ -4132,8 +4247,8 @@ function renderRoom() {
 const rpModeName = m => T(m === 'cat' ? 'modeCat' : 'modeFirst');
 const rpVoteText = v => Lz(TRACKS[v.t].name) + '・' + rpModeName(v.m) + (v.m === 'cat' ? '・' + T('rpGapV', v.g) : '');
 const rpMatchText = r => Lz(TRACKS[r.t].name) + (r.dt ? T('rpDraw') : '') + '・' + rpModeName(r.m) + (r.dm ? T('rpDraw') : '') + (r.m === 'cat' ? '・' + T('rpGapV', r.g) + (r.dg ? T('rpDraw') : '') : '');
-// Cat and mouse is shown but cannot be picked until its gameplay exists (its votes, distance and draw already work end to end).
-const RP_CAT_OPEN = false;
+// Cat and mouse can be picked (set false to show it as "coming soon" again).
+const RP_CAT_OPEN = true;
 // (Re)build the room's pick buttons: on entering the room, a language change and a car change (each car has its own colour names).
 function rpBuild() {
   const p = pvp; if (!p) return;
@@ -4186,7 +4301,7 @@ function pvpLeave() {
   pvp = null; clearInterval(p.hbT); if (p.unsub) p.unsub(); if (p.unsubConn) p.unsubConn();
   p.rm.leave().catch(() => {});
   room.presence({ lobby: null }).catch(netFail);
-  startLat = 2.2;
+  startLat = 2.2; startS = 0;
   if (trackId !== p.prevTrack) buildTrack(p.prevTrack);
   choice = p.prevChoice; // the title's car again (room picks were never saved)
   buildCars(); syncKxUI(); state = 'title'; resetRace(); camOrbit = 0;
@@ -4197,10 +4312,10 @@ function pvpLeave() {
 function leaveToLobby(noteKey) { const n = nick, k = rpLast; pvpLeave(); nick = n; rpLast = k; openLobby(); lobbyNote(noteKey); } // still the same online session
 function pvpToRoom() {
   const p = pvp;
-  state = 'title'; resetRace();
+  state = 'title'; startS = 0; resetRace();
   for (const s of ['#hud', '#result']) $(s).hidden = true;
   $('#count').textContent = ''; $('#pop').classList.remove('show');
-  Object.assign(p, { st: 'waiting', ft: null, buf: [], pose: null }); rpReset(p); // the picks stay; the next round votes again
+  Object.assign(p, { st: 'waiting', ft: null, buf: [], pose: null, cat: null, ck: null }); rpReset(p); // the picks stay; the next round votes again
   pvpPublish({ c: null }); advertise(p);
   showPanel('room'); renderRoom(); focusRoom();
 }
@@ -4208,10 +4323,11 @@ function pvpBackToRoom() { const p = pvp; if (!p) return; if (!p.host && !p.oppP
 function beginCountdown(go) {
   const p = pvp;
   if (!p.match) rpResolve(); // normally done when the gearbox was asked
-  // p.match: { t, m, g } of this round. Cat and mouse ('cat') is not playable yet: the round runs as first-to-finish, with m / g kept as data.
+  // p.match: { t, m, g } of this match. Cat and mouse ('cat') runs rounds on the same course (catBegin); the leader starts CAT.LEAD m ahead.
   if (!p.match) p.match = { t: p.track, m: 'first', g: null, dt: false, dm: false, dg: false };
+  if (p.match.m === 'cat') catBegin(); else Object.assign(p, { cat: null, ck: null });
   Object.assign(p, { go, st: 'countdown', oppFt: null, ft: null, note: '' });
-  startLat = p.host ? 2.2 : -2.2; p.goAt = performance.now();
+  startLat = p.host ? 2.2 : -2.2; startS = p.cat ? catStart(p.cat.L, catMe(p)) : 0; p.goAt = performance.now();
   pvpPublish(); advertise(p);
   startRace();
 }
@@ -4219,6 +4335,7 @@ function beginCountdown(go) {
 function oppGone() {
   const p = pvp, was = p.st;
   Object.assign(p, { oppPeer: null, opp: null, buf: [], pose: null, oppLeft: true, lastPres: null, oppKey: '', oppSig: null });
+  if (catLive(p)) { catOppLeft(); return; } // a cat-and-mouse match still on: leaving (or forfeiting) gives the other player the win
   if (!p.host && was !== 'racing' && was !== 'finished') { leaveToLobby('pvpHostLeft'); return; }
   if (was === 'racing' || was === 'finished') { showPop(T('pvpLeft')); pvpPublish(); return; } // finish the run alone; the result says "left"
   p.note = 'pvpLeftRoom';
@@ -4237,6 +4354,7 @@ function ingest(pres, peers, now) {
   const prev = p.opp; p.opp = v;
   const it = intake(p.buf, v, now); p.buf = it.buf; if (it.reset) p.pose = null;
   if (v.st === 'finished' && v.ft !== null) p.oppFt = v.ft;
+  if (!p.host && catOn(p) && v.cm && v.cm.r === p.cat.r) { const had = catResult(p.cat); p.cat = v.cm; if (!had && catResult(p.cat)) catDecided(); } // the host's call on this round
   if (v.st === 'finished' && (!prev || prev.st !== 'finished') && state === 'race') showPop(T('pvpOppDone'), v.ft !== null ? fmtT(v.ft) : '');
   const key = v.car + ':' + v.col;
   if (key !== p.oppKey) { p.oppKey = key; scene.remove(rivalCar.g); disposeCar(rivalCar); rivalCar = makeCar(v.car, v.col); rivalCar.g.visible = false; renderer.compile(scene, camera); }
@@ -4265,6 +4383,7 @@ function pvpPoll(now = performance.now()) {
   if (opp && opp.presence !== p.lastPres) { p.lastPres = opp.presence; ingest(opp.presence, peers, now); }
   if (pvp !== p) return;
   const other = opp || holding ? p.opp : null;
+  if (catOn(p) && (p.ck.between || p.ck.left || catWinner(p.cat))) { if (p.ck.between) catStep(other); return; } // between rounds / match over: no room phases
   rpStep(other);
   // the host starts only once both gearboxes are chosen (phase go); before that the guest counts as not ready for raceSync
   const r = raceSync({ st: p.st, host: p.host, go: p.go }, p.host && p.st === 'ready' && p.phase !== 'go' && other ? { ...other, st: 'waiting' } : other);
@@ -4290,7 +4409,8 @@ function pvpFrame() {
   pvpPoll(now);
   if (pvp !== p) return;
   p.pose = interpRemote(p.buf, now);
-  if (state === 'count' || state === 'race' || state === 'done') pvpSend(now);
+  if ((state === 'count' || state === 'race' || state === 'done') && !(p.ck && p.ck.quiet)) pvpSend(now);
+  if (catOn(p)) catFrame(now);
   if (now - p.tickAt > 250) { p.tickAt = now; pvpResultTick(); }
 }
 function pvpSend(now) {
@@ -4337,15 +4457,21 @@ function pvpRelabel() {
   if (spec) specRender();
   if (!pvp) return;
   rpBuild(); renderRoom();
-  if (!$('#result').hidden) { $('#btnAgain').textContent = T('pvpBackRoom'); $('#btnMenu').textContent = T('pvpLeaveEnd'); resNames(); pvpResultTick(); }
+  if (!$('#result').hidden && catOn(pvp)) showCatResult();
+  else if (!$('#result').hidden) { $('#btnAgain').textContent = T('pvpBackRoom'); $('#btnMenu').textContent = T('pvpLeaveEnd'); resNames(); pvpResultTick(); }
 }
-function pvpFinished() { const p = pvp; p.ft = playerFinishT; p.finishAt = performance.now(); pvpSetSt('finished'); }
+function pvpFinished() {
+  const p = pvp; p.ft = playerFinishT; p.finishAt = performance.now();
+  if (catOn(p) && p.host && p.cat.L === 'h') p.ck.gapAt = FINISH_S - catOppS(p.finishAt); // the host leads: where the chaser is as we cross
+  pvpSetSt('finished');
+}
 // result tiles are labelled with the two nicknames (applyLang puts the plain labels back when the match ends)
 function resNames() {
   $('#resTimeLbl').textContent = T('pvpTimeOf', T('pvpYouTag', nickOf(nick)));
   $('#resOppLbl').textContent = T('pvpTimeOf', nickOf(pvp && pvp.opp && pvp.opp.nk));
 }
 function showPvpResult() {
+  if (catOn(pvp)) { showCatResult(); $('#hud').hidden = true; $('#result').hidden = false; ($('#btnAgain').disabled ? $('#btnMenu') : $('#btnAgain')).focus(); return; }
   $('#resTime').textContent = fmtT(playerFinishT);
   $('#resScore').textContent = Math.round(driftTotal).toLocaleString('zh-TW');
   const best = parseFloat(store.get(bestKey(trackId))); // shown only: a match time never touches the personal best
@@ -4357,7 +4483,9 @@ function showPvpResult() {
 }
 // Both finish times shown; until the other player crosses the line (or leaves, or DNF_WAIT_S passes) the title waits.
 function pvpResultTick() {
-  const p = pvp; if (!p || $('#result').hidden || p.ft === null) return;
+  const p = pvp; if (!p || $('#result').hidden) return;
+  if (catOn(p)) { showCatResult(); return; }
+  if (p.ft === null) return;
   resNames(); // the opponent's nickname can arrive or change while the result waits
   const over = p.oppFt !== null || p.oppLeft || (performance.now() - p.finishAt) / 1000 > DNF_WAIT_S;
   const t = $('#resTitle'), gap = $('#resGap'), o = $('#resOpp');
@@ -4367,6 +4495,126 @@ function pvpResultTick() {
   t.textContent = T(r.outcome === 'win' ? 'win' : r.outcome === 'lose' ? 'lose' : 'pvpTie'); t.className = 'res-title ' + (r.outcome === 'lose' ? 'lose' : 'win');
   o.textContent = r.dnf ? T(p.oppLeft ? 'pvpLeft' : 'pvpDnf') : fmtT(p.oppFt);
   gap.textContent = r.gap === null ? '—' : (r.outcome === 'win' ? '−' : r.outcome === 'lose' ? '+' : '') + r.gap.toFixed(2) + ' s';
+}
+
+/* ---------- online 1v1: cat and mouse (pure part: @catmouse) ---------- */
+/* p.cat: the round state { r, L, g, dg, hist }, the host's own or the host's as received (cm); p.ck: this side's part of the round:
+   trail (own { t, s }, for the host's call when it chases), gapAt (the host leads: the chaser's gap as the host crossed), cg (the
+   next-round distance vote), between (a draw: the next-round screen), quiet (round over: no more car samples), left (the other
+   player left or forfeited: we win). The gearbox (AT / MT) chosen for the match stays for every round. */
+const catOn = p => !!(p && p.cat && p.ck && p.match && p.match.m === 'cat');
+const catMe = p => (p.host ? 'h' : 'g');
+const catLive = p => catOn(p) && !p.ck.left && !catWinner(p.cat);
+function catBegin() {
+  const p = pvp, prev = p.ck;
+  if (p.host) { if (!p.cat) p.cat = catInit(p.sd, p.match.g, p.match.dg) || catInit(0, RP.GAP); } // round 1 from the host's draw seed; later rounds: catStep moved p.cat on
+  else {
+    const cm = p.opp && p.opp.cm;
+    if (cm && (!p.cat || cm.r > p.cat.r)) p.cat = cm;
+    else if (!p.cat) p.cat = catInit(p.opp && p.opp.sd, p.match.g, p.match.dg) || catInit(0, RP.GAP); // defensive: the host's state always carries cm
+  }
+  p.ck = { trail: [], gapAt: null, cg: prev ? prev.cg : p.cat.g, between: false, quiet: false, left: false, built: false, oppNk: p.opp ? p.opp.nk : prev ? prev.oppNk : null };
+}
+// the chaser's position as the host crosses: the newest sample carried forward (the drawn pose is NET.DELAY behind)
+function catOppS(now) { const o = interpRemote(pvp.buf, now + NET.DELAY); return o ? o.s : 0; }
+function catFrame(now) {
+  const p = pvp, k = p.ck;
+  if (p.opp) k.oppNk = p.opp.nk;
+  if (state === 'race') { const tr = k.trail, l = tr[tr.length - 1]; if (!l || raceT - l.t >= CAT.TRAIL_DT) tr.push({ t: raceT, s: car.loc.s }); }
+  if (p.host && catLive(p) && !catResult(p.cat) && (state === 'race' || state === 'done')) catJudge(now);
+}
+// The host's call: both finish times (each side's own race clock, as in a normal race) and the chaser's gap as the leader crossed.
+function catJudge(now) {
+  const p = pvp, c = p.cat, lead = c.L === 'h', myFt = p.ft, oppFt = p.oppFt, ftL = lead ? myFt : oppFt, ftF = lead ? oppFt : myFt;
+  let gap = null;
+  if (ftL !== null) { if (lead) gap = p.ck.gapAt; else { const s = trailAt(p.ck.trail, ftL); gap = s === null ? null : FINISH_S - s; } }
+  const res = judgeRound({ ftL, ftF, gap, g: c.g, sure: catSure(myFt, oppFt, raceT, myFt !== null ? now - p.finishAt : null) });
+  if (!res) return;
+  p.cat = catRecord(c, res); pvpPublish(); catDecided();
+}
+// this round has its result (our own call, or the host's): a car still on course stops racing
+function catDecided() {
+  const p = pvp, e = catResult(p.cat), win = catWinner(p.cat);
+  if (e.w === 'd') p.ck.between = true;
+  if (state === 'race') { state = 'done'; finishTimer = 1.6; if (driftChain > 0) { driftTotal += driftChain; driftChain = 0; } }
+  showPop(T(win ? (win === catMe(p) ? 'win' : 'catLose') : 'catDraw'));
+  if (!$('#result').hidden) catRefocus();
+}
+function catOppLeft() {
+  const p = pvp; p.ck.left = true; p.ck.between = false;
+  if (p.st === 'ready') p.st = 'finished';
+  pvpPublish(); advertise(p);
+  showPop(T('pvpLeft'));
+  if (state === 'race' || state === 'count') { state = 'done'; finishTimer = 1.6; $('#count').textContent = ''; }
+  else if (!$('#result').hidden) catRefocus();
+}
+// re-render the result; a button that was off (waiting for the call) takes the focus back once it is on
+function catRefocus() {
+  const a = document.activeElement; showCatResult();
+  if (!$('#btnAgain').disabled && (!a || a === document.body || a === $('#btnMenu'))) $('#btnAgain').focus();
+}
+function catHistText(e, name) {
+  const out = e.w === 'd' ? T('catOutD', e.gap ?? 0) : e.w === 'l' ? T('catOutL', name(e.L), e.gap ?? 0) : T('catOutF', name(catOther(e.L)));
+  return T('catHistRow', e.r, name(e.L), out);
+}
+// round / match result and, after a draw, the next-round screen (distance re-vote, ready); nicknames only through textContent
+function showCatResult() {
+  const p = pvp, c = p.cat, k = p.ck, me = catMe(p), e = catResult(c), win = k.left ? me : catWinner(c);
+  const name = side => (side === me ? T('catYou') : nickOf(k.oppNk));
+  $('#resEyebrow').textContent = T('catEyebrow', c.r);
+  const t = $('#resTitle');
+  if (win) { t.textContent = T(win === me ? 'win' : 'catLose'); t.className = 'res-title ' + (win === me ? 'win' : 'lose'); }
+  else if (e) { t.textContent = T('catDrawT'); t.className = 'res-title'; }
+  else { t.textContent = T('catJudging'); t.className = 'res-title wait'; }
+  $('#result .stats').hidden = true; $('#resCat').hidden = false;
+  $('#resCatNote').textContent = k.left ? T('catWhyLeft') : win ? T(e.w === 'f' ? 'catWhyPass' : 'catWhyAway', e.g) : e ? T('catSwap', T(catRole(c.L, me) === 'lead' ? 'catChase' : 'catLead')) : T('catNote', T(catRole(c.L, me) === 'lead' ? 'catLead' : 'catChase'), c.g);
+  const ol = $('#resCatHist'), rows = c.hist.map(x => catHistText(x, name)), sig = rows.join('\n');
+  if (ol.dataset.sig !== sig) {
+    ol.dataset.sig = sig; ol.textContent = '';
+    for (const r of rows) { const li = document.createElement('li'); li.textContent = r; ol.append(li); }
+    ol.hidden = !rows.length; ol.scrollTop = ol.scrollHeight;
+  }
+  if ((e || k.left) && !k.quiet) { k.quiet = true; pvpPublish({ c: null }); } // the round is over: our car leaves the other screens
+  $('#resNext').hidden = !k.between;
+  if (k.between) {
+    const box = $('#nextGap');
+    if (!k.built) {
+      k.built = true; box.textContent = '';
+      for (const g of RP.GAPS) { const b = document.createElement('button'); b.type = 'button'; b.className = 'rpbtn'; b.setAttribute('role', 'radio'); b.dataset.v = String(g); b.textContent = T('rpGapV', g); b.addEventListener('click', () => catVote(g)); box.append(b); }
+    }
+    for (const b of box.children) { b.setAttribute('aria-checked', String(Number(b.dataset.v) === k.cg)); b.disabled = p.st === 'ready'; }
+    const o = p.opp; $('#nextOpp').textContent = o ? T('catOppNext', o.cg ?? c.g, o.st === 'ready') : '';
+  }
+  const again = $('#btnAgain');
+  again.textContent = T(k.between ? (p.st === 'ready' ? 'catUnready' : 'catReady') : 'pvpBackRoom');
+  again.disabled = !e && !k.left; // waiting for the call: the match is still on
+  $('#btnMenu').textContent = T('pvpLeaveEnd');
+}
+function catVote(g) {
+  const p = pvp; if (!catOn(p) || !p.ck.between || p.st === 'ready' || validGapVote(g) === null) return;
+  p.ck.cg = g; pvpPublish(); showCatResult();
+}
+function catConfirm() {
+  const p = pvp; if (!catOn(p) || !p.ck.between) return;
+  initAudio(); pvpSetSt(p.st === 'ready' ? 'finished' : 'ready'); showCatResult(); pvpPoll();
+}
+// between rounds: once both are ready the host draws the next distance (resolveVote rule, a new seed), swaps the roles and starts the
+// countdown; the guest follows a newer go that carries the next round
+function catStep(other) {
+  const p = pvp, c = p.cat; if (!other) return;
+  if (p.host) {
+    if (p.st !== 'ready' || other.st !== 'ready') return;
+    const ng = catNextGap(p.ck.cg, other.cg ?? c.g, rand4().reduce((a, b) => a * 256 + b, 0)), nx = ng && catNext(c, ng.g, ng.dg);
+    if (nx) { p.cat = nx; beginCountdown(p.go + 1); }
+  } else if (other.st === 'countdown' && other.go > p.go && other.cm && other.cm.r === c.r + 1) beginCountdown(other.go);
+}
+function catHud() {
+  const p = pvp, on = catOn(p), el = $('#catHud');
+  if (el.hidden !== !on) el.hidden = !on;
+  if (!on) return;
+  const c = p.cat, lead = catRole(c.L, catMe(p)) === 'lead';
+  $('#catRound').textContent = T('catHudRound', c.r, T(lead ? 'catLead' : 'catChase'));
+  $('#catRule').textContent = T(lead ? 'catRuleLead' : 'catRuleChase', c.g) + (c.dg ? T('rpDraw') : '');
 }
 
 /* ---------- online: watching a public race ---------- */
@@ -4503,7 +4751,17 @@ function specRender() {
   $('#specGap').textContent = st.gap !== null ? T('specGap', st.gap) : '';
   const out = sd => !sd.peer || sd.gone || (!!sd.v && !['countdown', 'racing', 'finished'].includes(sd.v.st)); // not (or no longer) in this round
   let res = '', wait = false;
-  if (A.ft !== null && B.ft !== null) { const r = pvpResult(A.ft, B.ft); res = r.outcome === 'tie' ? T('pvpTie') : T('specWins', nm(r.outcome === 'win' ? A : B)); }
+  const cm = A.v && A.v.cm, nmS = x => nm(x === 'h' ? A : B); // cat and mouse: the host's round state
+  const sc = $('#specCat'); if (sc.hidden !== !cm) sc.hidden = !cm;
+  if (cm) {
+    $('#specCatLine').textContent = T('catSpecLine', cm.r, nmS(cm.L), nmS(catOther(cm.L)), cm.g);
+    $('#specCatHist').textContent = cm.hist.slice(-3).map(e => catHistText(e, nmS)).join('\n');
+    const e = catResult(cm), w = catWinner(cm);
+    if (w) res = T('specWins', nmS(w));
+    else if (B.gone) res = T('specWins', nm(A));
+    else if (e) res = T('catDraw');
+    else if (A.ft !== null || B.ft !== null) { res = T('catJudging'); wait = true; }
+  } else if (A.ft !== null && B.ft !== null) { const r = pvpResult(A.ft, B.ft); res = r.outcome === 'tie' ? T('pvpTie') : T('specWins', nm(r.outcome === 'win' ? A : B)); }
   else if (A.ft !== null || B.ft !== null) { const w = A.ft !== null ? A : B, l = w === A ? B : A; if (out(l)) res = T('specWins', nm(w)); else { res = T('specWaitOther'); wait = true; } }
   else if (!A.v) { res = T('specWaitHost'); wait = true; }
   else if (out(A) && out(B)) { res = T('specBetween'); wait = true; }
@@ -5013,7 +5271,7 @@ function tryLandscape() {
 $('#btnStart').addEventListener('click', tryLandscape);
 $('#btnOnline').addEventListener('click', () => { if ($('#btnOnline').getAttribute('aria-disabled') !== 'true') tryLandscape(); });
 $('#btnStart').addEventListener('click', () => askTrans(startRace));
-$('#btnAgain').addEventListener('click', () => pvp ? pvpBackToRoom() : askTrans(startRace));
+$('#btnAgain').addEventListener('click', () => pvp ? (catOn(pvp) && pvp.ck.between ? catConfirm() : pvpBackToRoom()) : askTrans(startRace));
 function returnToTitle() {
   taEnd(); sakeEnd(); resetRace(); camOrbit = 0; $('#count').textContent = ''; $('#pop').classList.remove('show');
   $('#result').hidden = true; $('#hud').hidden = true; $('#title').hidden = false; renderPicker(); $('#btnStart').focus();
