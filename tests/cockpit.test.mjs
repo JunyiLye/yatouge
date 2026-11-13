@@ -297,3 +297,12 @@ test('cockpitMotion：縱向用 leanStep（相同輸入 → 相同前移與低�
   for (let i = 0; i < 90; i++) { const a = i < 45 ? -20 : 6; cockpitMotion(m, { ...rest, aLong: a }, 1 / 60); leanStep(s, a, 1 / 60); }
   near(m.z, s.z, 1e-12); near(m.pitch, s.pitch, 1e-12);
 });
+
+test('SR-7 引擎蓋：0.95 ≤ z ≤ 2.165 的肩線到中線落差不超過 5 cm，且肩線仍高於中線', () => {
+  const rows = loadCab().coupe.body.filter(r => r[0] >= 0.95 && r[0] <= 2.165);
+  assert.equal(rows.length, 7);
+  for (const [z, , , yS, , yC] of rows) {
+    const drop = yS - yC;
+    assert.ok(drop > 0 && drop <= 0.05 + 1e-9, `z=${z} 落差 ${drop}`);
+  }
+});
