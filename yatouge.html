@@ -3167,7 +3167,7 @@ function driftFollow(diff, s, gas, counter, Pdrift) {
 /* @drift-follow:end */
 /* @vehicle:start */
 // Pure motion core of physics(), split in two so the gutter logic can run between them. c: { steer, h, w, vx, vz, drift, penalty }
-// u: { sIn, gas, brake, hb }; loc: { grade, h } of the road under the car. Mutates c; no DOM / globals besides clamp, wrap, engineForce, driftFollow.
+// u: { sIn, gas, brake, hb, hold }; loc: { grade, h } of the road under the car. Mutates c; no DOM / globals besides clamp, wrap, engineForce, driftFollow.
 function vehicleAccel(c, P, u, loc, dt) {
   const rate = u.analog ? 14 : (u.sIn === 0 || Math.sign(u.sIn) !== Math.sign(c.steer)) ? 7 : 4.5; // a finger is already smooth: follow it closely
   c.steer += clamp(u.sIn - c.steer, -rate * dt, rate * dt);
@@ -3182,6 +3182,7 @@ function vehicleAccel(c, P, u, loc, dt) {
   a -= P.drag * vf * Math.abs(vf) + (Math.abs(vf) > 0.3 ? Math.sign(vf) * P.roll : 0);
   a += -9.8 * loc.grade * (fx * Math.sin(loc.h) + fz * Math.cos(loc.h)) * 0.7;
   if (!u.gas && !u.brake && Math.abs(vf) < 0.4) a -= vf * 4;
+  if (u.hold && u.brake && vf <= 0.5) return -vf / dt; // u.hold (after the finish): the brake stops the car and keeps it there, no reverse creep, no rolling on the slope
   return a;
 }
 // Drift starts only from the handbrake; without it the tyres hold and the car understeers at the grip limit. Returns the forward speed.
@@ -3224,7 +3225,7 @@ function physics(dt) {
   const gas = !auto && input.gas, brake = auto || input.brake, hb = !auto && input.hb;
   const analog = !auto && input.steerAxis !== null;
   const sIn = auto ? 0 : analog ? input.steerAxis : (input.right ? 1 : 0) - (input.left ? 1 : 0);
-  const u = { sIn, gas, brake, hb, analog };
+  const u = { sIn, gas, brake, hb, analog, hold: auto };
   if (trans === 'manual') { c.shiftT = gbStep(c.shiftT, dt); u.mul = gbMul(choice.car, c.gear, Math.max(0, c.vx * Math.sin(c.h) + c.vz * Math.cos(c.h)), c.shiftT); }
   else { const r = atStep(c.autoGear, c.shiftT, Math.hypot(c.vx, c.vz), c.vx * Math.sin(c.h) + c.vz * Math.cos(c.h), GEARS, dt, state === 'race'); c.autoGear = r.gear; c.shiftT = r.shiftT; u.mul = atMul(c.shiftT); }
   const a = vehicleAccel(c, P, u, loc, dt);

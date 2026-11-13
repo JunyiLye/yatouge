@@ -78,3 +78,28 @@ test('髮夾：GT-32 不是推頭牆——可通過速度至少是 KX-2 的 80%�
 test('髮夾：模擬是決定性的（同一輸入兩次結果相同）', () => {
   assert.deepEqual(run('gtr', 22, 17, 'grip'), run('gtr', 22, 17, 'grip'));
 });
+
+// 衝線後的自動煞車：停住就停住，不可倒車（下坡也一樣）；一般煞車的倒車蠕行維持原樣
+function stopSim(u, grade, secs, v0 = 20) {
+  const P = { ...CARS.hatch.phys, brake: 24, drag: 0.0008, roll: 0.3 };
+  const c = { x: 0, z: 0, h: 0, vx: 0, vz: v0, w: 0, steer: 0, drift: false, penalty: 0 };
+  let minVf = Infinity, vf = v0;
+  for (let i = 0; i < secs * 120; i++) {
+    const a = vehicleAccel(c, P, u, { grade, h: 0 }, 1 / 120);
+    vf = vehicleTurn(c, P, u, a, 1 / 120);
+    c.x += c.vx / 120; c.z += c.vz / 120;
+    minVf = Math.min(minVf, vf);
+  }
+  return { vf, minVf };
+}
+test('衝線自動煞車（hold）：下坡 20 m/s 煞到停住，之後不倒車也不前滑', () => {
+  for (const grade of [0, 0.05, 0.1]) {
+    const r = stopSim({ sIn: 0, gas: false, brake: true, hb: false, hold: true }, grade, 12);
+    assert.ok(r.minVf >= -1e-6, `grade ${grade} 倒車了：${r.minVf}`);
+    assert.ok(Math.abs(r.vf) < 0.01, `grade ${grade} 沒停住：${r.vf}`);
+  }
+});
+test('一般煞車（無 hold）：停下後仍會倒車蠕行到約 -6 m/s（維持原行為）', () => {
+  const r = stopSim({ sIn: 0, gas: false, brake: true, hb: false }, 0, 12);
+  assert.ok(r.minVf < -5.5, `應倒車蠕行：${r.minVf}`);
+});
