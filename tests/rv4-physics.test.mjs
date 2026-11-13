@@ -99,16 +99,21 @@ function driftTest(k) { // 25 m/s 進彎：轉向 0.6 持續 1 秒、第 0.3–0
   }
   return { peak, dur, vEnd: Math.hypot(c.vx, c.vz) };
 }
+function sustainedDrift(k) { // 同一個進彎，但方向盤一直壓著不回正的 4 秒長甩尾（全程油門）；回傳 4 秒後車速 (m/s)
+  const P = physOf(k), c = newCar(25), D = 1 / 60; let t = 0;
+  while (t < 4) { const u = { sIn: t > 0.1 ? 0.6 : 0, gas: true, brake: false, hb: t > 0.3 && t < 0.65 }; const a = vehicleAccel(c, P, u, ROAD, D); vehicleTurn(c, P, u, a, D); c.x += c.vx * D; c.z += c.vz * D; t += D; }
+  return Math.hypot(c.vx, c.vz);
+}
 function exitSpeed(k, vA) { // 出彎：從彎心速度 vA 起、全油門、方向盤 0.5 持續 1.5 秒再放開；回傳 3.5 秒後的車速 (m/s)
   const P = physOf(k), c = newCar(vA), D = 1 / 60; let t = 0;
   while (t < 3.5) { const u = { sIn: t < 1.5 ? 0.5 : 0, gas: true, brake: false, hb: false }; const a = vehicleAccel(c, P, u, ROAD, D); vehicleTurn(c, P, u, a, D); c.x += c.vx * D; c.z += c.vz * D; t += D; }
   return Math.hypot(c.vx, c.vz);
 }
 const M = {};
-for (const k of KEYS) { const c22 = corner(k, 22), c30 = corner(k, 30); M[k] = { ...launch(k), c22, c30, ...driftTest(k), exit: exitSpeed(k, c22 - 1.5) }; }
+for (const k of KEYS) { const c22 = corner(k, 22), c30 = corner(k, 30); M[k] = { ...launch(k), c22, c30, ...driftTest(k), exit: exitSpeed(k, c22 - 1.5), sust: sustainedDrift(k) }; }
 if (process.env.RV4_DUMP) {
-  console.log('car    0-60  0-100  top   R22  R30  slipPk  driftDur  driftExit  powerExit(m/s)');
-  for (const k of KEYS) { const m = M[k]; console.log(k.padEnd(6), m.t60.toFixed(2), m.t100.toFixed(2).padStart(6), m.top.toFixed(0).padStart(5), m.c22.toFixed(2).padStart(5), m.c30.toFixed(2).padStart(5), m.peak.toFixed(2).padStart(6), m.dur.toFixed(2).padStart(8), m.vEnd.toFixed(1).padStart(9), m.exit.toFixed(1).padStart(14)); }
+  console.log('car    0-60  0-100  top   R22  R30  slipPk  driftDur  driftExit  powerExit  sustDrift(m/s)');
+  for (const k of KEYS) { const m = M[k]; console.log(k.padEnd(6), m.t60.toFixed(2), m.t100.toFixed(2).padStart(6), m.top.toFixed(0).padStart(5), m.c22.toFixed(2).padStart(5), m.c30.toFixed(2).padStart(5), m.peak.toFixed(2).padStart(6), m.dur.toFixed(2).padStart(8), m.vEnd.toFixed(1).padStart(9), m.exit.toFixed(1).padStart(10), m.sust.toFixed(1).padStart(11)); }
 }
 
 test('平衡：起步（0–60 km/h）四台車最快；0–100 介於 GT-32 與 SR-7 之間、貼近 SR-7', () => {
@@ -126,8 +131,12 @@ test('平衡：甩尾比 SR-7 難（滑移角較小、很快回正）', () => {
   assert.ok(M.rally.peak < M.coupe.peak, `peak ${M.rally.peak} < ${M.coupe.peak}`);
   assert.ok(M.rally.dur < M.coupe.dur * 0.7, `dur ${M.rally.dur} < 0.7 * ${M.coupe.dur}`);
 });
-test('平衡：甩出彎的速度（driftExit）四台車最高：低 slide 讓甩尾不吃速度', () => {
-  for (const k of ['hatch', 'coupe', 'gtr']) assert.ok(M.rally.vEnd > M[k].vEnd, `rally ${M.rally.vEnd} > ${k} ${M[k].vEnd}`);
+test('平衡：短甩尾出彎的速度（driftExit）高於 GT-32，與 SR-7 / KX-2 差在 3% 內（甩尾不再特別划算）', () => {
+  assert.ok(M.rally.vEnd > M.gtr.vEnd, `rally ${M.rally.vEnd} > gtr ${M.gtr.vEnd}`);
+  for (const k of ['hatch', 'coupe']) assert.ok(Math.abs(M.rally.vEnd - M[k].vEnd) / M[k].vEnd < 0.03, `rally ${M.rally.vEnd} vs ${k} ${M[k].vEnd}`);
+});
+test('平衡：持續 4 秒的長甩尾，RV-4 的車速低於 SR-7 與 KX-2（甩尾不划算）、高於 GT-32', () => {
+  assert.ok(M.rally.sust < M.coupe.sust && M.rally.sust < M.hatch.sust && M.rally.sust > M.gtr.sust, `${M.gtr.sust} < ${M.rally.sust} < ${M.coupe.sust}, ${M.hatch.sust}`);
 });
 test('平衡：全油門帶方向盤出彎（powerExit）勝過 KX-2 與 SR-7；GT-32 的純直線動力更大，不在此比較', () => {
   for (const k of ['hatch', 'coupe']) assert.ok(M.rally.exit > M[k].exit + 0.3, `rally ${M.rally.exit} > ${k} ${M[k].exit}`);
