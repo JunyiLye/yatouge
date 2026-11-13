@@ -477,6 +477,8 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <p id="tSake" class="note" data-i18n="sakeLocked" hidden></p>
     <div class="lbl" style="margin-top:16px" data-i18n="pickTrack">選擇賽道</div>
     <div class="pick" id="trackPick" role="radiogroup" data-i18n-aria="pickTrackAria" aria-label="選擇賽道"></div>
+    <div class="lbl" style="margin-top:16px" data-i18n="dirLbl">行駛方向</div>
+    <div class="pick" id="dirPick" role="radiogroup" data-i18n-aria="dirAria" aria-label="選擇行駛方向"></div>
     <div class="lbl" style="margin-top:16px" data-i18n="pick">選擇你的車</div>
     <div class="pick" id="pick" role="radiogroup" data-i18n-aria="pickAria" aria-label="選擇車輛"></div>
     <div class="swatches" id="swatches" role="radiogroup" data-i18n-aria="paintAria" aria-label="車色"></div>
@@ -743,8 +745,8 @@ const confirmKeys = (what, ta, sake) => what === 'lobby' ? { q: 'igLobbyAsk', ye
 // Player-facing release notes, newest first (at most 12 versions). Add today's version, or extend it, whenever a change the player can see goes out.
 const CHANGELOG = [
   { date: '2026-11-14',
-    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。'],
-    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.'] },
+    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：主畫面選好賽道後可以切換「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式與線上對戰仍是下坡）。'],
+    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after picking a course on the title screen you can switch between Downhill and Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run and online matches stay downhill).'] },
   { date: '2026-11-13',
     zh: ['彎道前會出現提示圖示，可以在設定裡關掉。', '送酒模式通關有獎勵：KX-2 的極速升級開關，以及白色碳纖維引擎蓋塗裝。', '遊戲內選單新增「重新開始」與「回到大廳」。', '比賽結束後車子不會再倒退。', 'SR-7 新增引擎蓋與尾燈細節。', '手機車內視角：後照鏡縮小，KX-2 與 GT-32 的儀表降低，視野更開闊。', '鍵盤與手把的按鍵都可以自己設定。', '線上房間可以聊天、玩貓捉老鼠，也能在房間裡選賽道和車。', '三台車的外型都依真車照片重新製作。'],
     en: ['Turn signs now appear before corners; you can switch them off in settings.', 'Sake Run rewards: a top-speed upgrade switch for the KX-2 and a white carbon-fibre hood paint.', 'The in-game menu now has Restart and Back to lobby.', 'The car no longer rolls backwards after the race ends.', 'New hood and tail-light details on the SR-7.', 'Phone cockpit view: smaller rear-view mirror, and lower dashboards on the KX-2 and GT-32 for a clearer view.', 'Keyboard and controller buttons can be rebound.', 'Online rooms now have chat and Cat and Mouse, and you can pick the course and car inside the room.', 'All three cars were rebuilt from photos of the real cars.'] },
@@ -1014,13 +1016,13 @@ const I18N = {
   zh: {
     canvas: '夜峠下坡 3D 畫面', time: '時間', score: '甩尾分數', musicOn: '音樂：開', musicOff: '音樂：關', bgmLbl: '背景音樂', bgmSynth: '原創', bgmOwn: n => `自選 — ${n}`, ownPick: '選擇音樂', ownClear: '移除', ownBad: '不是音訊檔', ownBig: '檔案超過 50 MB', reset: '回到路面',
     steerZone: '轉向：左右拖曳', rotate: '請將手機轉為橫向', hb: '手煞', brake: '煞車', gas: '油門',
-    course: (name, km, n) => `${name} · 下坡 ${km} km${n ? ` · ${n} 個髮夾彎` : ''}`, trackSub: (km, n) => `${km} km${n ? ` · ${n} 個髮夾彎` : ''}`, logo2: '下坡',
-    lead: name => `凌晨兩點的${name}，路上只剩你和前面那台對手車。跟緊它，在彎道甩尾超車，先衝到山腳的人贏。`,
-    pickTrack: '選擇賽道', pickTrackAria: '選擇賽道', pick: '選擇你的車', pickAria: '選擇車輛', paintAria: '車色',
+    course: (name, km, n, up) => `${name} · ${up ? '上坡' : '下坡'} ${km} km${n ? ` · ${n} 個髮夾彎` : ''}`, trackSub: (km, n) => `${km} km${n ? ` · ${n} 個髮夾彎` : ''}`, logo2: '下坡',
+    lead: (name, up) => `凌晨兩點的${name}，路上只剩你和前面那台對手車。跟緊它，在彎道甩尾超車，先衝到${up ? '山頂' : '山腳'}的人贏。`,
+    pickTrack: '選擇賽道', pickTrackAria: '選擇賽道', dirLbl: '行駛方向', dirAria: '選擇行駛方向', dirDown: '下坡', dirUp: '上坡', dirDownD: '從山頂開到山腳', dirUpD: '從山腳開到山頂，要頂著重力往上爬', pick: '選擇你的車', pickAria: '選擇車輛', paintAria: '車色',
     kGas: '油門', kBrake: '煞車／倒車', kSteer: '轉向', kHb: '手煞車，轉彎時拉一下讓車尾滑出去', kMisc: '回到路面／音樂開關',
-    start: '開始下坡',
+    start: (name, up) => up ? '開始上坡' : '開始下坡',
     note: '不拉手煞車時輪胎會抓地，轉太快只會推頭。入彎先減速，轉向的同時點一下手煞就能甩起來，反打方向盤可以收住車尾。手機請橫著握：左手在左下角左右拖曳轉向，右手按油門、煞車、手煞。',
-    resEyebrow: '山腳終點', win: '你贏了', lose: '被甩開了', resTime: '完賽時間', resGap: '與對手差距', resScore: '甩尾分數', resBest: '個人最佳',
+    resEyebrow: (name, up) => up ? '山頂終點' : '山腳終點', win: '你贏了', lose: '被甩開了', resTime: '完賽時間', resGap: '與對手差距', resScore: '甩尾分數', resBest: '個人最佳',
     menu: '回主畫面選車', again: '同一台再跑', lang: 'English',
     wall: '撞牆', wallPen: s => `${s.toFixed(1)} 秒內幾乎無法加速`, wallScore: '甩尾分數歸零',
     behind: n => `落後對手 ${n} m`, ahead: n => `領先對手 ${n} m`, leadBy: n => `領先 ${n} m`,
@@ -1065,7 +1067,7 @@ const I18N = {
     kbInfoKeys: '點一下格子再按新的鍵，每個動作可設 1–2 個鍵。Esc、Enter、Tab、R 與觀戰的 1／2／3 固定不變。', kbInfoPad: '點一下格子（或用十字鍵選到後按 A）再按手把按鈕。左搖桿固定為轉向；A、B、Menu 與十字鍵的選單操作固定不變。',
     kbCapKey: '請按新的鍵，Esc 取消', kbCapPad: '請按手把按鈕，B 取消', kbSet: (a, k) => `「${a}」設為 ${k}`, kbSwap: a => `已與「${a}」互換`, kbMoved: a => `已從「${a}」移過來`,
     kbLast: a => `「${a}」只剩這個鍵，不能移走`, kbFixed: k => `${k} 是固定按鍵，不能設定`, kbBad: '這個鍵不能使用', kbCancel: '已取消', kbCleared: '已移除', kbDone: '已恢復預設', shiftUp: '升檔', shiftDown: '降檔',
-    modeLbl: '模式', modeRace: '比賽', modeRaceD: '跟對手車比誰先衝到山腳。', modeTa: '計時賽', modeTaD: '沒有對手，挑戰自己的最佳時間與幽靈車。',
+    modeLbl: '模式', modeRace: '比賽', modeRaceD: up => up ? '跟對手車比誰先衝到山頂。' : '跟對手車比誰先衝到山腳。', modeTa: '計時賽', modeTaD: '沒有對手，挑戰自己的最佳時間與幽靈車。',
     leadTa: name => `凌晨兩點的${name}，整條路只屬於你。沒有對手，只有碼表和上一次最快的自己。`,
     taGhost: '幽靈車', taBestIs: t => `最佳 ${t}`, taFirst: '第一次計時', taVsBest: d => `與最佳 ${d} 秒`,
     taNew: '新紀錄！', taDone: '完賽', taGap: '與最佳差距', taQuit: '放棄', taQuitAsk: '確定放棄這次計時？紀錄不會儲存。', taQuitYes: '是，放棄', taQuitted: '已放棄，紀錄未儲存',
@@ -1075,7 +1077,7 @@ const I18N = {
     chatLbl: '聊天', chatMsgs: '聊天訊息', chatSend: '送出', chatSpec: '觀戰', chatPh: k => `按 ${k} 或點這裡輸入訊息`, chatPhRace: 'Enter 送出，Esc 關閉', chatWait: s => `傳太快了，${s} 秒後再試`,
     modeSake: '送酒模式', modeSakeD: '開白色 KX-2 從青嵐峠送一杯酒下山。限時 3:15，碰牆第三次就失敗。',
     leadSake: name => `凌晨兩點的${name}，杯架上放著一杯要送下山的酒。3 分 15 秒內送到山腳，別讓車子擦到護欄。`,
-    sakeLocked: '送酒模式固定使用白色 KX-2、青嵐峠與車內視角，不會改動你原本的選擇。',
+    sakeLocked: '送酒模式固定使用白色 KX-2、下坡的青嵐峠與車內視角，不會改動你原本的選擇。',
     sakeLeftLbl: '剩餘時間', sakeCupsAria: n => `還能碰牆 ${n} 次`, sakeLiq: n => `酒 ${n}%`,
     sakeHit: (n, max) => `碰牆 ${n}/${max}`, sakeHitSub: '酒灑出來了一點',
     sakeOk: '酒送達！', sakeFailHits: '撞太多次了', sakeFailTime: '超時', sakeEyebrowFail: '送酒失敗', sakeNew: '新紀錄！',
@@ -1085,13 +1087,13 @@ const I18N = {
   en: {
     canvas: 'Night Pass Downhill 3D view', time: 'TIME', score: 'DRIFT SCORE', musicOn: 'Music: on', musicOff: 'Music: off', bgmLbl: 'Music', bgmSynth: 'Original', bgmOwn: n => `Mine — ${n}`, ownPick: 'Choose music', ownClear: 'Remove', ownBad: 'Not an audio file', ownBig: 'File over 50 MB', reset: 'Back on road',
     steerZone: 'Steering: drag left or right', rotate: 'Rotate your phone to landscape', hb: 'E-brake', brake: 'Brake', gas: 'Gas',
-    course: (name, km, n) => `${name} · Downhill ${km} km${n ? ` · ${n} hairpins` : ''}`, trackSub: (km, n) => `${km} km${n ? ` · ${n} hairpins` : ''}`, logo2: 'Downhill',
-    lead: name => `2 a.m. on ${name}. The road is empty except for you and the rival car ahead. Stay on its tail, drift past it in the corners, and be first to the bottom.`,
-    pickTrack: 'Choose a course', pickTrackAria: 'Choose a course', pick: 'Choose your car', pickAria: 'Choose your car', paintAria: 'Paint',
+    course: (name, km, n, up) => `${name} · ${up ? 'Uphill' : 'Downhill'} ${km} km${n ? ` · ${n} hairpins` : ''}`, trackSub: (km, n) => `${km} km${n ? ` · ${n} hairpins` : ''}`, logo2: 'Downhill',
+    lead: (name, up) => `2 a.m. on ${name}. The road is empty except for you and the rival car ahead. Stay on its tail, drift past it in the corners, and be first to the ${up ? 'top' : 'bottom'}.`,
+    pickTrack: 'Choose a course', pickTrackAria: 'Choose a course', dirLbl: 'Direction', dirAria: 'Choose the direction', dirDown: 'Downhill', dirUp: 'Uphill', dirDownD: 'From the summit to the foot', dirUpD: 'From the foot to the summit, fighting gravity all the way', pick: 'Choose your car', pickAria: 'Choose your car', paintAria: 'Paint',
     kGas: 'Throttle', kBrake: 'Brake / reverse', kSteer: 'Steer', kHb: 'Handbrake: tap it in a corner to kick the tail out', kMisc: 'Back on road / music on-off',
-    start: 'Start the run',
+    start: (name, up) => up ? 'Start the climb' : 'Start the run',
     note: 'Without the handbrake the tyres grip, and turning too hard just pushes the nose wide. Slow down before the corner, tap the handbrake as you turn in to start a drift, and counter-steer to catch the tail. On a phone, hold it sideways: drag left or right in the bottom-left corner to steer, and use the pedals on the right.',
-    resEyebrow: 'Finish at the foot of the mountain', win: 'You win', lose: 'Left behind', resTime: 'Finish time', resGap: 'Gap to rival', resScore: 'Drift score', resBest: 'Personal best',
+    resEyebrow: (name, up) => up ? 'Finish at the summit' : 'Finish at the foot of the mountain', win: 'You win', lose: 'Left behind', resTime: 'Finish time', resGap: 'Gap to rival', resScore: 'Drift score', resBest: 'Personal best',
     menu: 'Back to car select', again: 'Race again', lang: '中文',
     wall: 'Wall hit', wallPen: s => `Almost no power for ${s.toFixed(1)} s`, wallScore: 'Drift chain lost',
     behind: n => `${n} m behind rival`, ahead: n => `${n} m ahead of rival`, leadBy: n => `${n} m ahead`,
@@ -1136,7 +1138,7 @@ const I18N = {
     kbInfoKeys: 'Click a slot, then press the new key. 1–2 keys per action. Esc, Enter, Tab, R and the spectator keys 1 / 2 / 3 are fixed.', kbInfoPad: 'Click a slot (or pick it with the D-pad and press A), then press a pad button. The left stick always steers; A, B, Menu and the D-pad menu controls are fixed.',
     kbCapKey: 'Press the new key. Esc cancels.', kbCapPad: 'Press a pad button. B cancels.', kbSet: (a, k) => `${a} set to ${k}`, kbSwap: a => `Swapped with ${a}`, kbMoved: a => `Moved from ${a}`,
     kbLast: a => `${a} needs at least one key`, kbFixed: k => `${k} is fixed and can't be bound`, kbBad: "That key can't be used", kbCancel: 'Cancelled', kbCleared: 'Removed', kbDone: 'Defaults restored', shiftUp: 'Shift up', shiftDown: 'Shift down',
-    modeLbl: 'Mode', modeRace: 'Race', modeRaceD: 'Beat the rival car to the bottom.', modeTa: 'Time attack', modeTaD: 'No rival. Chase your best time and your ghost car.',
+    modeLbl: 'Mode', modeRace: 'Race', modeRaceD: up => `Beat the rival car to the ${up ? 'top' : 'bottom'}.`, modeTa: 'Time attack', modeTaD: 'No rival. Chase your best time and your ghost car.',
     leadTa: name => `2 a.m. on ${name}, and the road is all yours. No rival, just the clock and the ghost of your fastest run.`,
     taGhost: 'Ghost car', taBestIs: t => `Best ${t}`, taFirst: 'First timed run', taVsBest: d => `${d} s vs best`,
     taNew: 'NEW RECORD', taDone: 'Finished', taGap: 'Gap to best', taQuit: 'Quit', taQuitAsk: 'Quit this run? Nothing will be saved.', taQuitYes: 'Yes, quit', taQuitted: 'Run abandoned. Nothing saved.',
@@ -1146,7 +1148,7 @@ const I18N = {
     chatLbl: 'Chat', chatMsgs: 'Chat messages', chatSend: 'Send', chatSpec: 'Watching', chatPh: k => `Press ${k} or tap here to chat`, chatPhRace: 'Enter to send, Esc to close', chatWait: s => `Too fast. Try again in ${s} s`,
     modeSake: 'Sake Run', modeSakeD: 'Carry a cup of sake down Seiran in the white KX-2. 3:15 on the clock; the third wall hit ends the run.',
     leadSake: name => `2 a.m. on ${name}, with a cup of sake in the holder. Get it to the bottom within 3:15, and keep off the rails.`,
-    sakeLocked: 'Sake Run always uses the white KX-2, Seiran Pass and the cockpit view. Your own picks are left as they are.',
+    sakeLocked: 'Sake Run always uses the white KX-2, Seiran Pass downhill and the cockpit view. Your own picks are left as they are.',
     sakeLeftLbl: 'TIME LEFT', sakeCupsAria: n => `${n} wall hits left`, sakeLiq: n => `Sake ${n}%`,
     sakeHit: (n, max) => `Wall ${n}/${max}`, sakeHitSub: 'A little sake spilled',
     sakeOk: 'Sake delivered!', sakeFailHits: 'Too many hits', sakeFailTime: 'Out of time', sakeEyebrowFail: 'Delivery failed', sakeNew: 'NEW RECORD',
@@ -1324,12 +1326,29 @@ const TRACKS = {
   seiran: { name: { zh: '青嵐峠', en: 'Seiran Pass' }, gate: '青嵐峠 下坡起點 · START', pts: seiranPts, waypoints: SEIRAN_WP },
   hakuro: { name: { zh: '白狼峠', en: 'Hakuro Pass' }, gate: '白狼峠 下坡起點 · START', pts: hakuroPts, waypoints: HAKURO_WP, hw: 6.2 }
 };
+/* uphill variant of a course: the same road driven the other way. Each course is also built as "<id>_up". */
+const UP_SUFFIX = '_up', DIRS = ['down', 'up'];
+const upId = id => id + UP_SUFFIX, isUp = id => typeof id === 'string' && id.endsWith(UP_SUFFIX), baseId = id => isUp(id) ? id.slice(0, -UP_SUFFIX.length) : id;
+const trackFrom = v => typeof baseId(v) === 'string' && Object.hasOwn(TRACKS, baseId(v)) ? baseId(v) : 'kurosagi'; // a saved course id (junk, or a variant id by mistake) -> a plain course id
+const dirFrom = v => v === 'up' ? 'up' : 'down';
+const courseId = (track, dir) => dirFrom(dir) === 'up' ? upId(baseId(track)) : baseId(track);
+const gateLabel = id => isUp(id) ? TRACKS[baseId(id)].gate.replace('下坡', '上坡') : TRACKS[id].gate;
+// walking the points backwards: heights stay with their points (the road still drops the same way), s / heading / curvature are redone for the new direction
+function reversePts(pts) {
+  const N = pts.length, T = pts[N - 1].s;
+  return pts.map((_, j) => {
+    const o = pts[N - 1 - j];
+    return { x: o.x, z: o.z, h: wrap(o.h + Math.PI), s: T - o.s, k: j ? -pts[N - j].k : 0, y: o.y };
+  });
+}
 function buildCourse(id) {
-  const { pts, hairpins } = TRACKS[id].pts(), N = pts.length;
-  for (const p of pts) p.y = 230 - p.s * 0.062 + 2.5 * Math.sin(p.s / 70);
+  const base = baseId(id), up = isUp(id);
+  const gen = TRACKS[base].pts(), N = gen.pts.length;
+  for (const p of gen.pts) p.y = 230 - p.s * 0.062 + 2.5 * Math.sin(p.s / 70);
+  const pts = up ? reversePts(gen.pts) : gen.pts, hairpins = gen.hairpins;
   for (let i = 0; i < N; i++) { let a = 0, c = 0; for (let j = i - 8; j <= i + 8; j++) if (j >= 0 && j < N) { a += pts[j].k; c++; } pts[i].ks = a / c; }
   const FINISH_I = N - 20;
-  return { pts, N, TOTAL: pts[N - 1].s, FINISH_I, FINISH_S: pts[FINISH_I].s, hairpins, hw: TRACKS[id].hw ?? HW };
+  return { pts, N, TOTAL: pts[N - 1].s, FINISH_I, FINISH_S: pts[FINISH_I].s, hairpins, hw: TRACKS[base].hw ?? HW };
 }
 /* centre, bounding radius and lowest height of a course; the far ridgelines are placed relative to these */
 function courseBounds(pts) {
@@ -1456,8 +1475,9 @@ const GUTTER = {
 const GUTTER_ZONES = { seiran: [3540, 3920] };           // s range (m) that holds the bends that get a gutter
 /* side = sign of lat on the inside (+1 right, -1 left); positive k turns left */
 function gutterSections(id, pts) {
-  const zone = GUTTER_ZONES[id], out = [];
-  if (!zone) return out;
+  const z = GUTTER_ZONES[baseId(id)], out = [];
+  if (!z) return out;
+  const T = pts[pts.length - 1].s, zone = isUp(id) ? [T - z[1], T - z[0]] : z; // the uphill course walks the same bends in reverse s
   let run = 0, sign = 0, start = 0;
   for (let i = 0; i <= pts.length; i++) {
     const k = i < pts.length ? pts[i].ks : 0, sg = Math.abs(k) > GUTTER.K_ON ? Math.sign(k) : 0;
@@ -2169,10 +2189,10 @@ function chatKey({ code, repeat, mod, online, spec, room, state, keys = ['KeyT']
 /* @chat:end */
 let roadHW = HW, WALL_LAT = roadHW + 0.3; // current course's road half-width and rail face (same plane as the rail mesh); buildTrack sets both
 const COURSES = {};
-for (const id in TRACKS) { COURSES[id] = buildCourse(id); COURSES[id].gutters = gutterSections(id, COURSES[id].pts); }
+for (const id in TRACKS) { for (const cid of [id, upId(id)]) { COURSES[cid] = buildCourse(cid); COURSES[cid].gutters = gutterSections(cid, COURSES[cid].pts); } }
 const SAKE_TRACK = 'seiran', SAKE_CAR = { car: 'hatch', color: 3 }; // Sake Run's fixed course and car (white KX-2); never written over the saved picks
-let trackId = store.get('yatouge-mode') === 'sake' ? SAKE_TRACK : store.get('yatouge-track');
-if (!TRACKS[trackId]) trackId = 'kurosagi';
+let trackDir = dirFrom(store.get('yatouge-dir')); // 'down' | 'up': the title's direction switch (Sake Run and online ignore it)
+let trackId = store.get('yatouge-mode') === 'sake' ? SAKE_TRACK : courseId(trackFrom(store.get('yatouge-track')), trackDir);
 let pts, N, TOTAL, FINISH_I, FINISH_S, hairpins, gutters;
 let tsList = null, tsCur = '', tsKey = '', goUntil = 0, tsStyle = tsStyleFrom(store.get('yatouge-turn-style'), store.get('yatouge-turn-signs')); // turn signs: corner list of the current course (built lazily), index shown, last layout key (rect / --ts-pop recomputed only when it changes), time until which the GO text is up (set by the start countdown), display style (default side); read by resetRace / buildTrack at start-up
 
@@ -2318,7 +2338,7 @@ function buildTrack(id) {
       const pool = glow(0xff8c2a, 9); pool.material.opacity = 0.35; const pp = off(p, side * (roadHW - 1.4), 0.05); pool.position.set(pp[0], pp[1] + 0.6, pp[2]); trackGroup.add(pool);
     }
   }
-  gate(14, TRACKS[id].gate, '#ffa23a');
+  gate(14, gateLabel(id), '#ffa23a');
   gate(FINISH_I, '終點 · FINISH', '#eceef6');
   /* far ridgelines and ground, sized to the course so no mountain lands on the road */
   {
@@ -2364,7 +2384,7 @@ const CARS = {
     name: { zh: 'KX-2 掀背', en: 'KX-2 Hatch' }, sub: { zh: '80 年代後驅掀背。直線慢，但過彎幾乎不掉速', en: '80s rear-drive hatchback. Slow on straights, barely loses speed in corners' },
     stats: [[STAT.acc, 2], [STAT.top, 2], [STAT.corner, 5], [STAT.exit, 4]],
     phys: { maxV: 54, engine: 11.5, lag: 0, grip: 9, gripLimit: 20.5, drift: 1.12, slide: 0.1, hb: 3.5 },
-    ai: { top: 44, acc: 6, lat: 11.5 },
+    ai: { top: 44, acc: 6, lat: 11.5, hill: 33 },
     colors: [{ n: { zh: '紅黑雙色', en: 'Red & black' }, top: 0xc41e28, low: 0x141518 }, { n: { zh: '銀黑雙色', en: 'Silver & black' }, top: 0xb7bcc6, low: 0x141518 }, { n: { zh: '深藍', en: 'Deep blue' }, top: 0x1e3c7a, low: 0x1e3c7a }, { n: { zh: '白色', en: 'White' }, top: 0xeceef2, low: 0x141518 },
       { n: { zh: '白色碳纖維引擎蓋', en: 'White, carbon hood' }, top: 0xeceef2, low: 0x141518, hood: 'carbon', locked: true }] // locked: opens with the Sake Run reward
   },
@@ -2372,14 +2392,14 @@ const CARS = {
     name: { zh: 'SR-7 轉子跑車', en: 'SR-7 Rotary' }, sub: { zh: '90 年代轉子跑車。直線很快，過彎與出彎表現均衡', en: '90s rotary sports car. Quick on straights, balanced through and out of corners' },
     stats: [[STAT.acc, 4], [STAT.top, 4], [STAT.corner, 3], [STAT.exit, 3]],
     phys: { maxV: 61, engine: 14, lag: 1, grip: 8, gripLimit: 19, drift: 1, slide: 0.22, hb: 7 },
-    ai: { top: 50, acc: 8.5, lat: 9.5 },
+    ai: { top: 50, acc: 8.5, lat: 9.5, hill: 27 },
     colors: [{ n: { zh: '競技黃', en: 'Competition yellow' }, top: 0xf0b40a }, { n: { zh: '寶石紅', en: 'Ruby red' }, top: 0xa3121e }, { n: { zh: '海軍藍', en: 'Navy blue' }, top: 0x1f4fa8 }, { n: { zh: '鐵灰', en: 'Gunmetal' }, top: 0x5a5e66 }]
   },
   gtr: {
     name: { zh: 'GT-32 雙渦輪', en: 'GT-32 Twin Turbo' }, sub: { zh: '90 年代初四驅雙渦輪跑車。加速與極速最強，但車身偏硬、過彎與出彎都很慢', en: 'Early-90s all-wheel-drive twin-turbo coupe. Highest acceleration and top speed, but stiff: slow through and out of corners' },
     stats: [[STAT.acc, 5], [STAT.top, 5], [STAT.corner, 1], [STAT.exit, 1]],
     phys: { maxV: 70, engine: 18.5, lag: 1, grip: 6.5, gripLimit: 15.5, drift: 0.72, slide: 0.5, hb: 8 },
-    ai: { top: 52, acc: 9, lat: 8.5 },
+    ai: { top: 52, acc: 9, lat: 8.5, hill: 23 },
     colors: [{ n: { zh: '鐵灰', en: 'Gunmetal' }, top: 0x4a4e56 }, { n: { zh: '黑', en: 'Black' }, top: 0x17181c }, { n: { zh: '珍珠白', en: 'Pearl white' }, top: 0xdcdfe4 }, { n: { zh: '深藍', en: 'Deep blue' }, top: 0x1c3f8f }]
   }
 };
@@ -3119,7 +3139,7 @@ function buildCars() {
   if (playerInterior) { disposeInterior(playerInterior); playerInterior = null; }
   for (const c of [playerCar, rivalCar]) if (c) { scene.remove(c.g); disposeCar(c); } // the cabin is already detached above
   playerCar = makeCar(choice.car, choice.color);
-  const rv = rivalFor(trackId, choice.car);
+  const rv = rivalFor(baseId(trackId), choice.car);
   rivalCar = makeCar(rv.car, rv.color);
   playerCar.g.add(head); playerCar.g.add(headTarget);
 }
@@ -3374,7 +3394,7 @@ function physics(dt) {
   if (pvp) pvpBump(c);
   else if (!taRun && !sakeRun) {
     const rp = samplePos(rival.s, rival.lat);
-    const cr = carStep(c, CAR_BOX[choice.car], { x: rp.x, z: rp.z, h: rp.h, vis: rival.vis, s: rival.s, lat: rival.lat, v: rival.v, latV: rival.latV }, CAR_BOX[rivalFor(trackId, choice.car).car], roadHW - 1, COLL);
+    const cr = carStep(c, CAR_BOX[choice.car], { x: rp.x, z: rp.z, h: rp.h, vis: rival.vis, s: rival.s, lat: rival.lat, v: rival.v, latV: rival.latV }, CAR_BOX[rivalFor(baseId(trackId), choice.car).car], roadHW - 1, COLL);
     if (cr) {
       Object.assign(c, { x: cr.x, z: cr.z, vx: cr.vx, vz: cr.vz, w: cr.w });
       Object.assign(rival, { s: cr.s, lat: cr.lat, v: cr.v, latV: cr.latV });
@@ -3394,11 +3414,20 @@ function wallHit(v) {
 }
 
 /* ---------- rival AI ---------- */
+/* @rival-hill:start */
+// Uphill courses only (up = true); downhill returns ai.top / ai.acc untouched. The AI's top speed was tuned on the downhill course (average grade -AI_HILL_REF):
+// 'hill' = m/s of top speed one unit of extra grade costs that car (measured on the player physics of the same car); the slope also bleeds acceleration like vehicleAccel does.
+// ai.acc is a flat average while the player's real thrust fades with speed, so the same slope costs the player about 3.5x as much: AI_HILL_GAIN keeps the uphill AI/player gap equal to the downhill one.
+const AI_HILL_REF = 0.062, AI_HILL_GAIN = 3.5;
+const aiHillTop = (ai, up, grade) => up ? ai.top - ai.hill * (grade + AI_HILL_REF) : ai.top;
+const aiHillAcc = (ai, up, grade) => up ? ai.acc - 9.8 * 0.7 * grade * AI_HILL_GAIN : ai.acc;
+/* @rival-hill:end */
 function rivalUpdate(dt) {
   const r = rival;
   const here = samplePos(r.s, r.lat); r.i = here.i;
-  const ai = CARS[rivalFor(trackId, choice.car).car].ai;
-  let target = ai.top;
+  const ai = CARS[rivalFor(baseId(trackId), choice.car).car].ai;
+  const up = isUp(trackId);
+  let target = aiHillTop(ai, up, here.grade);
   for (let j = r.i; j < Math.min(N - 1, r.i + 64); j += 3) {
     const k = Math.abs(pts[j].ks);
     if (k > 1e-4) { const va = Math.sqrt(ai.lat / k), dist = Math.max(0, pts[j].s - r.s), allow = Math.sqrt(va * va + 2 * 14 * dist); if (allow < target) target = allow; }
@@ -3406,7 +3435,7 @@ function rivalUpdate(dt) {
   const gap = r.s - car.loc.s;
   if (gap > 140) target *= 0.85; else if (gap > 70) target *= 0.94; else if (gap < -30) target *= 1.08;
   if (rivalFinishT !== null) target = 0;
-  if (r.v < target) r.v = Math.min(target, r.v + ai.acc * dt); else r.v = Math.max(target, r.v - 16 * dt);
+  if (r.v < target) r.v = Math.min(target, r.v + aiHillAcc(ai, up, here.grade) * dt); else r.v = Math.max(target, r.v - 16 * dt);
   r.s = Math.min(pts[N - 3].s, r.s + r.v * dt);
   const latT = Math.abs(here.k) > 0.008 ? -Math.sign(here.k) * 2.4 : 0;
   r.lat += clamp(latT - r.lat, -1.3 * dt, 1.3 * dt) + r.latV * dt;
@@ -3769,7 +3798,7 @@ function hud(dt) {
     el.className = 'gap ' + (gap > 0 ? 'behind' : 'ahead');
     const sg = gap > 0 ? 1 : -1;
     if (state === 'race' && sg !== lastGapSign && Math.abs(gap) > 1) { showPop(T(sg < 0 ? 'overtake' : 'passed'), T(sg < 0 ? 'hold' : 'chase')); lastGapSign = sg; }
-  } else { el.textContent = pvp ? nickOf(pvp.opp && pvp.opp.nk) : T('rival') + Lz(CARS[rivalFor(trackId, choice.car).car].name); el.className = 'gap behind'; }
+  } else { el.textContent = pvp ? nickOf(pvp.opp && pvp.opp.nk) : T('rival') + Lz(CARS[rivalFor(baseId(trackId), choice.car).car].name); el.className = 'gap behind'; }
   $('#progRival').style.left = clamp((rs ?? 0) / FINISH_S * 100, 0, 100) + '%';
 }
 // time attack: the gap line shows the time against the best run at this point of the course; the second dot is the ghost
@@ -4470,7 +4499,7 @@ function sakeVisual(dt) {
   sakeCup.update(dt, r.slosh, r.liq);
 }
 function showResult() {
-  for (const el of $('#result').querySelectorAll('[data-i18n]')) el.textContent = T(el.dataset.i18n); // a Sake Run result relabels these
+  relabelI18n($('#result')); // a Sake Run result relabels these
   $('#resSakeBox').hidden = true; $('#resCat').hidden = true; $('#resUnlock').hidden = true; $('#result .stats').hidden = false; $('#btnAgain').disabled = false;
   $('#resGapLbl').textContent = T(taRun ? 'taGap' : 'resGap');
   if (pvp) { showPvpResult(); return; }
@@ -4521,11 +4550,11 @@ function renderModePicker() {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(m === mode));
     b.innerHTML = '<b></b><small></small>';
     b.querySelector('b').textContent = T(m === 'ta' ? 'modeTa' : m === 'sake' ? 'modeSake' : 'modeRace');
-    b.querySelector('small').textContent = m === 'ta' ? T('modeTaD') + (best ? ' ' + T('taBestIs', fmtT(best.t)) : '') : m === 'sake' ? T('modeSakeD') + (sb ? ' ' + T('taBestIs', fmtT(sb)) : '') : T('modeRaceD');
+    b.querySelector('small').textContent = m === 'ta' ? T('modeTaD') + (best ? ' ' + T('taBestIs', fmtT(best.t)) : '') : m === 'sake' ? T('modeSakeD') + (sb ? ' ' + T('taBestIs', fmtT(sb)) : '') : T('modeRaceD', isUp(trackId));
     b.addEventListener('click', () => setMode(m));
     el.append(b);
   }
-  $('#lead').textContent = T(mode === 'ta' ? 'leadTa' : mode === 'sake' ? 'leadSake' : 'lead', Lz(TRACKS[trackId].name));
+  $('#lead').textContent = T(mode === 'ta' ? 'leadTa' : mode === 'sake' ? 'leadSake' : 'lead', Lz(TRACKS[baseId(trackId)].name), isUp(trackId));
   syncTaUI();
 }
 function setMode(m) {
@@ -4535,7 +4564,7 @@ function setMode(m) {
 }
 // Sake Run picked: white KX-2 on Seiran, in memory only; picked away: back to the saved car and course
 function sakeForce(on) {
-  const st = store.get('yatouge-track'), tr = on ? SAKE_TRACK : TRACKS[st] ? st : 'kurosagi';
+  const tr = on ? SAKE_TRACK : courseId(trackFrom(store.get('yatouge-track')), trackDir);
   choice = on ? { ...SAKE_CAR } : savedChoice();
   if (tr !== trackId) buildTrack(tr);
   buildCars(); resetRace(); applyLang();
@@ -4569,7 +4598,7 @@ for (const id of ['#tTurn', '#igTurn']) $(id).addEventListener('change', e => { 
 function renderTrackPicker() {
   const el = $('#trackPick'); el.innerHTML = '';
   for (const id in TRACKS) {
-    const c = COURSES[id], b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(id === trackId));
+    const c = COURSES[courseId(id, mode === 'sake' ? 'down' : trackDir)], b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(id === baseId(trackId)));
     b.innerHTML = '<b></b><small></small>';
     b.querySelector('b').textContent = Lz(TRACKS[id].name); b.querySelector('small').textContent = T('trackSub', (c.FINISH_S / 1000).toFixed(1), c.hairpins);
     b.disabled = mode === 'sake'; // the course is fixed in Sake Run
@@ -4578,19 +4607,42 @@ function renderTrackPicker() {
   }
 }
 function setTrack(id) {
-  if (state !== 'title' || id === trackId || mode === 'sake') return;
-  store.set('yatouge-track', id); buildTrack(id); buildCars(); resetRace(); applyLang(); // the rival belongs to the track
+  const cid = courseId(id, trackDir);
+  if (state !== 'title' || cid === trackId || mode === 'sake') return;
+  store.set('yatouge-track', id); buildTrack(cid); buildCars(); resetRace(); applyLang(); // the rival belongs to the track
+}
+// downhill / uphill switch under the course cards; the saved course stays a plain id, the direction is stored apart. Sake Run is always downhill.
+function renderDirPicker() {
+  const el = $('#dirPick'); el.innerHTML = '';
+  for (const d of DIRS) {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(d === (mode === 'sake' ? 'down' : trackDir)));
+    b.innerHTML = '<b></b><small></small>';
+    b.querySelector('b').textContent = T(d === 'up' ? 'dirUp' : 'dirDown'); b.querySelector('small').textContent = T(d === 'up' ? 'dirUpD' : 'dirDownD');
+    b.disabled = mode === 'sake';
+    b.addEventListener('click', () => setDir(d));
+    el.append(b);
+  }
+}
+function setDir(d) {
+  if (state !== 'title' || d === trackDir || mode === 'sake') return;
+  trackDir = d; store.set('yatouge-dir', d);
+  buildTrack(courseId(trackId, d)); buildCars(); resetRace(); applyLang();
 }
 function chosen() { store.set('yatouge-car', JSON.stringify(choice)); buildCars(); renderPicker(); }
+// every data-i18n label gets the course name and the uphill flag, because some texts (lead, start, resEyebrow...) depend on the direction
+function relabelI18n(root) {
+  const name = Lz(TRACKS[baseId(trackId)].name), up = isUp(trackId);
+  root.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = T(el.dataset.i18n, name, up); });
+}
 function applyLang() {
   document.documentElement.lang = lang === 'zh' ? 'zh-Hant-TW' : 'en';
-  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = T(el.dataset.i18n, Lz(TRACKS[trackId].name)); });
+  relabelI18n(document);
   document.querySelectorAll('[data-i18n-aria]').forEach(el => el.setAttribute('aria-label', T(el.dataset.i18nAria)));
-  $('#courseInfo').textContent = T('course', Lz(TRACKS[trackId].name), (FINISH_S / 1000).toFixed(1), hairpins);
+  $('#courseInfo').textContent = T('course', Lz(TRACKS[baseId(trackId)].name), (FINISH_S / 1000).toFixed(1), hairpins, isUp(trackId));
   $('#langBtn').textContent = T('lang');
   $('#btnMusic').textContent = T(musicOn ? 'musicOn' : 'musicOff');
   ownRelabel();
-  renderTrackPicker(); renderPicker();
+  renderTrackPicker(); renderDirPicker(); renderPicker();
   menuRelabel();
   kbRelabel();
   if (clOpen) clRender();
@@ -5058,9 +5110,10 @@ function startMatch(o) {
   clearInterval(lobbyT);
   // the room starts from the last picks of this session, else from the title's car and course (a copy: the saved ones are never written)
   const col0 = Number.isInteger(choice.color) && choice.color >= 0 && choice.color < RP.COLS[choice.car] ? choice.color : 0;
-  const pick = rpLast || { car: choice.car, col: col0, vote: { t: trackId, m: 'first', g: RP.GAP } };
+  const down = baseId(trackId); // online is downhill only; leaving puts the title's own course (maybe uphill) back
+  const pick = rpLast || { car: choice.car, col: col0, vote: { t: down, m: 'first', g: RP.GAP } };
   const p = pvp = {
-    rm: o.rm, name: o.name, code: o.code || null, host: o.host, hostPeer: o.hostPeer, track: trackId, prevTrack: trackId, prevChoice: choice, st: 'waiting', go: 0, n: 0, hb: 0, ft: null,
+    rm: o.rm, name: o.name, code: o.code || null, host: o.host, hostPeer: o.hostPeer, track: down, prevTrack: trackId, prevChoice: choice, st: 'waiting', go: 0, n: 0, hb: 0, ft: null,
     opp: null, oppPeer: null, oppFt: null, oppLeft: false, seen: false, joinedAt: performance.now(), buf: [], pose: null,
     lastPres: null, oppKey: '', goAt: 0, sentAt: 0, tickAt: 0, finishAt: 0, note: '', unsub: null, unsubConn: null, hbT: 0,
     missingSince: null, dnfLocked: false, watch: 0,
@@ -5068,6 +5121,7 @@ function startMatch(o) {
     cat: null, ck: null // cat and mouse: the round state (see @catmouse) and this side's own part of it (catBegin)
   };
   rpLast = p.pick; chatReset();
+  if (trackId !== down) pvpSetTrack(down);
   if (choice.car !== pick.car || choice.color !== pick.col) { choice = { car: pick.car, color: pick.col }; buildCars(); syncKxUI(); } // in memory only, like Sake Run's forced car
   p.unsub = p.rm.onPeers(() => pvpPoll(), roomFail);
   p.unsubConn = p.rm.onConnection(() => {}, roomFail); // only to hear that this room ended (the room-scoped error callback)
