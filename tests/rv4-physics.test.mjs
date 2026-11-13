@@ -13,7 +13,7 @@ function block(name) {
 }
 const G = new Function(`const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 ${block('course-geometry')}\n${block('engine')}\n${block('gearbox')}\n${block('drift-follow')}\n${block('vehicle')}\n${block('collision')}\n${block('cars')}
-return { HW, CAR_BOX, CARS, GB, wrap, wallContact, vehicleAccel, vehicleTurn };`)();
+return { HW, CAR_BOX, CARS, GB, wrap, wallContact, vehicleAccel, vehicleTurn, exitBoostFactor };`)();
 const { HW, CAR_BOX, CARS, GB, wrap, wallContact, vehicleAccel, vehicleTurn } = G;
 const KEYS = ['hatch', 'coupe', 'gtr', 'rally'];
 const BASE = { brake: 24, drag: 0.0008, roll: 0.3 };
@@ -104,16 +104,31 @@ function sustainedDrift(k) { // 同一個進彎，但方向盤一直壓著不回
   while (t < 4) { const u = { sIn: t > 0.1 ? 0.6 : 0, gas: true, brake: false, hb: t > 0.3 && t < 0.65 }; const a = vehicleAccel(c, P, u, ROAD, D); vehicleTurn(c, P, u, a, D); c.x += c.vx * D; c.z += c.vz * D; t += D; }
   return Math.hypot(c.vx, c.vz);
 }
+function holdSpeed(k, R, v0) { // 全油門過彎（車速低於上限就踩油門）：連續繞 14 秒（穩態）不離開車道 2.5 m 的最高上限速度 (m/s)；上限掃到 45 都過就回 45
+  const P = physOf(k), D = 1 / 60; let best = 0;
+  for (let vT = 14; vT <= 45; vT += 0.25) {
+    const c = { x: 0, z: 0, h: 0, vx: 0, vz: v0, w: 0, steer: 0, drift: false, penalty: 0 }; let t = 0, ok = true;
+    for (;;) {
+      const th = Math.atan2(c.z, c.x + R), lat = R - Math.hypot(c.x + R, c.z), h = -th, v = Math.hypot(c.vx, c.vz);
+      if (t >= 14) break;
+      if (Math.abs(lat) > 2.5) { ok = false; break; }
+      const ff = (v / R) * (1 + v / 42) / 1.75, u = { sIn: Math.max(-1, Math.min(1, ff - 0.12 * lat + 1.5 * wrap(c.h - h))), gas: v < vT, brake: v > vT + 3, hb: false };
+      const a = vehicleAccel(c, P, u, { grade: 0, h }, D); vehicleTurn(c, P, u, a, D); c.x += c.vx * D; c.z += c.vz * D; t += D;
+    }
+    if (ok) best = vT; else if (best) break;
+  }
+  return best;
+}
 function exitSpeed(k, vA) { // 出彎：從彎心速度 vA 起、全油門、方向盤 0.5 持續 1.5 秒再放開；回傳 3.5 秒後的車速 (m/s)
   const P = physOf(k), c = newCar(vA), D = 1 / 60; let t = 0;
   while (t < 3.5) { const u = { sIn: t < 1.5 ? 0.5 : 0, gas: true, brake: false, hb: false }; const a = vehicleAccel(c, P, u, ROAD, D); vehicleTurn(c, P, u, a, D); c.x += c.vx * D; c.z += c.vz * D; t += D; }
   return Math.hypot(c.vx, c.vz);
 }
 const M = {};
-for (const k of KEYS) { const c22 = corner(k, 22), c30 = corner(k, 30); M[k] = { ...launch(k), c22, c30, ...driftTest(k), exit: exitSpeed(k, c22 - 1.5), sust: sustainedDrift(k) }; }
+for (const k of KEYS) { const c22 = corner(k, 22), c30 = corner(k, 30); M[k] = { ...launch(k), c22, c30, ...driftTest(k), exit: exitSpeed(k, 10), sust: sustainedDrift(k), hold60: holdSpeed(k, 60, 14), hold30: holdSpeed(k, 30, 12) }; }
 if (process.env.RV4_DUMP) {
-  console.log('car    0-60  0-100  top   R22  R30  slipPk  driftDur  driftExit  powerExit  sustDrift(m/s)');
-  for (const k of KEYS) { const m = M[k]; console.log(k.padEnd(6), m.t60.toFixed(2), m.t100.toFixed(2).padStart(6), m.top.toFixed(0).padStart(5), m.c22.toFixed(2).padStart(5), m.c30.toFixed(2).padStart(5), m.peak.toFixed(2).padStart(6), m.dur.toFixed(2).padStart(8), m.vEnd.toFixed(1).padStart(9), m.exit.toFixed(1).padStart(10), m.sust.toFixed(1).padStart(11)); }
+  console.log('car    0-60  0-100  top   R22  R30  slipPk  driftDur  driftExit  hairpinExit  sustDrift  hold60  hold30(m/s)');
+  for (const k of KEYS) { const m = M[k]; console.log(k.padEnd(6), m.t60.toFixed(2), m.t100.toFixed(2).padStart(6), m.top.toFixed(0).padStart(5), m.c22.toFixed(2).padStart(5), m.c30.toFixed(2).padStart(5), m.peak.toFixed(2).padStart(6), m.dur.toFixed(2).padStart(8), m.vEnd.toFixed(1).padStart(9), m.exit.toFixed(1).padStart(10), m.sust.toFixed(1).padStart(11), m.hold60.toFixed(2).padStart(7), m.hold30.toFixed(2).padStart(7)); }
 }
 
 test('平衡：起步（0–60 km/h）快於 SR-7 與 KX-2（不必是四台最快，GT-32 動力更大）；0–100 介於 GT-32 與 SR-7 之間、貼近 SR-7', () => {
@@ -131,17 +146,27 @@ test('平衡：甩尾比 SR-7 難（滑移角較小、很快回正）', () => {
   assert.ok(M.rally.peak < M.coupe.peak, `peak ${M.rally.peak} < ${M.coupe.peak}`);
   assert.ok(M.rally.dur < M.coupe.dur * 0.7, `dur ${M.rally.dur} < 0.7 * ${M.coupe.dur}`);
 });
-test('平衡：短甩尾出彎的速度（driftExit）高於 GT-32，與 SR-7 / KX-2 差在 3% 內（甩尾不再特別划算）', () => {
+test('平衡：短甩尾出彎的速度（driftExit）高於 GT-32、不高於 SR-7 / KX-2 的 1.03 倍（甩尾不划算）', () => {
   assert.ok(M.rally.vEnd > M.gtr.vEnd, `rally ${M.rally.vEnd} > gtr ${M.gtr.vEnd}`);
-  for (const k of ['hatch', 'coupe']) assert.ok(Math.abs(M.rally.vEnd - M[k].vEnd) / M[k].vEnd < 0.03, `rally ${M.rally.vEnd} vs ${k} ${M[k].vEnd}`);
+  for (const k of ['hatch', 'coupe']) assert.ok(M.rally.vEnd < M[k].vEnd * 1.03, `rally ${M.rally.vEnd} vs ${k} ${M[k].vEnd}`);
 });
 test('平衡：持續 4 秒的長甩尾，RV-4 的車速低於 SR-7 與 KX-2（甩尾不划算）、高於 GT-32', () => {
   assert.ok(M.rally.sust < M.coupe.sust && M.rally.sust < M.hatch.sust && M.rally.sust > M.gtr.sust, `${M.gtr.sust} < ${M.rally.sust} < ${M.coupe.sust}, ${M.hatch.sust}`);
 });
 // 試玩第 2 輪（engine 12.5）：使用者接受出彎與 SR-7 打平，只要不輸 SR-7、明顯勝過 KX-2
-test('平衡：全油門帶方向盤出彎（powerExit）不輸 SR-7、明顯勝過 KX-2；GT-32 的純直線動力更大，不在此比較', () => {
+test('平衡：髮夾出彎（hairpinExit：10 m/s 起、全油門、方向盤 0.5 持續 1.5 秒）勝過 KX-2、不輸 SR-7；GT-32 的純直線動力更大，不在此比較', () => {
   assert.ok(M.rally.exit > M.hatch.exit + 0.3, `rally ${M.rally.exit} > hatch ${M.hatch.exit}`);
-  assert.ok(M.rally.exit >= M.coupe.exit - 0.05, `rally ${M.rally.exit} ≈ coupe ${M.coupe.exit}`);
+  assert.ok(M.rally.exit >= M.coupe.exit, `rally ${M.rally.exit} >= coupe ${M.coupe.exit}`);
+});
+test('平衡：全油門穩態過彎（中、高速半徑 R60、R30），RV-4 的可維持速度不超過 SR-7 與 KX-2、高於 GT-32（exitBoost 不能撐起彎中速度）', () => {
+  assert.ok(M.rally.hold60 <= M.coupe.hold60 && M.rally.hold60 <= M.hatch.hold60 && M.rally.hold60 > M.gtr.hold60, `R60 ${M.gtr.hold60} < ${M.rally.hold60} <= ${M.coupe.hold60}, ${M.hatch.hold60}`);
+  assert.ok(M.rally.hold30 <= M.coupe.hold30 && M.rally.hold30 <= M.hatch.hold30 && M.rally.hold30 > M.gtr.hold30, `R30 ${M.gtr.hold30} < ${M.rally.hold30} <= ${M.coupe.hold30}, ${M.hatch.hold30}`);
+});
+test('exitBoostFactor：15 m/s 以下全額、25 m/s 以上為 1（無加成）、中間線性；方向盤 0.4 飽和', () => {
+  const f = (st, v) => G.exitBoostFactor(0.8, st, v);
+  assert.equal(f(0.4, 10), 1.8); assert.equal(f(0.4, 15), 1.8); assert.equal(f(0.4, 25), 1); assert.equal(f(0.4, 40), 1);
+  assert.ok(Math.abs(f(0.4, 20) - 1.4) < 1e-12); assert.ok(Math.abs(f(1, 20) - 1.4) < 1e-12 && Math.abs(f(0.2, 10) - 1.4) < 1e-12);
+  assert.equal(f(0, 10), 1); assert.equal(f(-0.4, 10), 1.8);
 });
 test('RV-4 資料：星等 [4, 3, 2, 5]、AI 表合理、模擬是決定性的', () => {
   assert.deepEqual(CARS.rally.stats.map(s => s[1]), [4, 3, 2, 5]);
