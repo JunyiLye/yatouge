@@ -10,9 +10,9 @@ function block(name) {
   return html.slice(s + open.length, e);
 }
 const G = new Function(`const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-${block('course-geometry')}\n${block('engine')}\n${block('gearbox')}\n${block('drift-follow')}\n${block('vehicle')}\n${block('collision')}\n${block('cars')}
-return { GB, CARS, engineForce, vehicleAccel, gbRedlineSpeed, gbRpm, gbTorque, gbGearFactor, gbMul, gbShift, gbStep, gbCutting, gbOverSpeed };`)();
-const { GB, CARS, engineForce, vehicleAccel, gbRedlineSpeed, gbRpm, gbTorque, gbGearFactor, gbMul, gbShift, gbStep, gbCutting, gbOverSpeed } = G;
+${block('course-geometry')}\n${block('engine')}\n${block('gearbox')}\n${block('drift-follow')}\n${block('vehicle')}\n${block('collision')}\n${block('cars')}\n${block('cockpit')}
+return { GB, CARS, GEARS, gearFor, engineForce, vehicleAccel, gbRedlineSpeed, gbRpm, gbTorque, gbGearFactor, gbMul, gbShift, gbStep, gbCutting, gbOverSpeed, gbShiftBrake, atGear, atStep, atMul };`)();
+const { GB, CARS, GEARS, gearFor, engineForce, vehicleAccel, gbRedlineSpeed, gbRpm, gbTorque, gbGearFactor, gbMul, gbShift, gbStep, gbCutting, gbOverSpeed, gbShiftBrake, atGear, atStep, atMul } = G;
 const KEYS = ['hatch', 'coupe', 'gtr'];
 const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `${a} vs ${b}`);
 
@@ -96,27 +96,35 @@ test('換檔與降檔保護', () => {
 
 // ---- 決定性模擬：直線、平路，用遊戲自己的 vehicleAccel ----
 const DT = 1 / 120;
+// 自排與手排都含換檔空檔 + 換檔煞車（與遊戲 physics() 相同的順序）；dips：每次換檔後 0.25 秒內相對換檔瞬間的最大掉速 (km/h)
 function sim(key, mode) {
   const P = { ...CARS[key].phys, brake: 24, drag: 0.0008, roll: 0.3 };
   const c = { x: 0, z: 0, h: 0, vx: 0, vz: 0, w: 0, steer: 0, drift: false, penalty: 0 };
-  let t = 0, g = 1, cut = 0, t100 = null, top = 0;
+  let t = 0, g = 1, cut = 0, ag = 1, t100 = null, top = 0, shifts = 0;
+  const dips = [], open = [];
   const mulOf = (gg, v) => gbMul(key, gg, v, 0);
   while (t < 60) {
     const v = c.vz;
-    let mul;
-    if (mode === 'auto') mul = undefined;
-    else {
-      if (mode === 'optimal' && cut <= 0 && g < 6 && gbRpm(key, g, v) > 3500 && mulOf(g + 1, v) >= mulOf(g, v) * 1.0001) { g++; cut = GB.SHIFT_CUT; }
+    let mul, brakeCut;
+    if (mode === 'auto') {
+      const r = atStep(ag, cut, v, v, GEARS, DT, true);
+      if (r.gear !== ag) { shifts++; open.push({ v, t, min: v }); }
+      ag = r.gear; cut = r.shiftT; mul = atMul(cut); brakeCut = cut;
+    } else {
+      if (mode === 'optimal' && cut <= 0 && g < 6 && gbRpm(key, g, v) > 3500 && mulOf(g + 1, v) >= mulOf(g, v) * 1.0001) { g++; cut = GB.SHIFT_CUT; shifts++; open.push({ v, t, min: v }); }
       if (mode === 'g1') g = 1; else if (mode === 'g6') g = 6;
-      mul = gbMul(key, g, v, cut);
+      mul = gbMul(key, g, v, cut); brakeCut = cut;
       cut = gbStep(cut, DT);
     }
     const a = vehicleAccel(c, P, { sIn: 0, gas: true, brake: false, hb: false, mul }, { grade: 0, h: 0 }, DT);
     c.vz += a * DT; t += DT;
+    c.vz = gbShiftBrake(c.vz, brakeCut, DT);
+    for (const d of open) d.min = Math.min(d.min, c.vz);
+    while (open.length && t - open[0].t > 0.25) { const d = open.shift(); dips.push((d.v - d.min) * 3.6); }
     if (t100 === null && c.vz >= 100 / 3.6) t100 = t;
     top = Math.max(top, c.vz);
   }
-  return { t100, top: top * 3.6 };
+  return { t100, top: top * 3.6, shifts, dips };
 }
 
 test('模擬：最佳換檔的手排 0–100 km/h 比自排快 3–8%，極速相同', () => {
@@ -136,8 +144,8 @@ test('模擬：永遠 1 檔或永遠 6 檔明顯較慢', () => {
   }
 });
 
-// ---- 自排不變 ----
-test('自排：vehicleAccel 的值與改動前逐值相同（未傳 mul 或 mul = 1）', () => {
+// ---- 自排：換檔空檔以外不變 ----
+test('自排：換檔空檔以外 vehicleAccel 的值與改動前逐值相同（未傳 mul、mul = 1 或 atMul(0)）', () => {
   // 改動前的公式（逐字）
   const old = (c, P, u, loc) => {
     const fx = Math.sin(c.h), fz = Math.cos(c.h), vf = c.vx * fx + c.vz * fz;
@@ -159,6 +167,8 @@ test('自排：vehicleAccel 的值與改動前逐值相同（未傳 mul 或 mul 
     const want = old(mk(), P, u, loc);
     assert.equal(vehicleAccel(mk(), P, u, loc, DT), want);
     assert.equal(vehicleAccel(mk(), P, { ...u, mul: 1 }, loc, DT), want);
+    assert.equal(vehicleAccel(mk(), P, { ...u, mul: atMul(0) }, loc, DT), want);
+    assert.equal(gbShiftBrake(vz, 0, DT), vz, '換檔空檔外沒有換檔煞車');
   }
 });
 
@@ -177,4 +187,62 @@ test('超過該檔極速：引擎煞車把車速快速降到該檔極速，不�
   assert.equal(v, max2, '最後剛好停在該檔極速');
   assert.ok(t < 1.5, `約 1 秒內降到（實際 ${t.toFixed(2)} 秒）`);
   assert.equal(gbOverSpeed(k, 3, -5, 1 / 120), -5, '倒車不受影響');
+});
+
+// ---- 換檔煞車（自排與手排共用）----
+test('換檔煞車：空檔期間沿前進方向輕微減速（2.5–4 m/s²），空檔外、倒車、幾乎靜止時不作用，不會變成倒車', () => {
+  assert.ok(GB.SHIFT_BRAKE >= 2.5 && GB.SHIFT_BRAKE <= 4, `SHIFT_BRAKE ${GB.SHIFT_BRAKE}`);
+  near(gbShiftBrake(20, 0.05, DT), 20 - GB.SHIFT_BRAKE * DT);
+  assert.equal(gbShiftBrake(20, 0, DT), 20);
+  assert.equal(gbShiftBrake(-4, 0.1, DT), -4, '倒車不受影響');
+  assert.equal(gbShiftBrake(0.3, 0.1, DT), 0.3, '幾乎靜止不受影響');
+  assert.equal(gbShiftBrake(0.6, 0.1, 1), 0, '不會減成倒車');
+  // 一整段空檔（約 0.12 秒）只靠換檔煞車掉約 1–1.6 km/h
+  let v = 30, t = GB.SHIFT_CUT; while (t > 0) { t = gbStep(t, DT); v = gbShiftBrake(v, t, DT); }
+  const kmh = (30 - v) * 3.6; assert.ok(kmh >= 0.9 && kmh <= 1.6, `${kmh} km/h`);
+});
+
+test('自排檔位：升檔點與 gearFor 完全相同；降檔多一點遲滯，換檔煞車的掉速不會讓檔位跳回去', () => {
+  let g = 1;
+  for (let i = 0; i <= 6000; i++) { const v = i / 100; g = atGear(g, v, GEARS); assert.equal(g, gearFor(v), `加速 ${v}`); }
+  for (const k of [1, 2, 3, 4, 5]) {
+    const up = atGear(k, GEARS[k] + 0.001, GEARS);
+    assert.equal(up, k + 1, `${k} 升檔`);
+    assert.equal(atGear(up, GEARS[k] - 0.7, GEARS), k + 1, `${k + 1} 掉速 0.7 m/s 仍維持`);
+    assert.equal(atGear(up, GEARS[k] - 1.2, GEARS), k, `${k + 1} 真的減速才降檔`);
+  }
+  assert.equal(atGear(6, 5, GEARS), 1, '急煞到低速直接降到 1 檔');
+  assert.equal(atGear(6, 0, GEARS), 1);
+});
+
+test('自排換檔偵測：比賽中前進時換檔才給空檔；倒數、倒車、檔位沒變都不給', () => {
+  let r = atStep(1, 0, GEARS[1] + 0.01, GEARS[1] + 0.01, GEARS, DT, true);
+  assert.deepEqual(r, { gear: 2, shiftT: GB.SHIFT_CUT });
+  assert.equal(atMul(r.shiftT), 0, '空檔期間沒有動力');
+  assert.equal(atMul(0), undefined, '空檔外就是原本的自排');
+  r = atStep(2, r.shiftT, GEARS[1] + 0.02, GEARS[1] + 0.02, GEARS, DT, true);
+  near(r.shiftT, GB.SHIFT_CUT - DT); assert.equal(r.gear, 2);
+  assert.deepEqual(atStep(1, 0, GEARS[1] + 0.01, GEARS[1] + 0.01, GEARS, DT, false), { gear: 2, shiftT: 0 }, '倒數 / 非比賽：檔位照算但不斷油');
+  assert.deepEqual(atStep(3, 0, 5, -5, GEARS, DT, true), { gear: 1, shiftT: 0 }, '倒車');
+  assert.deepEqual(atStep(3, 0, 25, 25, GEARS, DT, true), { gear: 3, shiftT: 0 });
+  assert.deepEqual(atStep(4, 0, 25, 25, GEARS, DT, true), { gear: 3, shiftT: GB.SHIFT_CUT }, '降檔也有');
+});
+
+// 自排的斷油只有前 AT_CUT 秒（換檔煞車一樣是整段 SHIFT_CUT），否則手排會比自排快超過 8%
+test('模擬：每次換檔都輕微掉速（手排約 1.5–2.7 km/h、自排約 0.5–2 km/h），自排每個門檻只換一次、不會來回跳', () => {
+  for (const k of KEYS) {
+    const a = sim(k, 'auto'), m = sim(k, 'optimal');
+    console.log(`  ${k}: auto ${a.shifts} 次換檔，掉速 ${a.dips.map(d => d.toFixed(2)).join(' / ')} km/h; manual ${m.shifts} 次，掉速 ${m.dips.map(d => d.toFixed(2)).join(' / ')} km/h`);
+    assert.equal(a.shifts, GEARS.slice(1, 6).filter(v => v < a.top / 3.6).length, `${k} 自排換檔 ${a.shifts} 次`);
+    assert.ok(a.dips.length >= 3 && m.dips.length >= 3);
+    for (const d of m.dips) assert.ok(d >= 1.5 && d <= 2.7, `${k} 手排掉速 ${d}`);
+    for (const d of a.dips) assert.ok(d >= 0.5 && d <= 2, `${k} 自排掉速 ${d}`);
+  }
+});
+
+test('自排換檔空檔：斷油只有前 AT_CUT 秒（短於手排），換檔煞車持續整段 SHIFT_CUT', () => {
+  assert.ok(GB.AT_CUT > 0 && GB.AT_CUT < GB.SHIFT_CUT);
+  let t = GB.SHIFT_CUT, cutN = 0, brakeN = 0;
+  while (t > 0) { if (atMul(t) === 0) cutN++; if (gbShiftBrake(20, t, DT) < 20) brakeN++; t = gbStep(t, DT); }
+  near(cutN * DT, GB.AT_CUT, DT + 1e-9); near(brakeN * DT, GB.SHIFT_CUT, DT + 1e-9);
 });

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const html = readFileSync(new URL('../yatouge.html', import.meta.url), 'utf8');
-const NAMES = 'GEARS, gearFor, gearLabel, wheelAngle, needleAngle, smoothTo, gatePos, shifterPath, shifterStep, cockpitMotion, newCockpitMotion, CK_LIM, COCKPIT_CARS, clusterY';
+const NAMES = 'GEARS, gearFor, gearLabel, wheelAngle, needleAngle, smoothTo, gatePos, shifterPath, shifterStep, cockpitMotion, newCockpitMotion, CK_LIM, COCKPIT_CARS, clusterY, LEAN, leanStep, newLean';
 function load() {
   const open = '/* @cockpit:start */', s = html.indexOf(open), e = html.indexOf('/* @cockpit:end */');
   assert.ok(s >= 0 && e > s, '找不到 @cockpit 區塊');
@@ -110,7 +110,7 @@ test('cockpitMotion：方向 — 右轉（向右加速度）頭往左（局部 +
   const B = run({ ...rest, spd: 30, aLong: -20 }, 1).o;
   assert.ok(B.z > 0.02 && B.pitch > 1 * DEG, `z=${B.z} pitch=${B.pitch}`);
   const A = run({ ...rest, spd: 30, aLong: 20 }, 1).o;
-  assert.ok(A.z < -0.02 && A.pitch < -1 * DEG);
+  assert.ok(A.z < -0.008 && A.pitch < -0.3 * DEG && -A.z < B.z * 0.6, `z=${A.z} pitch=${A.pitch}`); // 加速只微微後仰
   assert.ok(run({ ...rest, spd: 30, steer: 1 }, 1).o.yaw > 4 * DEG);       // 右轉 → 視線往右
   assert.ok(run({ ...rest, spd: 30, steer: -1 }, 1).o.yaw < -4 * DEG);
   assert.ok(run({ ...rest, spd: 30, w: 1.2 }, 1).o.yaw < -2 * DEG);        // w > 0 是向左轉
@@ -169,4 +169,65 @@ test('COCKPIT_CARS：儀表板頂面低於眼睛到引擎蓋後緣的視線；SR
   const c = COCKPIT_CARS.coupe, top = clusterY(c) + 0.1; // 大轉速表半徑 0.1，儀表罩頂與錶頂同高
   assert.ok(top <= sight(c, 0.86) + 0.02, `coupe 儀表群頂 ${top} vs 視線 ${sight(c, 0.86).toFixed(3)}`);
   assert.ok(clusterY(COCKPIT_CARS.hatch) > COCKPIT_CARS.hatch.dashTop, '預設儀表群在儀表板頂面上方');
+});
+
+// ---- @lean：車內慣性前傾（彈簧阻尼）----
+test('@lean 區塊存在且在 @cockpit 內', () => {
+  const s = html.indexOf('/* @lean:start */'), e = html.indexOf('/* @lean:end */');
+  assert.ok(s > html.indexOf('/* @cockpit:start */') && e > s && e < html.indexOf('/* @cockpit:end */'));
+});
+
+const leanRun = (aLong, secs, dt = 1 / 60, s) => { const { leanStep, newLean } = load(); s = s || newLean(); const zs = []; for (let t = 0; t < secs - 1e-9; t += dt) zs.push(leanStep(s, typeof aLong === 'function' ? aLong(t) : aLong, dt).z); return { s, zs }; };
+
+test('leanStep：煞車前傾（前移 + 低頭）、加速微微後仰，都在上限內；儀表要看得到所以前移 ≤ 4 cm、低頭 ≤ 2.5°', () => {
+  const { LEAN } = load();
+  assert.ok(LEAN.FWD <= 0.04 + 1e-12 && LEAN.BACK <= 0.02 && LEAN.PITCH <= 2.5 * DEG + 1e-12 && LEAN.PITCH_BACK <= 1 * DEG + 1e-12);
+  const B = leanRun(-24, 2).s;
+  assert.ok(B.z > 0.03 && B.z <= LEAN.FWD + 1e-12, `z=${B.z}`);
+  assert.ok(B.pitch > 1.5 * DEG && B.pitch <= LEAN.PITCH + 1e-12, `pitch=${B.pitch}`);
+  const A = leanRun(10, 2).s;
+  assert.ok(A.z < -0.005 && A.z >= -LEAN.BACK - 1e-12 && A.pitch < 0 && A.pitch >= -LEAN.PITCH_BACK - 1e-12, `z=${A.z} pitch=${A.pitch}`);
+  for (const a of [1e6, -1e6]) { const s = leanRun(a, 3).s; assert.ok(s.z <= LEAN.FWD + 1e-12 && s.z >= -LEAN.BACK - 1e-12 && Math.abs(s.pitch) <= LEAN.PITCH + 1e-12); }
+  const z = leanRun(0, 2).s; assert.equal(z.z, 0); assert.equal(z.pitch, 0);
+});
+
+test('leanStep：緩入（不是瞬間到位）、略帶回彈後穩定下來', () => {
+  const { zs } = leanRun(-18, 3), fin = zs[zs.length - 1];
+  assert.ok(zs[0] < fin * 0.05, `第一幀 ${zs[0]}`);
+  const half = zs.findIndex(z => z >= fin * 0.5);
+  assert.ok(half >= 5 && half <= 20, `到一半要 ${half} 幀`);   // 約 0.08–0.33 秒
+  const peak = Math.max(...zs); assert.ok(peak <= fin * 1.1 + 1e-12, `回彈 ${peak / fin}`);
+  for (const z of zs.slice(90)) assert.ok(Math.abs(z - fin) < fin * 0.02, '1.5 秒後已穩定');
+  // 放開煞車後回到 0
+  const { s } = leanRun(-18, 1); const back = leanRun(0, 2, 1 / 60, s).zs; assert.ok(Math.abs(back[back.length - 1]) < 1e-4);
+});
+
+test('leanStep：逐幀加速度抖動（幀率不穩造成 0 / 2 倍）不會讓鏡頭抖，結果接近平均值', () => {
+  const j = leanRun(t => (Math.round(t * 60) % 2 ? -16 : 0), 2).zs, c = leanRun(-8, 2).zs;
+  for (let i = 30; i < j.length; i++) assert.ok(Math.abs(j[i] - c[i]) < 0.0015, `第 ${i} 幀差 ${j[i] - c[i]}`);
+  for (let i = 1; i < j.length; i++) assert.ok(Math.abs(j[i] - j[i - 1]) < 0.004);
+});
+
+test('leanStep：換檔煞車（加速中短暫失去動力 + 約 3 m/s² 減速 0.12 秒）會往前點一下再回去', () => {
+  const { leanStep, newLean } = load(), s = newLean();
+  for (let i = 0; i < 120; i++) leanStep(s, 8, 1 / 120);
+  const before = s.z; let peak = before;
+  for (let i = 0; i < 14; i++) leanStep(s, -3.5, 1 / 120);
+  for (let i = 0; i < 60; i++) { leanStep(s, 8, 1 / 120); peak = Math.max(peak, s.z); }
+  assert.ok(peak - before > 0.003, `點頭 ${((peak - before) * 1000).toFixed(1)} mm`);
+  assert.ok(peak - before < 0.02);
+  for (let i = 0; i < 240; i++) leanStep(s, 8, 1 / 120);
+  assert.ok(Math.abs(s.z - before) < 1e-4, '之後回到原位');
+});
+
+test('leanStep：大 dt、NaN 都穩定', () => {
+  const { leanStep, newLean, LEAN } = load(), s = newLean();
+  for (let i = 0; i < 200; i++) { leanStep(s, i % 2 ? -30 : 30, 0.05); assert.ok(Number.isFinite(s.z) && Math.abs(s.z) <= LEAN.FWD + 1e-12); }
+  leanStep(s, NaN, NaN); leanStep(s, -10, 1 / 60); assert.ok(Number.isFinite(s.z) && Number.isFinite(s.v) && Number.isFinite(s.pitch));
+});
+
+test('cockpitMotion：縱向用 leanStep（相同輸入 → 相同前移與低頭），側向不變', () => {
+  const { cockpitMotion, newCockpitMotion, leanStep, newLean } = load(), m = newCockpitMotion(), s = newLean();
+  for (let i = 0; i < 90; i++) { const a = i < 45 ? -20 : 6; cockpitMotion(m, { ...rest, aLong: a }, 1 / 60); leanStep(s, a, 1 / 60); }
+  near(m.z, s.z, 1e-12); near(m.pitch, s.pitch, 1e-12);
 });

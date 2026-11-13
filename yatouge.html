@@ -1112,7 +1112,7 @@ function engineForce(engine, lagF, vf, maxV, pen) {
 }
 /* @engine:end */
 /* @gearbox:start */
-// 手排變速箱（純函式）。推力 = 自排的 engineForce × gbMul；自排完全不經過這裡。
+// 手排變速箱（純函式）。推力 = 自排的 engineForce × gbMul；自排只共用換檔空檔與換檔煞車（atStep / gbShiftBrake）。
 // K：各檔紅線車速占 6 檔的比例；BOOST × gain = 低檔的額外拉力（6 檔為 0，所以極速與自排相同）；v6 = 6 檔紅線車速 (m/s)
 const GB = {
   IDLE: 1000, LAUNCH_RPM: 4500, SHIFT_CUT: 0.12, TOP: 6, ENGINE_BRAKE: 25, // ENGINE_BRAKE: m/s² of slowing while above the gear's top speed
@@ -1150,6 +1150,24 @@ function gbShift(car, g, dir, spd) {
 // 前進車速 vf 超過該檔極速時，以 ENGINE_BRAKE 減速，停在極速；沒超速或倒車不變
 const gbOverSpeed = (car, g, vf, dt) => { const max = gbRedlineSpeed(car, g); return vf > max ? Math.max(max, vf - GB.ENGINE_BRAKE * dt) : vf; };
 const gbStep = (t, dt) => Math.max(0, t - dt);
+// 換檔煞車（自排與手排共用，只用在玩家車）：換檔空檔 shiftT 期間，前進車速 vf 再輕微減速 SHIFT_BRAKE；倒車、幾乎靜止不作用，最多減到 0
+// AT_HYST：自排降檔遲滯 (m/s)，大於一次換檔煞車的掉速，檔位不會被它拉回去；AT_CUT：自排只斷油空檔的前段（整段斷油會讓手排快超過 8%）
+GB.SHIFT_BRAKE = 3.5; GB.AT_HYST = 1; GB.AT_CUT = 0.04;
+const gbShiftBrake = (vf, shiftT, dt) => shiftT > 0 && vf > 0.5 ? Math.max(0, vf - GB.SHIFT_BRAKE * dt) : vf;
+// 自排檔位：升檔點與 gearFor（門檻 G = GEARS）完全相同；降檔要再低 AT_HYST 才降
+function atGear(prev, spd, G) {
+  let g = 1; while (g < 6 && spd > G[g]) g++;
+  let d = gbGear(prev); while (d > g && spd < G[d - 1] - GB.AT_HYST) d--;
+  return Math.max(g, d);
+}
+// 自排每步：空檔倒數、更新檔位；live（比賽中）且前進時檔位一變，就給一段空檔（斷油 AT_CUT 秒 + 與手排相同的換檔煞車）
+function atStep(gear, shiftT, spd, vf, G, dt, live) {
+  shiftT = gbStep(shiftT, dt);
+  const g = atGear(gear, spd, G);
+  if (g !== gear && live && vf > 0.5) shiftT = GB.SHIFT_CUT;
+  return { gear: g, shiftT };
+}
+const atMul = shiftT => shiftT > GB.SHIFT_CUT - GB.AT_CUT ? 0 : undefined; // undefined = 原本的自排推力
 /* @gearbox:end */
 /* @collision:start */
 /* Wall and car-vs-car collision: oriented body boxes (hl = half length, hw = half width, a little inside the visible body).
@@ -2304,7 +2322,7 @@ function samplePos(s, lat) {
 }
 function resetRace() {
   const p = pts[8];
-  Object.assign(car, { x: p.x - Math.cos(p.h) * startLat, z: p.z + Math.sin(p.h) * startLat, h: p.h, vx: 0, vz: 0, w: 0, steer: 0, drift: false, idx: 8, rpm: 1000, gear: 1, shiftT: 0, penalty: 0, gutSide: 0, gutT: 0, gutLat: 0, gutCool: 0, gutDrop: 0, gutDropSide: 1, railAgo: Infinity, toll: { paid: [], warned: [] } });
+  Object.assign(car, { x: p.x - Math.cos(p.h) * startLat, z: p.z + Math.sin(p.h) * startLat, h: p.h, vx: 0, vz: 0, w: 0, steer: 0, drift: false, idx: 8, rpm: 1000, gear: 1, autoGear: 1, shiftT: 0, penalty: 0, gutSide: 0, gutT: 0, gutLat: 0, gutCool: 0, gutDrop: 0, gutDropSide: 1, railAgo: Infinity, toll: { paid: [], warned: [] } });
   car.loc = locate(car);
   Object.assign(rival, { s: pts[24].s, v: 0, lat: -2.2, latV: 0, i: 0, vis: 0 });
   state = 'title'; raceT = 0; driftTotal = 0; driftChain = 0; driftIdle = 0; rivalFinishT = null; playerFinishT = null; finishTimer = -1; lastGapSign = 1;
@@ -2381,6 +2399,7 @@ function physics(dt) {
   const sIn = auto ? 0 : analog ? input.steerAxis : (input.right ? 1 : 0) - (input.left ? 1 : 0);
   const u = { sIn, gas, brake, hb, analog };
   if (trans === 'manual') { c.shiftT = gbStep(c.shiftT, dt); u.mul = gbMul(choice.car, c.gear, Math.max(0, c.vx * Math.sin(c.h) + c.vz * Math.cos(c.h)), c.shiftT); }
+  else { const r = atStep(c.autoGear, c.shiftT, Math.hypot(c.vx, c.vz), c.vx * Math.sin(c.h) + c.vz * Math.cos(c.h), GEARS, dt, state === 'race'); c.autoGear = r.gear; c.shiftT = r.shiftT; u.mul = atMul(c.shiftT); }
   const a = vehicleAccel(c, P, u, loc, dt);
 
   // Gutter run: hooked cars are re-aimed after the normal step below; the first hook of a pass costs drift points.
@@ -2401,6 +2420,10 @@ function physics(dt) {
   if (gut) { Object.assign(c, gutterStep(pre, loc, pts[loc.i].ks, a, dt, c.gutLat)); c.drift = false; shake = Math.max(shake, 0.05); }
   if (trans === 'manual') { // above this gear's top speed (e.g. after a downshift): engine braking down to it
     const sh = Math.sin(c.h), ch = Math.cos(c.h), f = c.vx * sh + c.vz * ch, d = f - gbOverSpeed(choice.car, c.gear, f, dt);
+    if (d > 0) { c.vx -= sh * d; c.vz -= ch * d; }
+  }
+  if (state === 'race' && c.shiftT > 0) { // shift brake (auto and manual): a light extra slowdown during the shift cut
+    const sh = Math.sin(c.h), ch = Math.cos(c.h), f = c.vx * sh + c.vz * ch, d = f - gbShiftBrake(f, c.shiftT, dt);
     if (d > 0) { c.vx -= sh * d; c.vz -= ch * d; }
   }
   c.x += c.vx * dt; c.z += c.vz * dt;
@@ -2755,7 +2778,7 @@ let popTimer = 0;
 function showPop(big, small) { const el = $('#pop'); el.innerHTML = ''; el.append(big); if (small) { const sm = document.createElement('small'); sm.textContent = small; el.append(sm); } el.classList.add('show'); popTimer = 1.4; }
 function hud(dt) {
   const spd = Math.hypot(car.vx, car.vz), vf = car.vx * Math.sin(car.h) + car.vz * Math.cos(car.h);
-  const g = gearFor(spd);
+  const g = gearNow(spd);
   let rpmT = 1000 + clamp((spd - GEARS[g - 1]) / (GEARS[g] - GEARS[g - 1]), 0, 1) * 6400 + (g > 1 ? 1200 : 0);
   if (state === 'count' || spd < 1) rpmT = input.gas ? 7600 : 1000;
   if (car.drift && car.gas) rpmT = Math.min(8000, rpmT + 900);
@@ -2914,17 +2937,33 @@ function shifterStep(st, gear, dt) {
 }
 // 鏡頭晃動上限：頭部位移（公尺）與角度（弧度）
 const CK_LIM = { x: 0.04, y: 0.02, z: 0.04, roll: 3 * CK_DEG, pitch: 3.5 * CK_DEG, yaw: 9 * CK_DEG };
-const newCockpitMotion = () => ({ sx: 0, sz: 0, sRoll: 0, sPitch: 0, sYaw: 0, ph: 0, bp: 0, x: 0, y: 0, z: 0, roll: 0, pitch: 0, yaw: 0 });
+/* @lean:start */
+// 慣性前傾：縱向加速度 aLong（m/s²，向前為正）→ 頭部前移 z（公尺，+ 為前）與低頭 pitch（弧度，+ 為低頭）。煞車前傾、加速微微後仰。
+// 二階彈簧阻尼（W 自然頻率、ZETA 阻尼比）：緩入、小幅回彈後穩定，逐幀抖動被濾掉；FWD / PITCH 上限讓儀表、後照鏡仍看得清楚
+const LEAN = { W: 9, ZETA: 0.7, A_IN: 30, FWD: 0.04, BACK: 0.015, KF: 0.04 / 20, KB: 0.015 / 10, PITCH: 2.5 * Math.PI / 180, PITCH_BACK: 1 * Math.PI / 180 };
+const newLean = () => ({ z: 0, v: 0, pitch: 0 });
+function leanStep(s, aLong, dt) {
+  dt = Number.isFinite(dt) ? Math.min(Math.max(dt, 0), 0.05) : 0;
+  const a = Number.isFinite(aLong) ? Math.min(Math.max(aLong, -LEAN.A_IN), LEAN.A_IN) : 0;
+  const tgt = a < 0 ? Math.min(LEAN.FWD, -a * LEAN.KF) : -Math.min(LEAN.BACK, a * LEAN.KB);
+  const n = Math.ceil(dt * 240), h = n ? dt / n : 0; // 小步積分：大 dt 也穩定
+  for (let k = 0; k < n; k++) { s.v += (LEAN.W * LEAN.W * (tgt - s.z) - 2 * LEAN.ZETA * LEAN.W * s.v) * h; s.z += s.v * h; }
+  if (s.z > LEAN.FWD) { s.z = LEAN.FWD; s.v = Math.min(s.v, 0); } else if (s.z < -LEAN.BACK) { s.z = -LEAN.BACK; s.v = Math.max(s.v, 0); }
+  s.pitch = s.z >= 0 ? s.z / LEAN.FWD * LEAN.PITCH : s.z / LEAN.BACK * LEAN.PITCH_BACK;
+  return s;
+}
+/* @lean:end */
+const newCockpitMotion = () => ({ sx: 0, sz: 0, sRoll: 0, sPitch: 0, sYaw: 0, ph: 0, bp: 0, x: 0, y: 0, z: 0, roll: 0, pitch: 0, yaw: 0, lean: newLean() });
 // m：狀態；i = { aLat（向右為正，m/s²）, aLong（向前為正）, w（偏航角速度，左轉為正）, spd, steer（右為正）, shake（撞擊 0..0.6）}
-// 側向 G：頭往彎外移並外傾；縱向 G：煞車前傾低頭；視線往轉向方向偏（≤ 8°）；速度震動與撞擊晃動另外疊加，全部夾在 CK_LIM 內
+// 側向 G：頭往彎外移並外傾；縱向 G：leanStep（煞車前傾低頭、加速微微後仰）；視線往轉向方向偏（≤ 8°）；速度震動與撞擊晃動另外疊加，全部夾在 CK_LIM 內
 function cockpitMotion(m, i, dt) {
   dt = ckClamp(ckFin(dt), 0, 0.05);
-  const gl = ckClamp(ckFin(i.aLat) / 15, -1, 1), gg = ckClamp(ckFin(i.aLong) / 20, -1, 1);
+  const gl = ckClamp(ckFin(i.aLat) / 15, -1, 1);
   const sp = ckClamp(ckFin(i.spd) / 55, 0, 1), sh = ckClamp(ckFin(i.shake), 0, 0.6);
   const look = ckClamp(0.6 * ckClamp(ckFin(i.steer), -1, 1) - 0.4 * ckFin(i.w) / 1.2, -1, 1);
-  const kx = 1 - Math.exp(-6 * dt), kz = 1 - Math.exp(-7 * dt), ky = 1 - Math.exp(-4 * dt);
+  const kx = 1 - Math.exp(-6 * dt), ky = 1 - Math.exp(-4 * dt);
   m.sx += (gl * 0.04 - m.sx) * kx; m.sRoll += (gl * 3 * CK_DEG - m.sRoll) * kx;
-  m.sz += (-gg * 0.04 - m.sz) * kz; m.sPitch += (-gg * 2 * CK_DEG - m.sPitch) * kz;
+  leanStep(m.lean, i.aLong, dt); m.sz = m.lean.z; m.sPitch = m.lean.pitch;
   m.sYaw += (look * 8 * CK_DEG - m.sYaw) * ky;
   m.ph += dt * (14 + sp * 22); m.bp += dt * 55;
   const vib = 0.0003 * Math.min(1, sp * 8) + 0.0025 * sp;
@@ -2954,8 +2993,9 @@ const COCKPIT_CARS = {
 const clusterY = P => P.clusterY ?? P.dashTop + 0.03;
 /* @cockpit:end */
 // the gear the player is really in: chosen in manual, derived from speed in automatic (a manual car at a standstill shows its gear, not N)
-const gearNow = spd => trans === 'manual' ? car.gear : gearFor(spd);
-const gearLabelNow = (spd, vf) => trans === 'manual' ? (spd >= 0.5 && vf < -0.3 ? 'R' : car.gear) : gearLabel(spd, vf);
+// automatic reads car.autoGear (atGear: same upshift points as gearFor, a small downshift hysteresis so the shift brake's dip can't flip it back)
+const gearNow = spd => trans === 'manual' ? car.gear : car.autoGear ?? gearFor(spd);
+const gearLabelNow = (spd, vf) => trans === 'manual' ? (spd >= 0.5 && vf < -0.3 ? 'R' : car.gear) : spd < 0.5 ? 'N' : vf < -0.3 ? 'R' : gearNow(spd);
 let camMode = camModeFromStore(store.get('yatouge-cam'));
 const hudEl = $('#hud');
 let fovSnap = false; // a mode change jumps the FOV instead of easing it
