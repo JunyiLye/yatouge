@@ -2603,18 +2603,40 @@ const carbonTex = canvasTex(128, 128, (g, w) => {
   }
 });
 carbonTex.wrapS = carbonTex.wrapT = THREE.RepeatWrapping; carbonTex.anisotropy = 4;
-// polygonOffset lets the carbon skin sit on the body's own hood surface without z-fighting; DoubleSide because the cockpit ribbon is seen from above and below
+// polygonOffset keeps the carbon's thin shut-line strip off the body's own hood surface; DoubleSide because the cockpit sees the panel from above and below
 const carbonMat = () => new THREE.MeshLambertMaterial({ map: carbonTex, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
-// the whole hood in carbon: a strip along the hood line a -> b (side-profile [z, y]) across `width`, lifted dy, tapered like the body, UVs in hood metres
-function carbonStrip(parent, a, b, width, S, mat, dy) {
-  const n = 12, pos = [], uv = [], idx = [], hw = width / 2;
+// edge faces and the shut-line strip: slightly darker than the weave, no texture (per-car material, disposed with the car)
+const carbonEdgeMat = () => new THREE.MeshLambertMaterial({ color: 0x07080a, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
+/* @carbon-hood:start */
+// the KX-2 carbon hood is a solid panel CARBON_THICK (2 cm) thick standing on the body's flat hood, from the windscreen base to 5 mm short of the nose.
+// Its walls are CARBON_INSET inside the body edge; outboard of them a CARBON_LINE-wide dark strip lies on the hood (the hood-to-fender shut line)
+const CARBON_THICK = 0.02, CARBON_INSET = 0.014, CARBON_LINE = 0.007;
+// per-station panel numbers: yBase = body hood line, yTop = panel top, hw = wall half-width, hwLine = outer edge of the shut line, bodyHw = body half-width at yBase
+function carbonHoodStations(K, S, wk, n = 12) {
+  const [a, b] = K.hood, z0 = K.house[0][0], z1 = b[0] - 0.005, h = K.bodyW / 2, out = [];
   for (let i = 0; i <= n; i++) {
-    const z = a[0] + (b[0] - a[0]) * i / n, y = a[1] + (b[1] - a[1]) * i / n + dy;
-    for (const x of [-hw, hw]) { pos.push(x * widthK(S, y, z), y, z); uv.push(x / CARBON_TILE, z / CARBON_TILE); }
-    if (i) idx.push(i * 2 - 2, i * 2 - 1, i * 2, i * 2, i * 2 - 1, i * 2 + 1);
+    const z = z0 + (z1 - z0) * i / n, yBase = a[1] + (b[1] - a[1]) * (z - a[0]) / (b[0] - a[0]), k = wk(S, yBase, z);
+    out.push({ z, yBase, yTop: yBase + CARBON_THICK, hw: (h - CARBON_INSET) * k, hwLine: (h - CARBON_INSET + CARBON_LINE) * k, bodyHw: h * k });
   }
-  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
-  const m = new THREE.Mesh(geo, mat); parent.add(m); return m;
+  return out;
+}
+/* @carbon-hood:end */
+// top surface (weave UVs in hood metres) + one dark mesh for the four walls and the shut-line strips
+function carbonHood(parent, K, S, mat, edgeMat) {
+  const st = carbonHoodStations(K, S, widthK), pos = [], uv = [], idx = [], ep = [], ei = [];
+  st.forEach((q, i) => {
+    for (const x of [-q.hw, q.hw]) { pos.push(x, q.yTop, q.z); uv.push(x / CARBON_TILE, q.z / CARBON_TILE); }
+    if (i) idx.push(i * 2 - 2, i * 2 - 1, i * 2, i * 2, i * 2 - 1, i * 2 + 1);
+  });
+  const quad = (a, b, c, d) => { const o = ep.length / 3; ep.push(...a, ...b, ...c, ...d); ei.push(o, o + 1, o + 2, o, o + 2, o + 3); };
+  for (let i = 0; i < st.length - 1; i++) for (const sx of [-1, 1]) {
+    const p = st[i], q = st[i + 1], yl = 0.0015;
+    quad([sx * p.hw, p.yBase, p.z], [sx * p.hw, p.yTop, p.z], [sx * q.hw, q.yTop, q.z], [sx * q.hw, q.yBase, q.z]);
+    quad([sx * p.hw, p.yBase + yl, p.z], [sx * p.hwLine, p.yBase + yl, p.z], [sx * q.hwLine, q.yBase + yl, q.z], [sx * q.hw, q.yBase + yl, q.z]);
+  }
+  for (const q of [st[0], st[st.length - 1]]) quad([-q.hw, q.yBase, q.z], [-q.hw, q.yTop, q.z], [q.hw, q.yTop, q.z], [q.hw, q.yBase, q.z]);
+  const mk = (p, i, m, u) => { const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(p, 3)); if (u) geo.setAttribute('uv', new THREE.Float32BufferAttribute(u, 2)); geo.setIndex(i); geo.computeVertexNormals(); const o = new THREE.Mesh(geo, m); parent.add(o); return o; };
+  mk(pos, idx, mat, uv); mk(ep, ei, edgeMat);
 }
 const trimTex = {};
 function trimBadgeTex(light) { // rear-left trim badge: bold wide "KX-2" then smaller "DOWNHILL 16" on one baseline
@@ -2702,10 +2724,10 @@ function kxPod(g, sx, black, dark, paint) {
   part(poly([[1.86, 0.735], [2.09, 0.892], [2.09, 0.68], [1.86, 0.68]]), 0.32, dark, null, g, 0.003).position.x = sx * 0.6;
   part(poly([[1.86, 0.735], [2.09, 0.892], [2.09, 0.876], [1.86, 0.719]]), 0.34, paint, null, g, 0.003).position.x = sx * 0.6;
 }
-function kxHoodPanel(g, paint) { // slightly raised hood centre, following the hood slope
+function kxHoodPanel(g, paint, dy = 0) { // slightly raised hood centre, following the hood slope; dy lifts it onto the carbon panel's top
   const geo = new THREE.BoxGeometry(0.5, 0.014, 1.15);
   if (paint.map) { const uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 0.5 / CARBON_TILE, uv.getY(i) * 1.15 / CARBON_TILE); } // carbon: weave in hood metres, not stretched over the panel
-  const m = new THREE.Mesh(geo, paint); m.position.set(0, 0.811, 1.4); m.rotation.x = 0.147; g.add(m);
+  const m = new THREE.Mesh(geo, paint); m.position.set(0, 0.811 + dy, 1.4); m.rotation.x = 0.147; g.add(m);
 }
 // loft station field f at z, linear between stations like the mesh (1 = half-width, 4 = centreline height)
 function stationAt(st, z, f) { for (let i = 0; i < st.length - 1; i++) { const a = st[i], b = st[i + 1]; if (z <= a[0] && z >= b[0]) return b[f] + (a[f] - b[f]) * (z - b[0]) / (a[0] - b[0]); } return st[st.length - 1][f]; }
@@ -2780,10 +2802,10 @@ function makeCar(style, colorIdx) {
     const trimMat = new THREE.MeshBasicMaterial({ map: trimBadgeTex(doorInkLight(col.top)), transparent: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
     add(new THREE.PlaneGeometry(0.39, 0.058), trimMat, 0.46, 0.878, -2.158).rotation.y = Math.PI; // above the left (+x) tail cluster
     add(new THREE.PlaneGeometry(0.3, 0.047), nameMat, 0, 0.585, nose(0.585) + 0.03).rotation.x = -0.229; // grille band, below the slats, centred
-    // carbon hood: the body's own hood stays white underneath; a carbon skin 4 mm above it covers the whole hood (and the raised centre panel is carbon too)
+    // carbon hood: the body's own hood stays white underneath; a solid 2 cm carbon panel stands on it (walls, shut line; the raised centre panel is carbon too)
     const carbon = col.hood === 'carbon', hoodMat = carbon ? carbonMat() : paint;
-    if (carbon) carbonStrip(g, K.hood[0], K.hood[1], K.bodyW - 0.01, S, hoodMat, 0.004);
-    kxHoodPanel(g, hoodMat);
+    if (carbon) carbonHood(g, K, S, hoodMat, carbonEdgeMat());
+    kxHoodPanel(g, hoodMat, carbon ? CARBON_THICK : 0);
     add(box(1.5, 0.24, 0.02), black, 0, 0.72, -2.18); // full-width black tail panel
     add(box(0.34, 0.11, 0.01), plate, 0, 0.72, -2.19); // blank plate
     const sp = add(box(1.5, 0.03, 0.15), paint, 0, 0.99, -2.02); sp.rotation.x = 0.15; // small spoiler lip at the hatch base
@@ -3916,7 +3938,7 @@ function dialTex(kind) {
     if (kind === 'rpm') g.fillText('x1000r/min', c, c + 62); else if (kind === 'speed') g.fillText('km/h', c, c + 62);
   });
 }
-function makeInterior(style, paintHex, carbonHood) {
+function makeInterior(style, paintHex, carbonOn) {
   const P = COCKPIT_CARS[style], e = P.eye, ex = -e.right, dt = P.dashTop, pz = 0.74, hw = CAR_BOX[style].hw, FLOOR = 0.1;
   const grp = new THREE.Group(); grp.visible = false;
   const lam = c => new THREE.MeshLambertMaterial({ color: c });
@@ -4053,9 +4075,10 @@ function makeInterior(style, paintHex, carbonHood) {
     // hood: the body's own top surface ahead of the windscreen base, with what stands on it
     const mPaintDS = ds(paintHex);
     if (style === 'hatch') {
-      const mCarbon = carbonHood ? carbonMat() : null; if (mCarbon) mCarbon.userData.shared = true; // disposeInterior must leave the shared weave texture alone
-      if (mCarbon) carbonStrip(grp, K.hood[0], K.hood[1], K.bodyW, K.S, mCarbon, 0); else ribbon(along(K.hood[0], K.hood[1], 12), -K.bodyW / 2, K.bodyW / 2, mPaintDS, K.S);
-      kxHoodPanel(grp, mCarbon || mPaint);
+      const mCarbon = carbonOn ? carbonMat() : null; if (mCarbon) mCarbon.userData.shared = true; // disposeInterior must leave the shared weave texture alone
+      ribbon(along(K.hood[0], K.hood[1], 12), -K.bodyW / 2, K.bodyW / 2, mPaintDS, K.S); // the carbon panel stands on this, as on the outside
+      if (mCarbon) carbonHood(grp, K, K.S, mCarbon, carbonEdgeMat());
+      kxHoodPanel(grp, mCarbon || mPaint, mCarbon ? CARBON_THICK : 0);
       for (const sx of [-1, 1]) kxPod(grp, sx, mBlack, lam(0x121317), mPaint);
     } else {
       const st = loftStations(K.body).filter(q => q[0] >= K.glass[0][0] - 0.3), pos = [], idx = [];
