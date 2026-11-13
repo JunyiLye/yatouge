@@ -25,7 +25,7 @@ test('RP：模式、距離與預設值；顏色數與 CARS 一致', () => {
   assert.equal(RP.GAP, 50);
   assert.ok(RP.V !== NET.V, '房間狀態與大廳換了版本號，舊版本互相看不到');
   for (const k of NET.CARS) assert.equal(RP.COLS[k], CARS[k].colors.length, k);
-  assert.deepEqual(RP.COLS, { hatch: 5, coupe: 4, gtr: 4 });
+  assert.deepEqual(RP.COLS, { hatch: 5, coupe: 4, gtr: 4, rally: 4 });
 });
 
 /* ---------- validVote ---------- */

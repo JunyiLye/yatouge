@@ -147,8 +147,10 @@ test('cockpitMotion：路面震動隨車速增加；撞牆（shake）會晃一�
 
 test('COCKPIT_CARS：涵蓋每台車，眼睛在 CAR_BOX 內、右駕，FOV 70–80，方向盤與儀表參數完整', () => {
   const { COCKPIT_CARS } = load(), box = loadBox();
-  assert.deepEqual(Object.keys(COCKPIT_CARS).sort(), Object.keys(box).sort());
-  for (const k in box) {
+  // rally（RV-4）的車內視角在第二段才做；在那之前 camNow() 會退回追車視角（見 rally-body.test.mjs）
+  const withCockpit = Object.keys(box).filter(k => k !== 'rally');
+  assert.deepEqual(Object.keys(COCKPIT_CARS).sort(), withCockpit.sort());
+  for (const k of withCockpit) {
     const c = COCKPIT_CARS[k];
     assert.ok(Math.abs(c.eye.fwd) < box[k].hl && c.eye.right > 0.2 && c.eye.right < box[k].hw, `${k} eye`);
     const top = loadCab()[k].glass[1][1]; // 外觀擋風玻璃上緣
