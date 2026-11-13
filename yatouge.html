@@ -747,8 +747,8 @@ const confirmKeys = (what, ta, sake) => what === 'lobby' ? { q: 'igLobbyAsk', ye
 // Player-facing release notes, newest first (at most 12 versions). Add today's version, or extend it, whenever a change the player can see goes out.
 const CHANGELOG = [
   { date: '2026-11-14',
-    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：主畫面選好賽道後可以切換「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式與線上對戰仍是下坡）。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。'],
-    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after picking a course on the title screen you can switch between Downhill and Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run and online matches stay downhill).', 'Fix: a turn sign no longer disappears and reappears when you brake after it shows up.', 'Fix: if the car is sliding backwards when you cross the line, the auto-brake no longer sends it flying.', 'Fix: in a room with several rounds, later rounds no longer always show a win.', 'Fix: the lobby list now updates right away when someone leaves or closes a room.', 'Fix: a join that finishes after you went back from the lobby no longer pulls you into a room.'] },
+    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：主畫面選好賽道後可以切換「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式與線上對戰仍是下坡）。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。', '修正：主畫面按 Enter 只有在「開始」鈕上、或焦點不在任何控制項上時才會開始比賽；在其他按鈕、選單上按 Enter 會照常操作它，方向鍵也能切換下拉選單與滑桿。', '修正：可以把 Ctrl 或 Alt 綁成降檔、鏡頭、聊天，綁了之後確實會作用。', '修正：關閉 KX-2 車門字樣後，離開車內視角不會再冒出來。', '修正：計時在整分、整十秒前後不再顯示成 0:60.00 之類的錯誤格式。', '修正：點選卡片後鍵盤焦點會留在原位；再點已選的車不會重設顏色。', '修正：回到主畫面時視角會恢復正常。', '修正：在遊戲內換語言後，主畫面的線上狀態也會跟著換語言。', '修正：壞掉的語言存檔不再讓文字壞掉。'],
+    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after picking a course on the title screen you can switch between Downhill and Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run and online matches stay downhill).', 'Fix: a turn sign no longer disappears and reappears when you brake after it shows up.', 'Fix: if the car is sliding backwards when you cross the line, the auto-brake no longer sends it flying.', 'Fix: in a room with several rounds, later rounds no longer always show a win.', 'Fix: the lobby list now updates right away when someone leaves or closes a room.', 'Fix: a join that finishes after you went back from the lobby no longer pulls you into a room.', 'Fix: on the title screen Enter starts the race only from the Start button or when focus is not on any control; on other buttons and menus it works that control, and the arrow keys now change dropdowns and sliders.', 'Fix: Ctrl or Alt can be bound to downshift, camera or chat and now really work.', 'Fix: with the KX-2 door lettering turned off it no longer pops back when you leave the cockpit view.', 'Fix: timers around full minutes and ten-second marks no longer show formats like 0:60.00.', 'Fix: keyboard focus stays in place after choosing a card, and clicking the car you already picked no longer resets its colour.', 'Fix: the view returns to normal when you are back on the title screen.', 'Fix: switching language in-game also updates the title-screen online status.', 'Fix: a corrupted language save no longer breaks the text.'] },
   { date: '2026-11-13',
     zh: ['彎道前會出現提示圖示，可以在設定裡關掉。', '送酒模式通關有獎勵：KX-2 的極速升級開關，以及白色碳纖維引擎蓋塗裝。', '遊戲內選單新增「重新開始」與「回到大廳」。', '比賽結束後車子不會再倒退。', 'SR-7 新增引擎蓋與尾燈細節。', '手機車內視角：後照鏡縮小，KX-2 與 GT-32 的儀表降低，視野更開闊。', '鍵盤與手把的按鍵都可以自己設定。', '線上房間可以聊天、玩貓捉老鼠，也能在房間裡選賽道和車。', '三台車的外型都依真車照片重新製作。'],
     en: ['Turn signs now appear before corners; you can switch them off in settings.', 'Sake Run rewards: a top-speed upgrade switch for the KX-2 and a white carbon-fibre hood paint.', 'The in-game menu now has Restart and Back to lobby.', 'The car no longer rolls backwards after the race ends.', 'New hood and tail-light details on the SR-7.', 'Phone cockpit view: smaller rear-view mirror, and lower dashboards on the KX-2 and GT-32 for a clearer view.', 'Keyboard and controller buttons can be rebound.', 'Online rooms now have chat and Cat and Mouse, and you can pick the course and car inside the room.', 'All three cars were rebuilt from photos of the real cars.'] },
@@ -1158,8 +1158,37 @@ const I18N = {
     sakeRetry: 'Try again', sakeTitle: 'Back to title', sakeQuitAsk: 'Give up this run? Nothing will be saved.'
   }
 };
+/* @ui-fixes:start */
+// Small pure helpers for the title-screen and input fixes (tested in tests/ui-fixes.test.mjs).
+const FOV_BASE = 66; // the camera's FOV on load; the title orbit eases back to it
+// a saved language must be one the table itself owns ('toString' and friends are inherited, not languages)
+const validLang = (v, tbl) => typeof v === 'string' && Object.hasOwn(tbl, v);
+// m:ss.cc, rounded to 0.01 s first so 59.996 reads 1:00.00 and never 0:60.00
+const fmtT = t => { const c = Math.round(t * 100), m = Math.floor(c / 6000), s = (c - m * 6000) / 100; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(2); };
+// Enter starts the race from the Start button or from anywhere that is not a control; on any other control it activates that control
+const ENTER_OWN = 'button, select, input, textarea, a, summary, .music, #tKx, #tTa, #tKeys, #tLog';
+const enterStartsRace = el => !el || el.id === 'btnStart' || !el.closest(ENTER_OWN);
+// on the title screen Space and the arrow keys on a menu or slider keep their native action (they are also driving keys)
+const keepNativeKey = (state, code, el) => state === 'title' && (code === 'Space' || (/^Arrow/.test(code) && !!el && (el.tagName === 'SELECT' || el.tagName === 'INPUT')));
+// is another modifier held? A key that is itself Ctrl, Alt or Meta carries its own flag, which must not count
+const kbModHeld = (code, e) => (!!e.ctrlKey && code !== 'ControlLeft' && code !== 'ControlRight') || (!!e.altKey && code !== 'AltLeft' && code !== 'AltRight') || (!!e.metaKey && code !== 'MetaLeft' && code !== 'MetaRight');
+// a bound Alt key must not also move the focus to the browser menu
+const kbSuppressAlt = (code, act) => !!act && (code === 'AltLeft' || code === 'AltRight');
+// one FOV easing step (same easing the cameras use)
+const stepFov = (cur, target, dt) => Math.abs(cur - target) > 0.05 ? cur + (target - cur) * Math.min(1, 3 * dt) : cur;
+// clicking the car that is already chosen changes nothing (null); Sake Run fixes the car
+const carPickNext = (choice, k, mode) => mode === 'sake' || k === choice.car ? null : { car: k, color: 0 };
+// remember which card button has the focus before a picker is redrawn; the returned function puts it back on the same slot
+// (not after a pointer pick: the focus then falls to the page as before, so Enter still starts the race)
+function focusKeep(rows, active, byPointer) {
+  let r = -1, i = -1;
+  if (byPointer) return () => {};
+  rows.forEach((row, k) => { const j = [...row.children].indexOf(active); if (j >= 0) { r = k; i = j; } });
+  return () => { const b = r >= 0 && rows[r].children[i]; if (b && !b.disabled) b.focus(); };
+}
+/* @ui-fixes:end */
 let lang = store.get('yatouge-lang') || ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
-if (!I18N[lang]) lang = 'zh';
+if (!validLang(lang, I18N)) lang = 'zh';
 const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
 const Lz = o => (o && typeof o === 'object') ? o[lang] : o;
 function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -1172,7 +1201,7 @@ const scene = new THREE.Scene();
 const FOG = 0x1e2242;
 scene.background = new THREE.Color(0x0a0d1c);
 scene.fog = new THREE.Fog(FOG, 35, 360);
-const camera = new THREE.PerspectiveCamera(66, 1, 0.1, 2400);
+const camera = new THREE.PerspectiveCamera(FOV_BASE, 1, 0.1, 2400);
 scene.add(new THREE.HemisphereLight(0x5c6aa0, 0x1a1a24, 0.85));
 const moonLight = new THREE.DirectionalLight(0xa9b8ff, 0.45);
 moonLight.position.set(-0.4, 1, 0.3);
@@ -3745,7 +3774,6 @@ function updateEngineAudio(dt) {
 document.addEventListener('visibilitychange', () => { if (!ac) return; if (document.hidden) ac.suspend(); else ac.resume(); });
 
 /* ---------- HUD ---------- */
-const fmtT = t => { const m = Math.floor(t / 60), s = t - m * 60; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(2); };
 let popTimer = 0;
 function showPop(big, small) { const el = $('#pop'); el.innerHTML = ''; el.append(big); if (small) { const sm = document.createElement('small'); sm.textContent = small; el.append(sm); } el.classList.add('show'); popTimer = 1.4; }
 function tsPopClear(pop) { pop.classList.remove('ts-below', 'ts-beside'); for (const v of ['--ts-pop', '--ts-pop-y', '--ts-pop-r', '--ts-pop-w']) pop.style.removeProperty(v); }
@@ -4276,7 +4304,7 @@ function syncBody(hide) {
     const cols = CARS[choice.car].colors; const pc = cols[choice.color] || cols[0]; playerInterior = makeInterior(choice.car, pc.top, pc.hood === 'carbon');
     playerCar.g.add(playerInterior.group);
   }
-  for (const o of playerCar.g.children) if (o !== head && o !== headTarget && o !== playerInterior?.group) o.visible = !hide;
+  for (const o of playerCar.g.children) if (o !== head && o !== headTarget && o !== playerInterior?.group) o.visible = o === playerCar.door ? !hide && kxLetterOn : !hide;
   if (playerInterior) playerInterior.group.visible = hide;
 }
 const _a = new THREE.Vector3(), _up = new THREE.Vector3();
@@ -4304,7 +4332,7 @@ function cockpitCamera(dt) {
 }
 function easeFov(dt, fov) {
   if (fovSnap) { fovSnap = false; camera.fov = fov; camera.updateProjectionMatrix(); return; }
-  if (Math.abs(camera.fov - fov) > 0.05) { camera.fov += (fov - camera.fov) * Math.min(1, 3 * dt); camera.updateProjectionMatrix(); }
+  const nf = stepFov(camera.fov, fov, dt); if (nf !== camera.fov) { camera.fov = nf; camera.updateProjectionMatrix(); }
 }
 function updateCamera(dt) {
   const c = car, L = c.loc, spd = Math.hypot(c.vx, c.vz);
@@ -4316,7 +4344,7 @@ function updateCamera(dt) {
     const w = window.innerWidth, h = window.innerHeight;
     if (w >= 900) camera.setViewOffset(w, h, -w * 0.2, 0, w, h); else camera.clearViewOffset();
     camPos.set(c.x + Math.sin(camOrbit) * 7, L.y + 2.2, c.z + Math.cos(camOrbit) * 7);
-    camera.position.copy(camPos); camera.lookAt(c.x, L.y + 0.9, c.z); camH = c.h; return;
+    camera.position.copy(camPos); camera.lookAt(c.x, L.y + 0.9, c.z); camH = c.h; easeFov(dt, FOV_BASE); return;
   }
   // follow the direction of travel (so a drift shows the car sideways); fall back to the car's heading when slow or reversing
   const fwdV = c.vx * Math.sin(c.h) + c.vz * Math.cos(c.h);
@@ -4537,15 +4565,20 @@ function showResult() {
   $('#hud').hidden = true; $('#result').hidden = false;
   $('#btnMenu').focus();
 }
+// the card rows are rebuilt from scratch, so a keyboard focus on one of them is put back on the same slot afterwards
+let pickByPointer = false; // last input was a mouse or touch press, not a key
+window.addEventListener('pointerdown', () => { pickByPointer = true; }, true);
+window.addEventListener('keydown', () => { pickByPointer = false; }, true);
+const keepPickFocus = () => focusKeep(['#pick', '#swatches', '#modePick', '#trackPick', '#dirPick'].map($), document.activeElement, pickByPointer);
 function renderPicker() {
-  const pick = $('#pick'), sw = $('#swatches');
+  const pick = $('#pick'), sw = $('#swatches'), keep = keepPickFocus();
   pick.innerHTML = ''; sw.innerHTML = '';
   for (const [k, d] of Object.entries(CARS)) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(k === choice.car));
     b.innerHTML = `<b></b><small></small>` + carStats(k, kxUpActive()).map(([n, v]) => `<div class="stat"><span>${Lz(n)}</span><div class="pips">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= v ? 'on' : ''}"></i>`).join('')}</div></div>`).join('');
     b.querySelector('b').textContent = Lz(d.name); b.querySelector('small').textContent = Lz(d.sub);
     b.disabled = mode === 'sake'; // the car is fixed in Sake Run
-    b.addEventListener('click', () => { if (mode === 'sake') return; choice = { car: k, color: 0 }; chosen(); });
+    b.addEventListener('click', () => { const next = carPickNext(choice, k, mode); if (!next) return; choice = next; chosen(); });
     pick.append(b);
   }
   CARS[choice.car].colors.forEach((c, i) => {
@@ -4558,11 +4591,11 @@ function renderPicker() {
     b.addEventListener('click', () => { if (mode === 'sake') return; choice = { car: choice.car, color: i }; chosen(); });
     sw.append(b);
   });
-  syncKxUI(); renderModePicker();
+  syncKxUI(); renderModePicker(); keep();
 }
 // race / time attack cards; the time-attack card shows the best for the chosen course × car
 function renderModePicker() {
-  const el = $('#modePick'), best = taParse(store.get(taKey(trackId, choice.car, kxUpActive())));
+  const keep = keepPickFocus(), el = $('#modePick'), best = taParse(store.get(taKey(trackId, choice.car, kxUpActive())));
   el.innerHTML = '';
   const sb = sakeParseBest(store.get(sakeKey));
   for (const m of ['race', 'ta', 'sake']) {
@@ -4574,7 +4607,7 @@ function renderModePicker() {
     el.append(b);
   }
   $('#lead').textContent = T(mode === 'ta' ? 'leadTa' : mode === 'sake' ? 'leadSake' : 'lead', Lz(TRACKS[baseId(trackId)].name), isUp(trackId));
-  syncTaUI();
+  syncTaUI(); keep();
 }
 function setMode(m) {
   if (state !== 'title' || m === mode) return;
@@ -4615,7 +4648,7 @@ $('#tKxUp').addEventListener('click', () => { kxUpOn = !kxUpOn; store.set('yatou
 for (const id of ['#tVibe', '#igVibe']) $(id).addEventListener('click', () => { vibeOn = !vibeOn; store.set('yatouge-vibe', vibeOn ? '1' : '0'); syncKxUI(); });
 for (const id of ['#tTurn', '#igTurn']) $(id).addEventListener('change', e => { if (!TS_STYLES.includes(e.target.value)) return; tsStyle = e.target.value; store.set('yatouge-turn-style', tsStyle); tsHide(); syncKxUI(); }); // tsHide: redraw (or re-beep) the current corner in the new style
 function renderTrackPicker() {
-  const el = $('#trackPick'); el.innerHTML = '';
+  const keep = keepPickFocus(), el = $('#trackPick'); el.innerHTML = '';
   for (const id in TRACKS) {
     const c = COURSES[courseId(id, mode === 'sake' ? 'down' : trackDir)], b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(id === baseId(trackId)));
     b.innerHTML = '<b></b><small></small>';
@@ -4624,6 +4657,7 @@ function renderTrackPicker() {
     b.addEventListener('click', () => setTrack(id));
     el.append(b);
   }
+  keep();
 }
 function setTrack(id) {
   const cid = courseId(id, trackDir);
@@ -4632,7 +4666,7 @@ function setTrack(id) {
 }
 // downhill / uphill switch under the course cards; the saved course stays a plain id, the direction is stored apart. Sake Run is always downhill.
 function renderDirPicker() {
-  const el = $('#dirPick'); el.innerHTML = '';
+  const keep = keepPickFocus(), el = $('#dirPick'); el.innerHTML = '';
   for (const d of DIRS) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(d === (mode === 'sake' ? 'down' : trackDir)));
     b.innerHTML = '<b></b><small></small>';
@@ -4641,6 +4675,7 @@ function renderDirPicker() {
     b.addEventListener('click', () => setDir(d));
     el.append(b);
   }
+  keep();
 }
 function setDir(d) {
   if (state !== 'title' || d === trackDir || mode === 'sake') return;
@@ -5994,16 +6029,17 @@ window.addEventListener('keydown', e => {
     } else if (act === 'music' && !e.repeat && e.target.tagName !== 'SELECT') { setMusic(!musicOn); syncMenuUI(); }
     return;
   }
-  const ck = chatKey({ code: e.code, repeat: e.repeat, mod: e.ctrlKey || e.metaKey || e.altKey, online: !!pvp, spec: !!spec, room: !!pvp && !$('#room').hidden, state, keys: kb.keys.chat });
+  if (kbSuppressAlt(e.code, act)) e.preventDefault(); // a bound Alt key must not move the focus to the browser menu
+  const ck = chatKey({ code: e.code, repeat: e.repeat, mod: kbModHeld(e.code, e), online: !!pvp, spec: !!spec, room: !!pvp && !$('#room').hidden, state, keys: kb.keys.chat });
   if (ck) { e.preventDefault(); chatFocus(ck); return; } // T: chat, online only (no 't' typed into the box it opens)
   if (spec) { const v = specViewKey(e.code); if (v) { e.preventDefault(); specView(v); } return; } // a spectator has no car: only the view keys
   if (!e.repeat && act === 'shiftUp') shiftGear(1);
-  if (!e.repeat && act === 'shiftDown' && !e.ctrlKey && !e.metaKey && !e.altKey) shiftGear(-1);
-  if (KB_DRIVE.includes(act)) { input[act] = true; if (state !== 'title' || e.code !== 'Space') e.preventDefault(); }
+  if (!e.repeat && act === 'shiftDown' && !kbModHeld(e.code, e)) shiftGear(-1);
+  if (KB_DRIVE.includes(act)) { input[act] = true; if (!keepNativeKey(state, e.code, e.target)) e.preventDefault(); }
   if (e.code === 'KeyR' && (state === 'race')) resetCar();
   if (act === 'music') setMusic(!musicOn);
-  if (act === 'cam' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && !hudEl.hidden) setCamMode(nextCam(camMode), true);
-  if (e.code === 'Enter' && !e.repeat && state === 'title' && !onlineUI && !e.target.closest('.music, #tKx, #tTa, #tKeys, #tLog')) { e.preventDefault(); askTrans(startRace); } // Enter on a music button, a KX-2 option or "key bindings" or "what's new" activates it, not the race
+  if (act === 'cam' && !e.repeat && !kbModHeld(e.code, e) && !hudEl.hidden) setCamMode(nextCam(camMode), true);
+  if (e.code === 'Enter' && !e.repeat && state === 'title' && !onlineUI && enterStartsRace(e.target)) { e.preventDefault(); askTrans(startRace); } // Enter on any control (music, options, online, pickers, key bindings, what's new) activates that control; only Start or a non-control starts the race
 });
 window.addEventListener('keyup', e => {
   if (kbOpen && kbSwallow === e.code) { kbSwallow = null; e.preventDefault(); } // the key just bound must not also press the focused slot (Space clicks on keyup)
@@ -6366,7 +6402,7 @@ function syncMenuUI() {
   const mb = $('#igMusic'); mb.setAttribute('aria-checked', String(musicOn)); mb.textContent = T(musicOn ? 'igOn' : 'igOff');
   $('#igMusicVol').value = volPct(musicVol); $('#igMusicOut').textContent = volPct(musicVol) + '%';
   $('#igSfxVol').value = volPct(sfxVol); $('#igSfxOut').textContent = volPct(sfxVol) + '%';
-  $('#igCam').value = camMode; $('#igLang').value = lang;
+  $('#igCam').value = camNow(); $('#igLang').value = lang;
   syncKxUI(); syncSteerUI(); syncTaUI(); syncSakeUI();
   $('#igCam').disabled = !!sakeRun; // Sake Run: cockpit only
   // time attack / Sake Run: "forfeit" becomes "quit" (back to the title, nothing saved)
@@ -6419,7 +6455,7 @@ $('#igMusic').addEventListener('click', () => { setMusic(!musicOn); syncMenuUI()
 $('#igMusicVol').addEventListener('input', e => { setVolume('music', volFromPct(e.target.value)); syncMenuUI(); });
 $('#igSfxVol').addEventListener('input', e => { setVolume('sfx', volFromPct(e.target.value)); syncMenuUI(); });
 $('#igCam').addEventListener('change', e => { if (CAM_MODES.includes(e.target.value)) setCamMode(e.target.value, true); });
-$('#igLang').addEventListener('change', e => { if (!I18N[e.target.value]) return; lang = e.target.value; store.set('yatouge-lang', lang); applyLang(); });
+$('#igLang').addEventListener('change', e => { if (!validLang(e.target.value, I18N)) return; lang = e.target.value; store.set('yatouge-lang', lang); applyLang(); renderOnline(); });
 
 /* ---------- key bindings page: from the title settings or the in-game menu settings ---------- */
 function kbName(a) { return T('kbA_' + a); }
