@@ -76,9 +76,15 @@
 - 使用者不希望同事發現：**所有測試用的 server 與瀏覽器用完一定要關**。使用者自己在 4200、4210、4300 port 的 dev server 不是我們的，不要動。
 - 不要用 `git stash` 或任何會改動工作目錄、index 的 git 指令（會影響同時在跑的工作）。
 
-本機 headless 環境：
-- playwright-core：`C:/Users/M00/AppData/Local/npm-cache/_npx/9833c18b2d85bc59/node_modules/playwright-core`
-- 瀏覽器：`C:/Users/M00/AppData/Local/ms-playwright/chromium_headless_shell-1243/chrome-headless-shell-win64/chrome-headless-shell.exe`（要指定 `executablePath`，預設會找不存在的 1254 版）
+本機 headless 環境（路徑依電腦而不同，每台電腦第一次使用時先找出來）：
+- **playwright-core**：在 npm 快取裡找，例如 Windows 上執行
+  `ls ~/AppData/Local/npm-cache/_npx/*/node_modules/playwright-core`；
+  找不到就先執行 `npx playwright --version`（會把它下載到快取）。
+- **瀏覽器**：在 Playwright 的瀏覽器資料夾裡找 `chrome-headless-shell.exe`，例如
+  `ls ~/AppData/Local/ms-playwright/` 會看到 `chromium_headless_shell-<版本>`；
+  沒有就執行 `npx playwright install chromium-headless-shell`。
+- 啟動時一律用 `executablePath` 指定找到的那個執行檔。playwright-core 的版本可能預期另一個瀏覽器版本，不指定就會找不到。
+- 原本那台電腦的路徑供參考：`C:/Users/M00/AppData/Local/npm-cache/_npx/9833c18b2d85bc59/node_modules/playwright-core`，瀏覽器是 `chromium_headless_shell-1243`。
 
 做法：用 node 內建 http server 提供一份**暫存副本**，在最後的 `})();` 前注入 `window.__lc = c => eval(c);`，再用 `page.evaluate(() => window.__lc("..."))` 操作遊戲內部狀態（例如覆寫 `updateCamera` 拍特寫、`choice = { car: 'gtr', color: 0 }; buildCars();` 換車）。**除錯掛鉤只能放在暫存副本，絕不能進 `yatouge.html`。**
 
@@ -97,7 +103,20 @@ const html = fs.readFileSync('yatouge.html', 'utf8')
 - 驗證要短；長時間工作要定期回報進度。
 - 回覆時不說「完成、修好」除非已經驗證；沒驗證的部分直接講沒驗證。
 
-## 七、快速對照
+## 七、在新電腦上開始
+`CLAUDE.md` 跟著 repo 走，但下列東西只存在原本那台電腦上，換電腦時要另外處理：
+
+1. **取得專案**：`git clone https://github.com/JunyiLye/yatouge.git`，在 clone 下來的資料夾裡開 Claude Code。
+2. **必要工具**：
+   - Node.js：用來執行 `node --test`。
+   - GitHub 登入：例如 `gh auth login`，才能 push。Commit 的作者沿用 repo 既有的設定（`git log` 可以看到）。
+3. **瀏覽器測試**：依第五節找出或安裝 playwright-core 與 headless 瀏覽器，再開始任何截圖。
+4. **使用者的全域設定**：`~/.claude/` 裡的 `CLAUDE.md`、`core.md`、`rules/` 定義了工作流程（pipeline）與寫作風格。使用者如果把這個資料夾複製過來，就會照同樣的方式工作；沒有複製時，至少遵守本文件。
+5. **原本電腦上的 Claude 記憶**：不會跟過來。重要的內容已經寫進本文件（第六節），所以不影響工作。
+6. **車子參考照片**：使用者提供的真車照片存在原本電腦的暫存資料夾，**不放進公開 repo**（是真實車輛的照片）。需要時請使用者重新提供，或從他自己保存的私人位置取得。過去的修改紀錄在 `docs/runs/2026-11-13-gtr-rework/`、`docs/runs/2026-11-13-sr7-rebuild/` 等計畫檔裡，有寫各照片的重點。
+7. **暫存的截圖腳本**：原本電腦上的截圖與比對腳本放在暫存資料夾，不會跟過來。照第五節的做法重新寫一支即可（暫存副本、注入 `__lc`、拍完關閉）。
+
+## 八、快速對照
 - 執行測試：`node --test`（根目錄）
 - 推送：`git push origin main`（Pages 約一分鐘後更新）
 - 過去每次工作的計畫與決定：`docs/runs/`（只有 `.md` 會進 git，截圖等其他檔案被 `.gitignore` 排除）
