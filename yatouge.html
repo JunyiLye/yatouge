@@ -2566,57 +2566,95 @@ function makeCar(style, colorIdx) {
     W = { x: 0.78, zf: 1.24, zr: -1.24, r: 0.32, arch: 0.4, half: 0.885 };
   } else {
     const W0 = { x: 0.76, zf: 1.3, zr: -1.3, r: 0.32, arch: 0.4, half: 0.86 };
-    // boxy early-90s twin-turbo coupe: long flat hood, slim wide lamps over a big intercooler intake, angular greenhouse with black frames,
+    // boxy early-90s twin-turbo coupe: flat hood, slim wide lamps over a big intercooler intake, angular greenhouse with black frames,
     // flared arches; rear: quad round tail lamps, tall wing (own badge, blank plates, no real marque)
-    const plate = new THREE.MeshLambertMaterial({ color: 0xc9ccd2 }), silver = new THREE.MeshLambertMaterial({ color: 0x8a8d94 }), fin = new THREE.MeshLambertMaterial({ color: 0x4a4d54 }), lensC = new THREE.MeshLambertMaterial({ color: 0xc4c9d1 });
-    // the stations from z 0.3 back are the original ones, so the rear end is unchanged; the nose is low (bumper to y 0.19) and nearly square in plan;
-    // the front well stations mirror the rear ones (wider at 1.4 for the flare) so both arches tuck the same way
-    const bodyKeys = [[2.27, 0.79, 0.19, 0.65, 0.64], [2.24, 0.84, 0.185, 0.655, 0.645], [2.15, 0.865, 0.2, 0.665, 0.655], [1.9, 0.88, 0.29, 0.7, 0.688], [1.4, 0.895, 0.3, 0.765, 0.753], [0.9, 0.875, 0.3, 0.825, 0.812],
+    const plate = new THREE.MeshLambertMaterial({ color: 0xc9ccd2 }), silver = new THREE.MeshLambertMaterial({ color: 0x8a8d94 }), fin = new THREE.MeshLambertMaterial({ color: 0x4a4d54 });
+    // the stations from z 0.3 back are the original ones, so the rear end is unchanged; the front well stations mirror the rear ones (wider at 1.4 for the flare).
+    // Nose in side view: the hood edge rolls down (2.175) into the lamp band, which leans back (2.195 to 2.218); the bumper rolls forward under it to a flat face (2.283), then tucks under to the lip.
+    // The front stations also narrow, so the corners are round in plan
+    const bodyKeys = [[2.283, 0.68, 0.3, 0.42, 0.415], [2.272, 0.76, 0.24, 0.475, 0.47], [2.252, 0.805, 0.2, 0.52, 0.515], [2.218, 0.83, 0.19, 0.556, 0.551], [2.195, 0.845, 0.19, 0.628, 0.622], [2.175, 0.857, 0.196, 0.656, 0.647],
+      [2.15, 0.865, 0.2, 0.665, 0.655], [1.9, 0.88, 0.29, 0.7, 0.688], [1.4, 0.895, 0.3, 0.765, 0.753], [0.9, 0.875, 0.3, 0.825, 0.812],
       [0.3, 0.85, 0.3, 0.87, 0.82], [-0.3, 0.85, 0.3, 0.87, 0.83], [-0.9, 0.87, 0.3, 0.89, 0.85], [-1.4, 0.87, 0.3, 0.91, 0.88], [-1.9, 0.86, 0.3, 0.93, 0.91], [-2.15, 0.84, 0.31, 0.93, 0.915], [-2.25, 0.8, 0.34, 0.9, 0.89]];
-    loftBody(bodyKeys, col.top, g, [[1.3, 0.38], [-1.3, 0.38]]);
+    const body = loftBody(bodyKeys, col.top, g, [[1.3, 0.38], [-1.3, 0.38]]);
+    // front parts are set onto the nose by casting rays at the shell, so they follow its lean and its rounded corners
+    body.updateMatrixWorld();
+    const rc = new THREE.Raycaster(), V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+    const shoot = (o, d) => { rc.set(o, d); const h = rc.intersectObject(body)[0]; return h ? h.point : o.clone(); };
+    const surf = (x, y) => shoot(V3(x, y, 3), V3(0, 0, -1));
+    const onNose = (geo, mat, x, y, off) => { // mesh at the nose point (x, y), `off` out along the surface normal, facing along it
+      const d = 0.012, p = surf(x, y), n = surf(x + d, y).sub(surf(x - d, y)).cross(surf(x, y + d).sub(surf(x, y - d))).normalize();
+      const m = add(geo, mat, 0, 0, 0); m.position.copy(p).addScaledVector(n, off); m.rotation.set(-Math.asin(n.y), Math.atan2(n.x, n.z), 0, 'YXZ'); return m;
+    };
     const bodySt = loftStations(bodyKeys); // station field f at z (linear between stations, like the mesh): 1 = half-width, 4 = centreline height
     const at = (z, f) => { for (let i = 0; i < bodySt.length - 1; i++) { const a = bodySt[i], b = bodySt[i + 1]; if (z <= a[0] && z >= b[0]) return b[f] + (a[f] - b[f]) * (z - b[0]) / (a[0] - b[0]); } return bodySt[bodySt.length - 1][f]; };
     const sideDecal = (sx, z, y, h, d, mat) => { const m = add(box(0.006, h, d), mat, sx * (at(z, 1) + 0.003), y, z); m.rotation.y = sx * Math.atan((at(z + 0.02, 1) - at(z - 0.02, 1)) / 0.04); };
     // raised centre panel (power bulge) following the hood line
-    const hz = [0.95, 1.2, 1.45, 1.7, 1.95];
+    const hz = [1.2, 1.39, 1.58, 1.77, 1.95];
     part(poly(hz.map(z => [z, at(z, 4) + 0.014]).concat(hz.slice().reverse().map(z => [z, at(z, 4) - 0.03]))), 0.62, paint, null, g, 0.006);
     // greenhouse: body-colour shell (steep windscreen, flat roof, sloped rear glass) leaning in toward the roof, black-framed glass skins and side windows
     S = { ty0: 0.86, ty1: 1.3, tumble: 0.2 };
-    part([['M', 0.8, 0.8], ['L', 0.02, 1.27], ['Q', -0.06, 1.3, -0.2, 1.3], ['L', -0.82, 1.295], ['Q', -0.93, 1.293, -0.98, 1.255], ['L', -1.72, 0.88], ['L', -1.72, 0.8]], 1.42, paint, S, g);
-    part(skin([[0.77, 0.83], [0.03, 1.27]], 0.012), 1.38, black, S, g);
-    part(skin([[0.72, 0.87], [0.06, 1.262]], 0.018), 1.28, glass, S, g);
+    part([['M', 1.06, 0.78], ['L', 0.22, 1.27], ['Q', 0.14, 1.3, 0, 1.3], ['L', -0.82, 1.295], ['Q', -0.93, 1.293, -0.98, 1.255], ['L', -1.72, 0.88], ['L', -1.72, 0.8]], 1.42, paint, S, g);
+    part(skin([[0.994, 0.83], [0.23, 1.27]], 0.012), 1.38, black, S, g);
+    part(skin([[0.942, 0.87], [0.261, 1.262]], 0.018), 1.28, glass, S, g);
     part(skin([[-0.97, 1.262], [-1.7, 0.893]], 0.012), 1.32, black, S, g);
     part(skin([[-1.0, 1.257], [-1.66, 0.923]], 0.018), 1.2, glass, S, g);
-    part(poly([[0.7, 0.86], [0.005, 1.266], [-0.84, 1.268], [-1.32, 0.88], [-1.32, 0.86]]), 1.424, black, S, g); // black frames + B-pillar
-    part(poly([[0.62, 0.875], [0.01, 1.245], [-0.43, 1.25], [-0.43, 0.875]]), 1.428, glass, S, g);
+    part(poly([[0.9, 0.86], [0.207, 1.266], [-0.84, 1.268], [-1.32, 0.88], [-1.32, 0.86]]), 1.424, black, S, g); // black frames + B-pillar
+    part(poly([[0.84, 0.875], [0.213, 1.245], [-0.43, 1.25], [-0.43, 0.875]]), 1.428, glass, S, g);
     part(poly([[-0.5, 0.875], [-0.5, 1.25], [-0.83, 1.25], [-1.26, 0.9], [-1.26, 0.875]]), 1.428, glass, S, g);
-    // front face (flat nose cap at z 2.27): slim lamps and slatted grille strip right under the hood edge, bumper ducts, intercooler, lip
-    const F = 2.272;
-    add(box(0.58, 0.075, 0.012), black, 0, 0.592, F);
-    for (const y of [0.57, 0.592, 0.614]) add(box(0.56, 0.009, 0.008), fin, 0, y, F + 0.008);
-    add(box(1.46, 0.006, 0.006), dark, 0, 0.548, F + 0.001); // bumper top seam under the lamps
-    add(box(0.72, 0.2, 0.012), black, 0, 0.335, F);
-    for (let i = 0; i < 9; i++) add(box(0.69, 0.008, 0.008), fin, 0, 0.255 + i * 0.02, F + 0.008);
-    add(box(0.32, 0.105, 0.012), plate, -0.2, 0.37, F + 0.018); // blank plate, offset to the car's right
+    // front face: grille strip and lamp units in the leaned-back band under the hood edge, then the rounded bumper (seam, slots, intercooler, plate, ducts)
+    const LY = 0.588, chromeM = new THREE.MeshPhongMaterial({ color: 0xb4bac4, specular: 0xffffff, shininess: 50, side: THREE.DoubleSide }), reflM = new THREE.MeshPhongMaterial({ color: 0x2c3138, specular: 0x3a3f48, shininess: 20 }), projM = new THREE.MeshPhongMaterial({ color: 0x1a1e26, specular: 0xffffff, shininess: 90 });
+    const lensM = new THREE.MeshPhongMaterial({ color: 0xc8d2e0, specular: 0xb8c0cc, shininess: 90, transparent: true, opacity: 0.16, depthWrite: false });
+    const ambM = new THREE.MeshPhongMaterial({ color: 0xf0700e, emissive: 0x4a1c00, specular: 0xffd0a0, shininess: 60, side: THREE.DoubleSide });
+    const gr = onNose(box(0.54, 0.066, 0.03), black, 0, LY, 0.004);
+    for (const y of [-0.02, 0, 0.02]) add(box(0.52, 0.008, 0.008), fin, 0, y, 0.016, gr);
+    onNose(box(1.3, 0.006, 0.006), dark, 0, 0.548, 0.001); // bumper top seam under the lamps
+    const ic = onNose(box(0.72, 0.14, 0.012), black, 0, 0.345, 0.002); // intercooler opening
+    for (let i = 0; i < 7; i++) add(box(0.69, 0.008, 0.008), fin, 0, -0.06 + i * 0.02, 0.008, ic);
+    onNose(box(0.32, 0.105, 0.012), plate, -0.2, 0.36, 0.016); // blank plate, offset to the car's right
+    // lamp lens: clear cover bulging 12 mm at the middle, so it catches the light; indicator: sampled round the corner by rays from inside it
+    const lensGeo = new THREE.PlaneGeometry(0.37, 0.064, 8, 2), lv = lensGeo.attributes.position;
+    for (let i = 0; i < lv.count; i++) { const u = lv.getX(i) / 0.185, v = lv.getY(i) / 0.032; lv.setZ(i, 0.012 * (1 - u * u) * (1 - 0.6 * v * v)); }
+    lensGeo.computeVertexNormals();
+    const bowlGeo = new THREE.SphereGeometry(0.03, 10, 4, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(-Math.PI / 2); // opening forward
+    const indicatorGeo = sx => {
+      const N = 7, P = [], pos = [], nrm = [];
+      for (let i = 0; i <= N; i++) {
+        const a = 0.5 + i / N, dx = Math.sin(a), dz = Math.cos(a), off = 0.024 - 0.012 * i / N, r = [];
+        for (const y of [LY + 0.028, LY - 0.028]) { const p = shoot(V3(0.62 + dx, y, 2.1 + dz), V3(-dx, 0, -dz)); r.push([sx * (p.x + dx * off), y, p.z + dz * off], [sx * (p.x - dx * 0.01), y, p.z - dz * 0.01]); }
+        r.push([sx * dx, 0, dz]); P.push(r); // outer top, inner top, outer bottom, inner bottom, outward direction
+      }
+      const quad = (a, b, c, d, na, nb, nc, nd) => { pos.push(...a, ...b, ...c, ...b, ...d, ...c); nrm.push(...na, ...nb, ...nc, ...nb, ...nd, ...nc); };
+      const up = [0, 1, 0], dn = [0, -1, 0];
+      for (let i = 0; i < N; i++) { const [a, b] = [P[i], P[i + 1]]; quad(a[0], a[2], b[0], b[2], a[4], a[4], b[4], b[4]); quad(a[1], a[0], b[1], b[0], up, up, up, up); quad(a[2], a[3], b[2], b[3], dn, dn, dn, dn); }
+      for (const [e, s] of [[P[0], -1], [P[N], 1]]) { const n = [sx * Math.cos(0.5 + (s + 1) / 2) * s, 0, -Math.sin(0.5 + (s + 1) / 2) * s]; quad(e[0], e[1], e[2], e[3], n, n, n, n); } // end faces, along the strip
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.Float32BufferAttribute(nrm, 3)); return geo;
+    };
     for (const sx of [-1, 1]) {
-      add(box(0.4, 0.074, 0.012), black, sx * 0.49, 0.592, F);
-      add(box(0.36, 0.056, 0.012), lensC, sx * 0.48, 0.592, F + 0.004);
-      for (const x of [0.37, 0.56]) add(new THREE.CircleGeometry(0.025, 14), headMat, sx * x, 0.592, F + 0.0105);
-      add(box(0.075, 0.064, 0.012), amber, sx * 0.725, 0.592, F + 0.003);
-      const aw = add(box(0.055, 0.044, 0.012), amber, sx * 0.818, 0.584, 2.236); aw.rotation.y = sx * 0.9; // indicator wrapping round the corner
-      add(box(0.17, 0.046, 0.012), black, sx * 0.3, 0.488, F);
-      add(box(0.15, 0.008, 0.008), fin, sx * 0.3, 0.488, F + 0.008);
-      add(box(0.13, 0.11, 0.012), black, sx * 0.67, 0.36, F); // brake duct at the bumper corner
-      add(box(0.13, 0.018, 0.012), paint, sx * 0.67, 0.36, F + 0.005);
+      // headlamp: dark tub (back and four walls 36 mm deep) set into the lamp band, reflector plate, open reflector bowl with its bulb outboard,
+      // projector barrel with a dark lens inboard, clear bulged cover across the front
+      const L = onNose(box(0.4, 0.078, 0.004), black, sx * 0.47, LY, 0);
+      for (const [w, h, x, y] of [[0.4, 0.01, 0, 0.034], [0.4, 0.01, 0, -0.034], [0.01, 0.078, 0.195, 0], [0.01, 0.078, -0.195, 0]]) add(box(w, h, 0.036), black, x, y, 0.004, L);
+      add(box(0.37, 0.058, 0.003), reflM, 0, 0, 0.002, L);
+      add(bowlGeo, chromeM, sx * 0.09, 0, 0.02, L).scale.set(1, 0.6, 1);
+      add(new THREE.CircleGeometry(0.011, 10), headMat, sx * 0.09, 0, 0.004, L);
+      add(new THREE.CylinderGeometry(0.024, 0.027, 0.016, 14, 1, true), chromeM, -sx * 0.08, 0, 0.01, L).rotation.x = Math.PI / 2;
+      add(new THREE.CircleGeometry(0.022, 14), projM, -sx * 0.08, 0, 0.017, L);
+      add(new THREE.CircleGeometry(0.009, 10), headMat, -sx * 0.08, 0, 0.0175, L);
+      add(lensGeo, lensM, 0, 0, 0.021, L);
+      g.add(new THREE.Mesh(indicatorGeo(sx), ambM)); // amber indicator, a solid strip from the lamp's outer end round onto the fender side
+      const sl = onNose(box(0.17, 0.046, 0.012), black, sx * 0.3, 0.488, 0);
+      add(box(0.15, 0.008, 0.008), fin, 0, 0, 0.008, sl);
+      const du = onNose(box(0.12, 0.09, 0.012), black, sx * 0.6, 0.345, 0); // brake duct at the bumper corner
+      add(box(0.12, 0.016, 0.012), paint, 0, 0, 0.005, du);
       // sides: door shut lines, crease, handle, black skirt, body-colour mirror on a black base
-      sideDecal(sx, 0.82, 0.55, 0.34, 0.012, dark);
+      sideDecal(sx, 0.9, 0.55, 0.34, 0.012, dark);
       sideDecal(sx, -0.5, 0.55, 0.34, 0.012, dark);
       sideDecal(sx, 0, 0.615, 0.007, 1.72, dark);
       sideDecal(sx, -0.33, 0.73, 0.022, 0.11, dark);
       add(box(0.05, 0.1, 1.8), dark, sx * 0.84, 0.35, 0);
-      add(box(0.12, 0.035, 0.07), dark, sx * 0.75, 0.9, 0.6);
-      add(box(0.065, 0.085, 0.15), paint, sx * 0.83, 0.94, 0.6);
-      add(box(0.05, 0.065, 0.004), glass, sx * 0.83, 0.94, 0.523);
+      add(box(0.12, 0.035, 0.07), dark, sx * 0.75, 0.9, 0.86);
+      add(box(0.065, 0.085, 0.15), paint, sx * 0.83, 0.94, 0.86);
+      add(box(0.05, 0.065, 0.004), glass, sx * 0.83, 0.94, 0.783);
       // rear: wing stanchions and end plates, two round tail lamps per side, reflector, exhaust tips
       add(box(0.05, 0.3, 0.09), dark, sx * 0.5, 1.08, -2.0);
       add(box(0.03, 0.2, 0.36), paint, sx * 0.8, 1.23, -2.0);
@@ -2636,7 +2674,7 @@ function makeCar(style, colorIdx) {
     add(rrect(1.5, 0.16, 0.05, 0.04, 0.008), black, 0, 0.72, -2.258);
     add(box(0.34, 0.11, 0.01), plate, 0, 0.55, -2.26);
     add(new THREE.PlaneGeometry(0.22, 0.1), new THREE.MeshBasicMaterial({ map: gtBadgeTex() }), -0.4, 0.85, -2.262).rotation.y = Math.PI;
-    heads = [[-0.47, 0.592, 2.3], [0.47, 0.592, 2.3]]; tailsPos = [[-0.56, 0.72, -2.32], [0.56, 0.72, -2.32]];
+    heads = [-1, 1].map(sx => [sx * 0.47, LY, surf(0.47, LY).z + 0.05]); tailsPos = [[-0.56, 0.72, -2.32], [0.56, 0.72, -2.32]];
     W = W0;
   }
   if (style === 'hatch') { // flush arch trim ring on the lower panel (x = rub strip + 6 mm, top at the strip), not a protruding panel
