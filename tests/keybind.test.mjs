@@ -145,6 +145,11 @@ test('kbSetKey：只有一個鍵的動作，第二格以後的格子要先有第
   assert.deepEqual(r.b.keys.cam, ['KeyC', 'KeyV']);
 });
 
+test('kbSetKey：只有一個鍵的動作，把它的鍵設到第二格 → 不變（沒有第二格可對調，不能留下空洞）', () => {
+  const r = kbSetKey(def(), 'cam', 1, 'KeyC');
+  assert.equal(r.res, 'same'); assert.deepEqual(r.b, def());
+});
+
 test('kbClearKey：兩個鍵時可以移除其中一個，只剩一個時不行', () => {
   let r = kbClearKey(def(), 'gas', 0);
   assert.equal(r.res, 'cleared'); assert.deepEqual(r.b.keys.gas, ['KeyW']);

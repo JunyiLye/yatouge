@@ -735,7 +735,7 @@ function kbSetKey(b, a, slot, code) {
   const cur = b.keys[a], at = Math.min(slot, cur.length);
   if (cur[at] === code) return no('same');
   const mine = cur.indexOf(code);
-  if (mine >= 0) { const n = [...cur]; n[mine] = cur[at]; n[at] = code; return { b: kbWith(b, 'keys', a, n), res: 'set' }; }
+  if (mine >= 0) { if (at >= cur.length) return no('same'); const n = [...cur]; n[mine] = cur[at]; n[at] = code; return { b: kbWith(b, 'keys', a, n), res: 'set' }; }
   const n = [...cur]; n[at] = code;
   const o = kbKeyAction(b, code);
   if (!o) return { b: kbWith(b, 'keys', a, n), res: 'set' };
@@ -3141,7 +3141,7 @@ function physics(dt) {
 
 let lastHit = 0;
 function wallHit(v) {
-  shake = Math.min(0.6, v * 0.06);
+  shake = Math.max(shake, Math.min(0.6, v * 0.06));
   const now = performance.now();
   if (now - lastHit > 180) { sfxHit(Math.min(1, v / 12)); lastHit = now; if (v > 4 && navigator.vibrate) navigator.vibrate(Math.min(60, 15 + v * 4)); if (v > 4 && vibeOn) gpRumble(Math.min(120, 30 + v * 8), Math.min(1, v / 12), Math.min(1, v / 8)); }
   if (driftChain > 200 && v > 5) { driftChain = 0; driftIdle = 0; showPop(T('wall'), T('wallScore')); }
