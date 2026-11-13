@@ -2388,6 +2388,12 @@ function loftCaps(pos, idx, st, R) {
 const ARCH_Y = 0.32, ARCH_X = 0.6;
 // one station's +x half outline, bottom centre to top centre; rows 6..9 are the top surface the driver sees over the hood
 const loftHalf = ([, w, y0, yf, yc]) => { const h = yf - y0; return [[0, y0], [w * 0.78, y0], [w * 0.96, y0 + 0.03], [w, y0 + 0.25 * h], [w, y0 + 0.55 * h], [w * 0.985, y0 + 0.8 * h], [w * 0.9, yf - 0.015], [w * 0.64, yf], [w * 0.3, yc + (yf - yc) * 0.35], [0, yc]]; };
+// RV-4 section: flatter sides than the default, finely rounded: sill roll-in, vertical wall up to 85% of the height, then a tight shoulder (rows 5..9 are the wall;
+// rows 8..15 are the top surface the driver sees over the hood). Shared by the exterior body and the cockpit hood
+const rallyHalf = ([, w, y0, yf, yc]) => { const h = yf - y0; return [[0, y0], [w * 0.55, y0], [w * 0.8, y0], [w * 0.93, y0 + 0.012], [w * 0.985, y0 + 0.05], [w, y0 + 0.2 * h], [w, y0 + 0.5 * h], [w, y0 + 0.85 * h],
+  [w * 0.99, yf - 0.045], [w * 0.97, yf - 0.022], [w * 0.94, yf - 0.008], [w * 0.88, yf - 0.001], [w * 0.75, yf], [w * 0.5, yc + (yf - yc) * 0.4], [w * 0.25, yc + (yf - yc) * 0.1], [0, yc]]; };
+// RV-4 hood scoop shell (bevelled wedge standing on the hood centre); shared by the exterior and the cockpit hood
+const rallyScoop = (parent, sc, mat) => part(poly([[sc.z0, 0.82], [sc.z0, sc.y0], [sc.z1, sc.y1], [sc.z1, 0.82]]), sc.w, mat, null, parent, 0.014);
 // halfOf: station -> +x half outline (default loftHalf); side = [first, last] outline rows of the side wall the arch liner follows
 function loftBody(keys, hex, parent, wells = [], halfOf = loftHalf, side = [3, 7]) {
   const st = loftStations(keys), pos = [], idx = [];
@@ -2947,9 +2953,6 @@ function makeCar(style, colorIdx) {
     const lensM = new THREE.MeshPhongMaterial({ color: 0xc8d2e0, specular: 0xb8c0cc, shininess: 90, transparent: true, opacity: 0.16, depthWrite: false });
     const silver = new THREE.MeshLambertMaterial({ color: 0x8a8d94 }), fin = new THREE.MeshLambertMaterial({ color: 0x3a3d44 });
     const emblem = new THREE.MeshPhongMaterial({ color: 0x8c929c, specular: 0xffffff, shininess: 60 }), projM = new THREE.MeshPhongMaterial({ color: 0x1a1e26, specular: 0xffffff, shininess: 90 });
-    // flatter sides than the default section, finely rounded: sill roll-in, vertical wall up to 85% of the height, then a tight shoulder (rows 5..9 are the wall)
-    const rallyHalf = ([, w, y0, yf, yc]) => { const h = yf - y0; return [[0, y0], [w * 0.55, y0], [w * 0.8, y0], [w * 0.93, y0 + 0.012], [w * 0.985, y0 + 0.05], [w, y0 + 0.2 * h], [w, y0 + 0.5 * h], [w, y0 + 0.85 * h],
-      [w * 0.99, yf - 0.045], [w * 0.97, yf - 0.022], [w * 0.94, yf - 0.008], [w * 0.88, yf - 0.001], [w * 0.75, yf], [w * 0.5, yc + (yf - yc) * 0.4], [w * 0.25, yc + (yf - yc) * 0.1], [0, yc]]; };
     const body = loftBody(K.body, col.top, g, [[ax, 0.36], [-ax, 0.36]], rallyHalf, [5, 9]), sideX = body.userData.sideX;
     body.updateMatrixWorld();
     const dec = (outline, axis, dir, mat, off = 0.004, k = 2) => wrapDecal(body, outline, axis, dir, off, mat, g, k);
@@ -2972,7 +2975,7 @@ function makeCar(style, colorIdx) {
     for (const s of K.side) part(poly(s), K.sideW, glass, S, g);
     // hood: centre scoop (wedge open at the front) with a grille, and a vent pair (two slanted slots) on each side
     { const sc = K.scoop, zf = sc.z1 + 0.0075, gy0 = topY(0, sc.z1) + 0.004, gy1 = sc.y1 - 0.012, gh = gy1 - gy0, gy = (gy0 + gy1) / 2;
-      part(poly([[sc.z0, 0.82], [sc.z0, sc.y0], [sc.z1, sc.y1], [sc.z1, 0.82]]), sc.w, paint, null, g, 0.014); // rounded scoop shell
+      rallyScoop(g, sc, paint); // rounded scoop shell
       add(box(sc.w - 0.07, gh, 0.01), black, 0, gy, zf); // dark front opening, slats across it
       for (let i = -2; i <= 2; i++) add(box(0.008, gh, 0.012), fin, i * 0.09, gy, zf + 0.004);
       for (const sx of [-1, 1]) for (const dz of [-0.07, 0.07]) {
@@ -4025,6 +4028,10 @@ const COCKPIT_CARS = {
   gtr: { eye: { fwd: -0.12, right: 0.34, up: 1.06 }, fov: 76, dashTop: 0.88, clusterY: 0.78, dashZ: 1.0, layout: 'box', gauges: 'twinAux',
     wheel: { r: 0.175, tube: 0.019, y: 0.72, z: 0.48, spokes: [0, Math.PI / 2, Math.PI, -Math.PI / 2] }, mirrorX: 0.82,
     col: { dash: 0x25272d, trim: 0x34373e, roof: 0x16171b } },
+  // RV-4: low seat in a low-roofed saloon (glass top is above the view, so no header); big centre tach with a speedo and a small boost gauge; small three-spoke wheel; red trim for the seats' stitching
+  rally: { eye: { fwd: -0.1, right: 0.34, up: 1.13 }, fov: 76, dashTop: 0.88, clusterY: 0.85, dashZ: 1.0, layout: 'box', gauges: 'bigTach',
+    wheel: { r: 0.172, tube: 0.02, y: 0.7, z: 0.48, spokes: [Math.PI + 0.25, -0.25, -Math.PI / 2] }, mirrorX: 0.8,
+    col: { dash: 0x26282d, trim: 0x6e1f26, roof: 0x1a1b1f } },
 };
 // 儀表群中心高度（預設在儀表板頂面上方 3 cm；clusterY 可覆寫，讓大型錶不擋住引擎蓋線以上的視野）
 const clusterY = P => P.clusterY ?? P.dashTop + 0.03;
@@ -4039,7 +4046,7 @@ let camMode = camModeFromStore(store.get('yatouge-cam'));
 const hudEl = $('#hud');
 let fovSnap = false; // a mode change jumps the FOV instead of easing it
 // Sake Run locks the cockpit view without touching the saved camera choice
-const camNow = () => sakeRun ? 'cockpit' : camMode === 'cockpit' && !COCKPIT_CARS[choice.car] ? 'chase' : camMode; // a car without a cockpit model (RV-4, until stage 2) falls back to the chase view
+const camNow = () => sakeRun ? 'cockpit' : camMode;
 function setCamMode(m, announce) {
   if (sakeRun) return;
   fovSnap = m !== camMode;
@@ -4200,7 +4207,7 @@ function makeInterior(style, paintHex, carbonOn) {
     const mPod = lam(0x121317), mLens = new THREE.MeshBasicMaterial({ color: 0xf2f6ff });
     for (const sx of [-1, 1]) fdPod(grp, sx, mPod, mPaint, mLens);
   } else {
-    // KX-2 / GT-32: the real body is hidden in cockpit view, so the greenhouse and the hood are rebuilt here from the body's own numbers (CAB):
+    // KX-2 / GT-32 / RV-4: the real body is hidden in cockpit view, so the greenhouse and the hood are rebuilt here from the body's own numbers (CAB):
     // windscreen frame, A-pillars, side-window openings and roof line sit exactly where they are on the outside
     const ds = c => new THREE.MeshLambertMaterial({ color: c, side: THREE.DoubleSide });
     const taper = (geo, S) => { if (S) { const q = geo.attributes.position; for (let i = 0; i < q.count; i++) q.setX(i, q.getX(i) * widthK(S, q.getY(i), q.getZ(i))); } geo.computeVertexNormals(); return geo; };
@@ -4213,7 +4220,7 @@ function makeInterior(style, paintHex, carbonOn) {
     };
     const along = (a, b, n) => Array.from({ length: n + 1 }, (_, i) => [a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n]);
     const hdr = K.glass[1];
-    const S = K.S, hH = K.houseW / 2, hG = K.glassW / 2, mPil = ds(style === 'gtr' ? 0x0b0c0f : P.col.dash), mHead = ds(P.col.roof);
+    const S = K.S, hH = K.houseW / 2, hG = K.glassW / 2, mPil = ds(style === 'hatch' ? P.col.dash : 0x0b0c0f), mHead = ds(P.col.roof);
     // side walls: the greenhouse outline with the side windows cut out, on the body's side face
     const wall = profile(cabCmds(K.house)); wall.holes = K.side.map(w => profile(poly(w)));
     for (const sx of [1, -1]) {
@@ -4247,6 +4254,14 @@ function makeInterior(style, paintHex, carbonOn) {
       if (mCarbon) carbonHood(grp, K, K.S, mCarbon, carbonEdgeMat());
       kxHoodPanel(grp, mCarbon || mPaint, mCarbon ? CARBON_THICK : 0);
       for (const sx of [-1, 1]) kxPod(grp, sx, mBlack, lam(0x121317), mPaint);
+    } else if (style === 'rally') {
+      // rows 7..15 of the body section (top of the wall, shoulder, hood top, centre line) and back down the -x side, then the centre scoop standing on it
+      const st = loftStations(K.body).filter(q => q[0] >= K.glass[0][0] - 0.3), pos = [], idx = [], R = 17;
+      for (const q of st) { const h = rallyHalf(q).slice(7); for (const v of h.concat(h.slice(0, -1).reverse().map(v => [-v[0], v[1]]))) pos.push(v[0], v[1], q[0]); }
+      for (let i = 0; i < st.length - 1; i++) for (let j = 0; j < R - 1; j++) { const a = i * R + j; idx.push(a, a + R, a + 1, a + 1, a + R, a + R + 1); }
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+      add(geo, mPaintDS, 0, 0, 0);
+      rallyScoop(grp, K.scoop, mPaint); // same Lambert paint colour as the exterior's
     } else {
       const st = loftStations(K.body).filter(q => q[0] >= K.glass[0][0] - 0.3), pos = [], idx = [];
       for (const q of st) { const h = loftHalf(q).slice(6); for (const v of h.concat(h.slice(0, -1).reverse().map(v => [-v[0], v[1]]))) pos.push(v[0], v[1], q[0]); } // rows 6..9 and back down the -x side

@@ -106,12 +106,11 @@ test('GB.CARS.rally 存在（暫定），紅線與 6 檔車速合理', () => {
   assert.ok(g.redline >= 7000 && g.redline <= 8500 && g.v6 > CARS.rally.phys.maxV && g.gain > 0);
 });
 
-test('載入順序：車用貼圖在第一次頂層 buildCars() 之前宣告；沒有車內資料時視角退回追車', () => {
+test('載入順序：車用貼圖在第一次頂層 buildCars() 之前宣告', () => {
   const first = html.search(/^buildCars\(\);/m);
   assert.ok(first > 0);
   const m = html.match(/^let rallyMeshTex\b/m);
   assert.ok(m && m.index < first, 'rallyMeshTex 要在 buildCars() 之前宣告');
-  assert.match(html, /const camNow = \(\) => sakeRun \? 'cockpit' : camMode === 'cockpit' && !COCKPIT_CARS\[choice\.car\] \? 'chase' : camMode;/);
 });
 
 test('disposeCar 不釋放共用的拉力車格柵貼圖', () => {

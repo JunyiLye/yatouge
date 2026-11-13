@@ -147,10 +147,9 @@ test('cockpitMotion：路面震動隨車速增加；撞牆（shake）會晃一�
 
 test('COCKPIT_CARS：涵蓋每台車，眼睛在 CAR_BOX 內、右駕，FOV 70–80，方向盤與儀表參數完整', () => {
   const { COCKPIT_CARS } = load(), box = loadBox();
-  // rally（RV-4）的車內視角在第二段才做；在那之前 camNow() 會退回追車視角（見 rally-body.test.mjs）
-  const withCockpit = Object.keys(box).filter(k => k !== 'rally');
-  assert.deepEqual(Object.keys(COCKPIT_CARS).sort(), withCockpit.sort());
-  for (const k of withCockpit) {
+  assert.ok(COCKPIT_CARS.rally, 'COCKPIT_CARS.rally 不存在');
+  assert.deepEqual(Object.keys(COCKPIT_CARS).sort(), Object.keys(box).sort());
+  for (const k of Object.keys(box)) {
     const c = COCKPIT_CARS[k];
     assert.ok(Math.abs(c.eye.fwd) < box[k].hl && c.eye.right > 0.2 && c.eye.right < box[k].hw, `${k} eye`);
     const top = loadCab()[k].glass[1][1]; // 外觀擋風玻璃上緣
@@ -160,7 +159,7 @@ test('COCKPIT_CARS：涵蓋每台車，眼睛在 CAR_BOX 內、右駕，FOV 70�
     assert.ok(c.mirrorX > c.eye.right && c.mirrorX < box[k].hw, `${k} 側鏡在車寬內`);
     assert.ok(['twin', 'bigTach', 'twinAux'].includes(c.gauges) && ['box', 'wrap'].includes(c.layout), k);
   }
-  assert.equal(new Set(Object.values(COCKPIT_CARS).map(c => c.layout + c.gauges)).size, 3, '三台車的內裝風格各不相同');
+  assert.equal(new Set(Object.values(COCKPIT_CARS).map(c => c.layout + c.gauges)).size, 4, '四台車的內裝風格各不相同');
 });
 
 // 從眼睛看出去的視線：儀表板頂面前緣不能高過眼睛到擋風玻璃下緣（取自外觀 CAB）的視線，否則會蓋住從玻璃看出去的引擎蓋；
@@ -168,7 +167,7 @@ test('COCKPIT_CARS：涵蓋每台車，眼睛在 CAR_BOX 內、右駕，FOV 70�
 test('COCKPIT_CARS：儀表板頂面前緣在擋風玻璃下緣的視線上或之下；SR-7 的儀表群也低於視線', () => {
   const { COCKPIT_CARS, clusterY, dashFront } = load(), CAB = loadCab();
   const glassSight = (c, base, z) => c.eye.up + (base[1] - c.eye.up) * (z - c.eye.fwd) / (base[0] - c.eye.fwd);
-  for (const k of ['hatch', 'gtr', 'coupe']) {
+  for (const k of ['hatch', 'gtr', 'coupe', 'rally']) {
     const c = COCKPIT_CARS[k], base = CAB[k].glass[0], fz = dashFront(c, base);
     assert.ok(!c.hdr && !c.hood, `${k} 車內由 CAB 產生，不再有自己的 hdr / hood`);
     assert.ok(c.dashTop <= glassSight(c, base, fz) + 1e-9, `${k} 儀表板前緣 ${c.dashTop} vs 視線 ${glassSight(c, base, fz).toFixed(3)}`);
@@ -180,12 +179,13 @@ test('COCKPIT_CARS：儀表板頂面前緣在擋風玻璃下緣的視線上或�
 });
 
 // 儀表群太高會擋住前方視野：每台車的儀表群中心至少要比眼睛低 0.25（SR-7 的 0.28 為基準）
-test('clusterY：KX-2 0.84、GT-32 0.78、SR-7 0.72，且都比眼睛低至少 0.25', () => {
+test('clusterY：KX-2 0.84、GT-32 0.78、SR-7 0.72、RV-4 比眼睛低 0.28，且都比眼睛低至少 0.25', () => {
   const { COCKPIT_CARS, clusterY } = load();
   assert.equal(clusterY(COCKPIT_CARS.hatch), 0.84);
   assert.equal(clusterY(COCKPIT_CARS.gtr), 0.78);
   assert.equal(clusterY(COCKPIT_CARS.coupe), 0.72);
-  for (const k of ['hatch', 'gtr', 'coupe']) {
+  near(clusterY(COCKPIT_CARS.rally), COCKPIT_CARS.rally.eye.up - 0.28, 1e-9);
+  for (const k of ['hatch', 'gtr', 'coupe', 'rally']) {
     const c = COCKPIT_CARS[k];
     assert.ok(c.eye.up - clusterY(c) >= 0.25 - 1e-9, `${k} 儀表群離眼睛 ${(c.eye.up - clusterY(c)).toFixed(3)}`);
   }
@@ -307,4 +307,71 @@ test('SR-7 引擎蓋：0.95 ≤ z ≤ 2.165 的肩線到中線落差不超過 2 
     const drop = yS - yC;
     assert.ok(drop > 0 && drop <= 0.02 + 1e-9, `z=${z} 落差 ${drop}`);
   }
+});
+
+// ---- RV-4（rally）車內視角 ----
+const fnSrc = name => { const i = html.indexOf('function ' + name + '('); return html.slice(i, html.indexOf('\n}\n', i) + 3); };
+
+test('RV-4：儀表群頂（大轉速表與罩）不高過擋風玻璃下緣視線，且儀表板不高過視線', () => {
+  const { COCKPIT_CARS, clusterY } = load(), c = COCKPIT_CARS.rally, base = loadCab().rally.glass[0];
+  const sight = z => c.eye.up + (base[1] - c.eye.up) * (z - c.eye.fwd) / (base[0] - c.eye.fwd);
+  const pz = 0.74, top = clusterY(c) + 0.1; // 儀表罩頂與大轉速表（半徑 0.1）同高，罩的最高點在 pz + 0.12
+  assert.equal(c.gauges, 'bigTach');
+  assert.ok(top <= sight(pz + 0.12) + 1e-9, `儀表群頂 ${top.toFixed(3)} vs 視線 ${sight(pz + 0.12).toFixed(3)}`);
+  assert.ok(c.dashTop <= sight(1.0) + 1e-9);
+});
+
+test('RV-4：眼睛在側窗玻璃的腰線與窗頂之間、在擋風玻璃上緣之下；方向盤三輻、側鏡在車寬內', () => {
+  const { COCKPIT_CARS } = load(), c = COCKPIT_CARS.rally, K = loadCab().rally, door = K.side[0];
+  assert.ok(c.eye.up > Math.min(...door.map(p => p[1])) + 0.1 && c.eye.up < Math.max(...door.map(p => p[1])) - 0.1, `eye.up ${c.eye.up}`);
+  assert.ok(c.eye.fwd < door[0][0] && c.eye.fwd > door[3][0], '眼睛在門窗前後緣之間');
+  assert.equal(c.wheel.spokes.length, 3);
+});
+
+test('RV-4：從座位看得到引擎蓋中央的進氣口（前緣在視線之上），引擎蓋也在玻璃下緣視線之上', () => {
+  const { COCKPIT_CARS } = load(), c = COCKPIT_CARS.rally, K = loadCab().rally, base = K.glass[0], sc = K.scoop;
+  const ray = z => c.eye.up + (base[1] - c.eye.up) * (z - c.eye.fwd) / (base[0] - c.eye.fwd);
+  assert.ok(sc.y1 > ray(sc.z1) + 0.05, `進氣口前緣 ${sc.y1} vs 視線 ${ray(sc.z1).toFixed(3)}`);
+  const hood = K.body.filter(q => q[0] >= 1.5 && q[0] <= 2.07); // 引擎蓋後段被擋風玻璃下緣的視線遮住（車頭低），從 z 1.4 附近起才看得到
+  for (const q of hood) assert.ok(q[4] > ray(q[0]), `z ${q[0]} 引擎蓋中線 ${q[4]} vs 視線 ${ray(q[0]).toFixed(3)}`);
+});
+
+test('RV-4 車內：窗框、A 柱、側窗、車頂與引擎蓋由 CAB.rally 產生（同一組數字），車內沒有自己的外形數字', () => {
+  const { COCKPIT_CARS } = load(), c = COCKPIT_CARS.rally, src = fnSrc('makeInterior');
+  assert.ok(!c.hdr && !c.hood && !c.header, 'COCKPIT_CARS.rally 沒有自己的 hdr / hood / header');
+  assert.ok(src.includes('const K = CAB[style]'));
+  for (const key of ['K.house', 'K.side', 'K.glass', 'K.houseW', 'K.glassW', 'K.S', 'K.scoop', 'K.body']) assert.ok(src.includes(key), `makeInterior 要用 ${key}`);
+  assert.ok(src.includes("style === 'rally'"));
+  assert.ok(!/CAB.rally/.test(src), '一律經由 K = CAB[style]');
+  // 車身斷面函式只有一份（外觀的 loftBody 與車內引擎蓋共用），不是兩份各自抄一遍
+  assert.equal((html.match(/const rallyHalf = /g) || []).length, 1);
+  assert.ok(src.includes('rallyHalf('), '車內引擎蓋用 rallyHalf');
+  assert.equal((html.match(/const rallyScoop = /g) || []).length, 1, '進氣口外殼只有一份建構函式');
+  assert.ok(src.includes('rallyScoop(grp, K.scoop'), '車內進氣口用共用外殼');
+  assert.ok(fnSrc('makeCar').includes('rallyScoop(g, sc'), '外觀進氣口用共用外殼');
+  assert.ok(fnSrc('makeCar').includes('loftBody(K.body, col.top, g, [[ax, 0.36], [-ax, 0.36]], rallyHalf'), '外觀同樣用 rallyHalf');
+});
+
+test('RV-4：camNow() 沒有「無車內資料就退回追車」的後備；宣告順序：rallyHalf 在 makeCar 第一次被呼叫（頂層 buildCars()）之前', () => {
+  assert.ok(html.includes("const camNow = () => sakeRun ? 'cockpit' : camMode;"));
+  assert.ok(!html.includes('!COCKPIT_CARS[choice.car]'));
+  const first = html.indexOf('\nbuildCars();'), d = html.indexOf('\nconst rallyHalf = ');
+  assert.ok(d > 0 && d < first, 'rallyHalf 要在 buildCars() 之前宣告');
+  const ci = html.indexOf('const COCKPIT_CARS = {'), ce = html.indexOf('/* @cockpit:end */');
+  assert.ok(html.slice(ci, ce).includes('rally:'), 'COCKPIT_CARS 內有 rally');
+});
+
+test('RV-4：後照鏡與側鏡的寬度／位置沿用其他車的機制（mirrorWidth 與車無關，mirrorX 在車寬內）', () => {
+  assert.ok(html.includes('const mirrorWidth = (w, h) => Math.min(Math.max(Math.min(w * 0.38, h * 0.5), 150), 380);'));
+  const { COCKPIT_CARS } = load(), box = loadBox();
+  assert.ok(COCKPIT_CARS.rally.mirrorX > COCKPIT_CARS.rally.eye.right && COCKPIT_CARS.rally.mirrorX < box.rally.hw);
+});
+
+test('RV-4：眼睛高度不高於 1.13（再高引擎蓋與進氣口占畫面太多），且不低於引擎蓋中線仍從玻璃看得到的高度', () => {
+  const c = load().COCKPIT_CARS.rally, K = loadCab().rally, base = K.glass[0];
+  assert.ok(c.eye.up <= 1.13 + 1e-9, `eye.up ${c.eye.up}`);
+  const ray = z => c.eye.up + (base[1] - c.eye.up) * (z - c.eye.fwd) / (base[0] - c.eye.fwd);
+  assert.ok(K.body.find(q => q[0] === 1.85)[4] > ray(1.85) + 0.005, '車頭段的引擎蓋中線在視線之上');
+  // 引擎蓋與進氣口用的車身顏色材質與外觀一樣（Lambert、同一個色票），見 makeInterior 的 mPaint
+  assert.ok(fnSrc('makeInterior').includes('mPaint = lam(paintHex)') && fnSrc('makeCar').includes('const paint = new THREE.MeshLambertMaterial({ color: col.top })'));
 });
