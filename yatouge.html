@@ -2264,45 +2264,62 @@ function loftCaps(pos, idx, st, R) {
     for (let j = 0; j < R; j++) idx.push(c, s * R + j, s * R + (j + 1) % R);
   }
 }
-// hex = paint colour; wells = [[zc, radius]] wheel arches that tuck the lower side inward and show dark inside
-function loftBody(keys, hex, parent, wells) {
-  const st = loftStations(keys), tk = [];
-  const pos = [], idx = [];
-  for (const [z, w, y0, yf, yc] of st) {
-    const h = yf - y0;
-    const half = [[0, y0], [w * 0.78, y0], [w * 0.96, y0 + 0.03], [w, y0 + 0.25 * h], [w, y0 + 0.55 * h], [w * 0.985, y0 + 0.8 * h], [w * 0.9, yf - 0.015], [w * 0.64, yf], [w * 0.3, yc + (yf - yc) * 0.35], [0, yc]];
-    const tuck = half.map(() => 0);
-    for (let i = 1; i <= 4; i++) for (const [zc, r] of wells || []) {
-      const dz = Math.abs(z - zc);
-      if (dz < r) { const a = Math.min(1, (0.32 + Math.sqrt(r * r - dz * dz) - half[i][1]) / 0.2); if (a > 0) { half[i][0] -= 0.24 * a; tuck[i] = a; } }
-    }
-    for (const p of half.concat(half.slice(1, -1).reverse().map(p => [-p[0], p[1]]))) pos.push(p[0], p[1], z);
-    tk.push(...tuck.concat(tuck.slice(1, -1).reverse()));
-  }
+// hex = paint colour; wells = [[zc, radius]] wheel arches: a round opening about (zc, ARCH_Y) is cut out of the shell outboard of |x| = ARCH_X
+// (fragments discarded, so the edge is a true circle at any station spacing) and lined by a dark tunnel whose outer rim follows the side wall
+const ARCH_Y = 0.32, ARCH_X = 0.6;
+function loftBody(keys, hex, parent, wells = []) {
+  const st = loftStations(keys), pos = [], idx = [];
+  const halfOf = ([, w, y0, yf, yc]) => { const h = yf - y0; return [[0, y0], [w * 0.78, y0], [w * 0.96, y0 + 0.03], [w, y0 + 0.25 * h], [w, y0 + 0.55 * h], [w * 0.985, y0 + 0.8 * h], [w * 0.9, yf - 0.015], [w * 0.64, yf], [w * 0.3, yc + (yf - yc) * 0.35], [0, yc]]; };
+  for (const s of st) { const half = halfOf(s); for (const p of half.concat(half.slice(1, -1).reverse().map(p => [-p[0], p[1]]))) pos.push(p[0], p[1], s[0]); }
   const R = 18;
   for (let s = 0; s < st.length - 1; s++) for (let j = 0; j < R; j++) {
     const a = s * R + j, b = s * R + (j + 1) % R, c = a + R, d = b + R;
     idx.push(a, c, b, b, c, d);
   }
-  const nq = (st.length - 1) * R;
   loftCaps(pos, idx, st, R);
-  const g0 = new THREE.BufferGeometry();
-  g0.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g0.setIndex(idx); g0.computeVertexNormals();
-  const geo = g0.toNonIndexed(), cols = [], pc = new THREE.Color(hex), dc = new THREE.Color(0x0b0c0f);
-  for (let t = 0; t < idx.length / 3; t++) { // per-face colour: wheel-arch faces dark, the rest paint
-    let dk = false;
-    if (t < nq * 2) { const q = t >> 1, s = (q / R) | 0, j = q % R, j1 = (j + 1) % R; dk = tk[s * R + j] + tk[s * R + j1] + tk[(s + 1) * R + j] + tk[(s + 1) * R + j1] > 0.9; }
-    const c = dk ? dc : pc; cols.push(c.r, c.g, c.b, c.r, c.g, c.b, c.r, c.g, c.b);
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+  const mat = new THREE.MeshLambertMaterial({ color: hex, side: THREE.DoubleSide }), wv = [0, 1].map(i => new THREE.Vector3(wells[i] ? wells[i][0] : 0, ARCH_Y, wells[i] ? wells[i][1] : 0));
+  mat.onBeforeCompile = sh => {
+    sh.uniforms.wells = { value: wv };
+    sh.vertexShader = 'varying vec3 vLp;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vLp = position;');
+    // the shell's inside (back faces) near an arch is drawn arch-dark, so no paint shows where the liner rim meets the rounded sill
+    sh.fragmentShader = 'varying vec3 vLp;\nuniform vec3 wells[2];\n' + sh.fragmentShader.replace('void main() {', 'void main() {\n  bool wl = false;\n  for (int i = 0; i < 2; i++) { vec2 d = vLp.zy - wells[i].xy; float r = wells[i].z; if (abs(vLp.x) > ' + ARCH_X.toFixed(2) + ' && dot(d, d) < r * r) discard; if (abs(vLp.x) > 0.45 && dot(d, d) < (r + 0.1) * (r + 0.1)) wl = true; }')
+      .replace('vec4 diffuseColor = vec4( diffuse, opacity );', 'vec4 diffuseColor = vec4( diffuse, opacity );\n  if (wl && !gl_FrontFacing) diffuseColor.rgb = vec3(0.043, 0.047, 0.059);');
+  };
+  const m = new THREE.Mesh(geo, mat); parent.add(m);
+  // side-wall half-width at (z, y), linear between stations and profile rows like the mesh (rows 3..7 run bottom to top)
+  const sideX = (z, y) => {
+    let i = 0; while (i < st.length - 2 && z < st[i + 1][0]) i++;
+    const a = st[i], b = st[i + 1], t = clamp((a[0] - z) / (a[0] - b[0]), 0, 1), hf = halfOf(a.map((v, f) => v + (b[f] - v) * t));
+    if (y <= hf[3][1]) return hf[3][0]; // below the widest row the rim stays at full width, covering the rounded sill at the arch ends
+    for (let k = 3; k < 7; k++) if (y <= hf[k + 1][1]) return hf[k][0] + (hf[k + 1][0] - hf[k][0]) * (y - hf[k][1]) / (hf[k + 1][1] - hf[k][1]);
+    return hf[7][0];
+  };
+  const N = 16, lp = [], li = [];
+  for (const [zc, r] of wells) for (const sx of [-1, 1]) {
+    const a0 = Math.asin(0.02 / r), base = lp.length / 3;
+    for (let k = 0; k <= N; k++) {
+      const th = -a0 + (Math.PI + 2 * a0) * k / N, y = ARCH_Y + r * Math.sin(th), z = zc + r * Math.cos(th);
+      lp.push(sx * ARCH_X, y, z, sx * (sideX(z, y) + 0.004), y, z);
+    }
+    lp.push(sx * ARCH_X, ARCH_Y, zc);
+    for (let k = 0; k < N; k++) { const p = base + k * 2; li.push(p, p + 1, p + 2, p + 2, p + 1, p + 3, base + (N + 1) * 2, p, p + 2); }
   }
-  geo.setAttribute('color', new THREE.Float32BufferAttribute(cols, 3));
-  const m = new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true, side: THREE.DoubleSide })); parent.add(m); return m;
+  if (lp.length) {
+    const lg = new THREE.BufferGeometry();
+    lg.setAttribute('position', new THREE.Float32BufferAttribute(lp, 3)); lg.setIndex(li); lg.computeVertexNormals();
+    parent.add(new THREE.Mesh(lg, new THREE.MeshLambertMaterial({ color: 0x0b0c0f, side: THREE.DoubleSide })));
+  }
+  return m;
 }
 // Cabin dome lofted from keys [z, halfWidthAtBase, yBase, yRoof, roofDip]; glass faces are coloured per face (windshield, side, rear), double-bubble roof via the dip.
-function loftCabin(keys, hex, glassHex, parent, gz = { f: 0.17, r: -0.7, s0: 0.55, s1: -1.4 }) { // gz: z limits of windshield / rear glass / side glass
-  const st = loftStations(keys), pos = [], idx = [], R = 11;
+// Ring bands j (+x side, bottom up; mirrored on -x): 0 base, 1-2 side glass, 3 roof rail / A-pillar (a point on the shoulder line, so the shape is unchanged), 4-7 roof.
+function loftCabin(keys, hex, glassHex, parent, gz = { f: 0.17, r: -0.7, s1: -1.4 }) { // gz: z limits of windshield / rear glass / side glass
+  const st = loftStations(keys), pos = [], idx = [], R = 13;
   for (const [z, wb, yb, yr, dip] of st) {
     const h = yr - yb;
-    const half = [[wb, yb], [wb * 0.97, yb + 0.2 * h], [wb * 0.84, yb + 0.7 * h], [wb * 0.5, yr], [wb * 0.2, yr - dip * 0.8], [0, yr - dip]];
+    const half = [[wb, yb], [wb * 0.97, yb + 0.2 * h], [wb * 0.84, yb + 0.7 * h], [wb * 0.585, yb + 0.925 * h], [wb * 0.5, yr], [wb * 0.2, yr - dip * 0.8], [0, yr - dip]];
     for (const p of half.concat(half.slice(0, -1).reverse().map(p => [-p[0], p[1]]))) pos.push(p[0], p[1], z);
   }
   for (let s = 0; s < st.length - 1; s++) for (let j = 0; j < R; j++) {
@@ -2318,7 +2335,7 @@ function loftCabin(keys, hex, glassHex, parent, gz = { f: 0.17, r: -0.7, s0: 0.5
     let gl = false;
     if (t < nq * 2) {
       const q = t >> 1, s = (q / R) | 0, j = q % R, zm = (st[s][0] + st[s + 1][0]) / 2;
-      gl = (j >= 2 && j <= 7 && (zm > gz.f || zm < gz.r)) || ((j === 1 || j === 8) && zm < gz.s0 && zm > gz.s1);
+      gl = (j >= 4 && j <= 7 && (zm > gz.f || zm < gz.r)) || ((j === 1 || j === 2 || j === 9 || j === 10) && zm > gz.s1);
     }
     const c = gl ? gc : pc; cols.push(c.r, c.g, c.b, c.r, c.g, c.b, c.r, c.g, c.b);
   }
