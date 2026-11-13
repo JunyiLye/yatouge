@@ -25,10 +25,7 @@
 
 ## 線上對戰
 
-線上 1 對 1 對戰可以在兩個地方玩，兩邊的大廳各自獨立：
-
-- **claude.ai**：使用 artifact 的 `room` 能力，只限組織成員。
-- **GitHub Pages 或其他網址**：使用 Supabase Realtime。除了公開房間，也可以建立私人房間，用 4 碼代碼邀請朋友加入。
+線上 1 對 1 對戰在 GitHub Pages（https://junyilye.github.io/yatouge/）上玩，使用 Supabase Realtime。除了公開房間，也可以建立私人房間，用 4 碼代碼邀請朋友加入。
 
 所有對戰都只顯示暱稱，不使用任何帳號資訊。
 
