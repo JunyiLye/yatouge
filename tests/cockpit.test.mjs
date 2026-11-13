@@ -151,8 +151,8 @@ test('COCKPIT_CARS：涵蓋每台車，眼睛在 CAR_BOX 內、右駕，FOV 70�
   for (const k in box) {
     const c = COCKPIT_CARS[k];
     assert.ok(Math.abs(c.eye.fwd) < box[k].hl && c.eye.right > 0.2 && c.eye.right < box[k].hw, `${k} eye`);
-    const top = c.hdr ? c.hdr.y : loadCab()[k].glass[1][1]; // KX-2 保留原本車內，用 hdr 車頂前緣；GT-32、SR-7 用外觀擋風玻璃上緣
-    assert.ok(c.eye.up > 0.9 && c.eye.up < top - 0.1, `${k} 眼睛高度要在車頂前緣（擋風玻璃上緣）之下`);
+    const top = loadCab()[k].glass[1][1]; // 外觀擋風玻璃上緣
+    assert.ok(c.eye.up > 0.9 && c.eye.up < top - 0.1, `${k} 眼睛高度要在擋風玻璃上緣之下`);
     assert.ok(c.fov >= 70 && c.fov <= 80, `${k} fov`);
     assert.ok(c.wheel.spokes.length >= 3 && c.wheel.r > 0.15 && c.wheel.r < 0.22, `${k} wheel`);
     assert.ok(c.mirrorX > c.eye.right && c.mirrorX < box[k].hw, `${k} 側鏡在車寬內`);
@@ -161,23 +161,40 @@ test('COCKPIT_CARS：涵蓋每台車，眼睛在 CAR_BOX 內、右駕，FOV 70�
   assert.equal(new Set(Object.values(COCKPIT_CARS).map(c => c.layout + c.gauges)).size, 3, '三台車的內裝風格各不相同');
 });
 
-// 從眼睛看出去的視線：GT-32、SR-7 的儀表板頂面前緣不能高過眼睛到擋風玻璃下緣（取自外觀 CAB）的視線，否則會蓋住從玻璃看出去的引擎蓋；
-// KX-2 保留原本車內，沿用原本的引擎蓋後緣規則。SR-7 的大轉速表群也不能高過視線（容許 2 cm）
-test('COCKPIT_CARS：儀表板頂面前緣在擋風玻璃下緣的視線上或之下；KX-2 低於引擎蓋後緣視線；SR-7 的儀表群也低於視線', () => {
+// 從眼睛看出去的視線：儀表板頂面前緣不能高過眼睛到擋風玻璃下緣（取自外觀 CAB）的視線，否則會蓋住從玻璃看出去的引擎蓋；
+// SR-7 的大轉速表群也不能高過視線（容許 2 cm）
+test('COCKPIT_CARS：儀表板頂面前緣在擋風玻璃下緣的視線上或之下；SR-7 的儀表群也低於視線', () => {
   const { COCKPIT_CARS, clusterY, dashFront } = load(), CAB = loadCab();
   const glassSight = (c, base, z) => c.eye.up + (base[1] - c.eye.up) * (z - c.eye.fwd) / (base[0] - c.eye.fwd);
-  for (const k of ['gtr', 'coupe']) {
+  for (const k of ['hatch', 'gtr', 'coupe']) {
     const c = COCKPIT_CARS[k], base = CAB[k].glass[0], fz = dashFront(c, base);
     assert.ok(!c.hdr && !c.hood, `${k} 車內由 CAB 產生，不再有自己的 hdr / hood`);
     assert.ok(c.dashTop <= glassSight(c, base, fz) + 1e-9, `${k} 儀表板前緣 ${c.dashTop} vs 視線 ${glassSight(c, base, fz).toFixed(3)}`);
     assert.ok(fz <= c.dashZ && fz > 0.74 + 0.03, `${k} 儀表板前緣 z ${fz.toFixed(3)} 在面板之前、不超過 dashZ`);
   }
-  const h = COCKPIT_CARS.hatch, sight = (c, z) => c.eye.up + (c.hood[0] - c.eye.up) / (c.dashZ - c.eye.fwd) * (z - c.eye.fwd);
-  assert.ok(h.dashTop <= sight(h, h.dashZ) + 0.01, `hatch 儀表板頂 ${h.dashTop} vs 視線 ${sight(h, h.dashZ).toFixed(3)}`);
-  assert.ok(Math.abs(h.hood[0] - h.dashTop) < 0.03, 'hatch 引擎蓋後緣要貼齊儀表板頂，不留縫');
   const c = COCKPIT_CARS.coupe, top = clusterY(c) + 0.1; // 大轉速表半徑 0.1，儀表罩頂與錶頂同高
   assert.ok(top <= glassSight(c, CAB.coupe.glass[0], 0.86) + 0.02, `coupe 儀表群頂 ${top} vs 視線 ${glassSight(c, CAB.coupe.glass[0], 0.86).toFixed(3)}`);
   assert.ok(clusterY(COCKPIT_CARS.hatch) > COCKPIT_CARS.hatch.dashTop, '預設儀表群在儀表板頂面上方');
+});
+
+// 視線不被儀表板擋住時，從玻璃下緣看出去要看得到 KX-2 的引擎蓋（它的引擎蓋高過視線），GT-32 則幾乎被車頭擋線吃掉
+test('KX-2：從擋風玻璃下緣看出去，引擎蓋從 z 0.9 附近起就在視線之上', () => {
+  const { COCKPIT_CARS } = load(), CAB = loadCab(), c = COCKPIT_CARS.hatch, [b, n] = CAB.hatch.hood, base = CAB.hatch.glass[0];
+  const hoodY = z => b[1] + (n[1] - b[1]) * (z - b[0]) / (n[0] - b[0]);
+  const ray = z => c.eye.up + (base[1] - c.eye.up) * (z - c.eye.fwd) / (base[0] - c.eye.fwd);
+  assert.ok(hoodY(0.95) > ray(0.95) && hoodY(2.05) > ray(2.05), 'KX-2 引擎蓋大部分可見');
+});
+
+// KX-2 的擋風玻璃上緣在視野之上（垂直半視角之外），車內頂棚前緣飾板沿玻璃往下垂到 header：飾板下緣要落在畫面上緣之內（至少低 3°），
+// 才看得到車頂；但不能垂得比舊車內的車頂前緣（hdr y 1.46、z 0.45，仰角約 32°）低太多，下緣仰角至少 25°
+test('KX-2：車內頂棚前緣飾板從座位看得到，又不擋前方視野', () => {
+  const { COCKPIT_CARS } = load(), K = loadCab().hatch, c = COCKPIT_CARS.hatch, [a, b] = K.house;
+  const elev = (z, y) => Math.atan2(y - c.eye.up, z - c.eye.fwd) / DEG;
+  assert.ok(elev(...K.glass[1]) > c.fov / 2, '外觀擋風玻璃上緣本身在視野之外');
+  assert.ok(c.header < K.glass[1][1] && c.header > c.eye.up + 0.05, `header ${c.header}`);
+  const hz = a[0] + (c.header - a[1]) * (b[0] - a[0]) / (b[1] - a[1]), e = elev(hz, c.header);
+  assert.ok(e < c.fov / 2 - 3 && e > 25, `飾板下緣仰角 ${e.toFixed(1)}° vs 半視角 ${c.fov / 2}°`);
+  for (const k of ['gtr', 'coupe']) assert.equal(COCKPIT_CARS[k].header, undefined, `${k} 沒有 header`);
 });
 
 // SR-7 的擋風玻璃下緣與上緣（CAB.coupe.glass）要落在車艙外殼上：下緣是車頂中線高度到 glassY 的位置，上緣是車頂中線與 A 柱線 aPil 的交點

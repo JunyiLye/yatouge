@@ -2345,19 +2345,20 @@ function fdCabinGeo(keys, open) {
 const fdVert = sh => { sh.vertexShader = 'attribute float cu;\nvarying float vCu;\nvarying vec3 vLp;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\n  vLp = position; vCu = cu;'); };
 // SR-7 glass map (GLSL) from the CAB.coupe numbers C: per fragment, from the local position and u, sets diffuseColor.rgb to G on glass and F on the black frames
 // and leaves paint as it is: the wrap-round windscreen ahead of the A-pillar line, the small side window rounded at the back, and the curved hatch glass behind
-// the roof. zA: A-pillar line in side view (glass ahead of it); dW / dH: distance (m, roughly) inside the side window / hatch glass, a thin band outside either is its frame
+// the roof. zA: A-pillar line in side view (glass ahead of it); fa: A-pillar frame width behind it (z), narrower up where the pillar curves over the
+// driver's head; dW / dH: distance (m, roughly) inside the side window / hatch glass, a thin band outside either is its frame
 const glF = v => Number.isInteger(v) ? v.toFixed(1) : String(v), glSub = v => v < 0 ? '+ ' + glF(-v) : '- ' + glF(v);
 function fdGlassMap(C, G, F) {
   const [a0, a1, a2] = C.aPil, [b0, b1, b2] = C.belt, [ez, ey, rz, ry] = C.winRear, [h0, h1] = C.hatch;
   return `float u = vCu, y = vLp.y, z = vLp.z;
-  float zA = ${glF(a0)} - (y ${glSub(a1)}) * ${glF(a2)}, belt = ${glF(b0)} + ${glF(b1)} * smoothstep(0.0, ${glF(b2)}, z);
+  float zA = ${glF(a0)} - (y ${glSub(a1)}) * ${glF(a2)}, fa = 0.04 - 0.025 * smoothstep(1.0, 1.2, y), belt = ${glF(b0)} + ${glF(b1)} * smoothstep(0.0, ${glF(b2)}, z);
   float er = 1.0 - length(vec2((z ${glSub(ez)}) / ${glF(rz)}, (y ${glSub(ey)}) / ${glF(ry)}));
-  float dW = min(min(y - belt, ${glF(C.winTop)} - y), min((zA - 0.055 - z) * 0.5, z < ${glF(ez)} ? er * 0.25 : 1.0));
+  float dW = min(min(y - belt, ${glF(C.winTop)} - y), min((zA - fa - z) * 0.5, z < ${glF(ez)} ? er * 0.25 : 1.0));
   float dH = min(min(${glF(h0)} - z, z ${glSub(h1)}) * 0.5, (u - 0.5) * 0.6);
   if (z > zA && y > ${glF(C.glassY)}) diffuseColor.rgb = ${G};
-  else if (z > zA - 0.04 && y > belt - 0.012) diffuseColor.rgb = ${F};
+  else if (z > zA - fa * 0.75 && y > belt - 0.012) diffuseColor.rgb = ${F};
   else if (dH > -0.014) diffuseColor.rgb = dH > 0.0 ? ${G} : ${F};
-  else if (u < 0.62 && dW > -0.015) diffuseColor.rgb = dW > 0.0 ? ${G} : ${F};`;
+  else if (u < 0.62 + 0.14 * smoothstep(-0.25, 0.05, z) && dW > -0.015) diffuseColor.rgb = dW > 0.0 ? ${G} : ${F};`;
 }
 // SR-7 cabin on the body: glass and black frames from the glass map, the rest is paint
 function fdCabin(C, hex, parent) {
@@ -2370,13 +2371,49 @@ function fdCabin(C, hex, parent) {
   };
   const m = new THREE.Mesh(geo, mat); parent.add(m); return m;
 }
-// SR-7 pop-up headlamp, raised: dark housing out of the fender top, body-colour lid, clear lens across its face (shared by the body and the cockpit)
+// SR-7 body top height at (x, z) from the loft rows 7..13 (outer shoulder to centreline), linear between stations and rows like the mesh
+function fdTopY(st, x, z) {
+  let i = 0; while (i < st.length - 2 && z < st[i + 1][0]) i++;
+  const t = clamp((st[i][0] - z) / (st[i][0] - st[i + 1][0]), 0, 1), b = fdHalf(st[i + 1]).slice(7);
+  const r = fdHalf(st[i]).slice(7).map((p, k) => [p[0] + (b[k][0] - p[0]) * t, p[1] + (b[k][1] - p[1]) * t]);
+  x = Math.abs(x); if (x >= r[0][0]) return r[0][1];
+  for (let k = 0; k < r.length - 1; k++) if (x >= r[k + 1][0]) return r[k + 1][1] + (r[k][1] - r[k + 1][1]) * (x - r[k + 1][0]) / (r[k][0] - r[k + 1][0]);
+  return r[r.length - 1][1];
+}
+// SR-7 pop-up headlamp, raised (shared by the body and the cockpit): a thin wedge hinged at the back of the fender crest, rising to the lamp face; narrow
+// at the hinge, wider at the face, with rounded top corners. Body-colour lid over the top and sides, the black bezel wrapping round the face's sides, base sunk 12 mm into the
+// fender along its curve; the top follows the fender's cross slope and the face leans slightly forward: black bezel with a wide rounded lens
 function fdPod(parent, sx, dark, paint, lens) {
-  const pod = new THREE.Group(); pod.position.set(sx * 0.62, 0.735, 1.87); parent.add(pod);
-  const add = (geo, mat, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(0, y, z); pod.add(m); return m; };
-  add(new THREE.BoxGeometry(0.25, 0.15, 0.16), dark, 0.075, 0);
-  add(new THREE.BoxGeometry(0.262, 0.022, 0.18), paint, 0.155, -0.004).rotation.x = 0.05;
-  add(rrect(0.225, 0.115, 0.03, 0.012, 0.003), lens, 0.076, 0.078);
+  const st = loftStations(CAB.coupe.body), X = 0.62, Z0 = 1.77, Z1 = 1.95, H = 0.165, LEAN = 0.02, N = 10, pos = [], dI = [], pI = [];
+  const pt = (u, v, h, t, z) => { // u across from the pod centre, v height above the fender (-1: sunk base)
+    const base = fdTopY(st, X + u, z), lift = v < 0 ? -0.012 : v + (fdTopY(st, X, z) - base) * 0.5 * t * v / h;
+    return [X + u, base + lift, z + LEAN * t * t * Math.max(v, 0) / H];
+  };
+  let R = 0;
+  for (let s = 0; s <= N; s++) {
+    const t = s < N ? s / (N - 1) * 0.92 : 1, z = Z0 + (Z1 - Z0) * t, h = Math.max(0.004, H * (0.8 * t + 0.2 * (1 - (1 - t) ** 2))), hw = 0.085 + 0.045 * Math.sqrt(t), r = Math.min(0.035, h * 0.4);
+    const ring = [[-hw, -1], [-hw, h * 0.45]];
+    for (let k = 0; k <= 4; k++) { const a = Math.PI - k / 4 * Math.PI / 2; ring.push([-hw + r + r * Math.cos(a), h - r + r * Math.sin(a)]); }
+    ring.push([0, h]);
+    for (let k = 0; k <= 4; k++) { const a = Math.PI / 2 - k / 4 * Math.PI / 2; ring.push([hw - r + r * Math.cos(a), h - r + r * Math.sin(a)]); }
+    ring.push([hw, h * 0.45], [hw, -1], [hw / 2, -1], [0, -1], [-hw / 2, -1]);
+    R = ring.length;
+    for (const [u, v] of ring) pos.push(...pt(u, v, h, t, z));
+    if (s === N) { // lamp face: its own vertices so it stays flat, fanned round a centre point
+      const c = pos.length / 3; pos.push(...pt(0, h * 0.5, h, 1, z));
+      for (const [u, v] of ring) pos.push(...pt(u, v, h, 1, z));
+      for (let j = 0; j < R; j++) dI.push(c, c + 1 + (j + 1) % R, c + 1 + j);
+    }
+  }
+  for (let s = 0; s < N; s++) for (let j = 0; j < R - 1; j++) {
+    const a = s * R + j, b = a + 1, c = a + R, d = c + 1;
+    (s === N - 1 && (j < 2 || (j > R - 7 && j < R - 4)) ? dI : pI).push(a, c, b, b, c, d);
+  }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(dI.concat(pI));
+  geo.addGroup(0, dI.length, 0); geo.addGroup(dI.length, pI.length, 1); geo.computeVertexNormals();
+  const pod = new THREE.Group(); pod.scale.x = sx; parent.add(pod); pod.add(new THREE.Mesh(geo, [dark, paint]));
+  const ly = fdTopY(st, X, Z1) + 0.08, lm = new THREE.Mesh(rrect(0.22, 0.112, 0.03, 0.012, 0.003), lens);
+  lm.position.set(X, ly, Z1 + LEAN * 0.08 / H + 0.004); lm.rotation.x = Math.atan(LEAN / H); pod.add(lm);
 }
 // outlines for wrapDecal: ellipse, rectangle, and a stadium (straight top and bottom, half-round ends)
 const ell = (cx, cy, rx, ry, n = 14) => Array.from({ length: n }, (_, i) => [cx + rx * Math.cos(i / n * Math.PI * 2), cy + ry * Math.sin(i / n * Math.PI * 2)]);
@@ -2479,7 +2516,6 @@ function gtBadgeTex() {
 // greenhouse and hood numbers shared by the body (makeCar) and the cockpit interior (makeInterior), so the view from the seat lines up with the outside.
 // Side-profile points are [z, y]; widths are full widths before the taper S; body keys are loftBody keys.
 // The SR-7 is lofted instead: body = fdHalf stations, cabin = fdCabin keys, and its glass map (fdGlassMap) picks glass and black frames on the cabin shell
-// The KX-2 entry is used by the body only: its cockpit keeps its original cabin (COCKPIT_CARS.hatch.hdr / hood)
 const CAB = {
   hatch: {
     S: { ty0: 0.88, ty1: 1.38, tumble: 0.15, f0: 1.75, f1: 2.2, fa: 0.06, r0: 1.95, r1: 2.2, ra: 0.05 },
@@ -3623,11 +3659,11 @@ function cockpitMotion(m, i, dt) {
 }
 // 每台車的車內參數（車身座標：+z 車頭、-x 車右；眼睛 right 為往右的距離）
 // eye 座位眼睛；dashTop/dashZ 儀表板頂面高度與前緣（前緣再由 dashFront 收到擋風玻璃下緣的視線上）；layout 儀表板形狀；gauges 儀表配置；
-// wheel 方向盤；mirrorX 側鏡離中線距離；col 內裝配色。GT-32 與 SR-7 的引擎蓋、擋風玻璃框、A 柱、側窗與車頂由外觀的 CAB 數字產生；
-// KX-2 保留原本的車內（使用者偏好）：hdr 車頂前緣（橫梁位置）、hood 引擎蓋後端到前端的高度，有 hdr 的車不用 CAB 建車內
+// wheel 方向盤；mirrorX 側鏡離中線距離；col 內裝配色。三台車的引擎蓋、擋風玻璃框、A 柱、側窗與車頂都由外觀的 CAB 數字產生；
+// header（KX-2）車內頂棚前緣飾板下緣的高度：飾板從擋風玻璃上緣沿玻璃往下垂到這個高度，讓車頂從座位看得到
 const COCKPIT_CARS = {
-  hatch: { eye: { fwd: -0.1, right: 0.34, up: 1.12 }, fov: 76, hdr: { y: 1.46, z: 0.45 }, dashTop: 0.9, dashZ: 1.0, layout: 'box', gauges: 'twin',
-    wheel: { r: 0.18, tube: 0.015, y: 0.76, z: 0.5, spokes: [Math.PI, 0, -Math.PI / 2] }, mirrorX: 0.8, hood: [0.9, 0.72],
+  hatch: { eye: { fwd: -0.1, right: 0.34, up: 1.12 }, fov: 76, header: 1.25, dashTop: 0.9, dashZ: 1.0, layout: 'box', gauges: 'twin',
+    wheel: { r: 0.18, tube: 0.015, y: 0.76, z: 0.5, spokes: [Math.PI, 0, -Math.PI / 2] }, mirrorX: 0.8,
     col: { dash: 0x2b2e34, trim: 0x44474f, roof: 0x1c1d21 } },
   coupe: { eye: { fwd: -0.2, right: 0.34, up: 1.0 }, fov: 78, dashTop: 0.78, clusterY: 0.72, dashZ: 1.0, layout: 'wrap', gauges: 'bigTach',
     wheel: { r: 0.175, tube: 0.017, y: 0.66, z: 0.46, spokes: [Math.PI + 0.45, -0.45, -Math.PI / 2] }, mirrorX: 0.84,
@@ -3736,7 +3772,7 @@ function makeInterior(style, paintHex) {
   // dashboard: driver-facing panel at z = pz, shoulder, then the top surface running out to the windscreen base; its front edge stays on or under
   // the sight line to the glass base, so the hood shows through the glass as it would from outside
   // (the panel runs down to the floor so the footwell is closed; the real body is hidden in cockpit view)
-  const K = P.hdr ? null : CAB[style], fz = K ? dashFront(P, K.glass[0]) : P.dashZ; // KX-2 (own hdr): its original cabin, not built from CAB
+  const K = CAB[style], fz = dashFront(P, K.glass[0]);
   const prof = [[pz, FLOOR], [pz, dt - 0.06], [Math.min(pz + 0.1, fz - 0.01), dt - 0.01], [fz, dt], [fz + 0.1, dt - 0.04], [fz + 0.1, FLOOR]];
   if (P.layout === 'wrap') {
     add(slab(prof, 0.9), mDash, 0, 0, 0);
@@ -3781,19 +3817,12 @@ function makeInterior(style, paintHex) {
   add(new THREE.CylinderGeometry(0.007, 0.009, 0.2, 8), mSpoke, 0, 0.1, 0, stick);
   add(new THREE.SphereGeometry(0.023, 12, 8), mBlack, 0, 0.21, 0, stick);
   // door cards from the floor up to just under the side glass; on the SR-7 only up to its cabin shell's base, whose lining is the door trim up to the belt
-  const cardTop = K ? Math.min(0.9, (K.side ? Math.min(...K.side[0].map(q => q[1])) : K.cabin[0][2]) - 0.01) : 0.9;
+  const cardTop = Math.min(0.9, (K.side ? Math.min(...K.side[0].map(q => q[1])) : K.cabin[0][2]) - 0.01);
   for (const sx of [1, -1]) {
     add(box(0.12, cardTop - FLOOR, 1.7), mDash, sx * (hw - 0.09), (cardTop + FLOOR) / 2, 0);
     add(box(0.13, 0.02, 1.7), mTrim, sx * (hw - 0.09), cardTop + 0.005, 0);
-    if (!K) bar([sx * P.mirrorX, dt - 0.03, P.dashZ - 0.02], [sx * 0.7, P.hdr.y, P.hdr.z], 0.075, mDash); // KX-2 pillars as they were
   }
-  if (!K) { // KX-2: header, headliner, sun visors and flat hood as they were
-    add(box(1.5, 0.06, 0.07), mRoof, 0, P.hdr.y - 0.03, P.hdr.z);
-    add(box(1.56, 0.025, P.hdr.z + 0.9), mRoof, 0, P.hdr.y - 0.0125, (P.hdr.z - 0.9) / 2);
-    for (const x of [ex, 0.34]) add(box(0.36, 0.012, 0.17), mRoof, x, P.hdr.y - 0.04, P.hdr.z - 0.12).rotation.x = 0.1;
-    const hl = 1.3, h0 = P.hood[0], h1 = P.hood[1];
-    add(box(2 * hw - 0.06, 0.03, hl), mPaint, 0, (h0 + h1) / 2 - 0.015, P.dashZ + 0.6).rotation.x = Math.atan((h0 - h1) / hl);
-  } else if (style === 'coupe') {
+  if (style === 'coupe') {
     // the real body is hidden in cockpit view, so its cabin shell and hood are rebuilt here from the body's own numbers (CAB.coupe). The lining is the same
     // shell with the same glass map: glass is cut away, the frames (black A-pillars, window frames) stay black, the rest is headliner above the belt and trim below
     const lin = new THREE.MeshLambertMaterial({ color: P.col.roof, side: THREE.DoubleSide }), fc = new THREE.Color(0x0c0d10), lc = new THREE.Color(P.col.dash);
@@ -3817,7 +3846,7 @@ function makeInterior(style, paintHex) {
     const mPod = lam(0x121317), mLens = new THREE.MeshBasicMaterial({ color: 0xf2f6ff });
     for (const sx of [-1, 1]) fdPod(grp, sx, mPod, mPaint, mLens);
   } else {
-    // GT-32: the real body is hidden in cockpit view, so the greenhouse and the hood are rebuilt here from the body's own numbers (CAB):
+    // KX-2 / GT-32: the real body is hidden in cockpit view, so the greenhouse and the hood are rebuilt here from the body's own numbers (CAB):
     // windscreen frame, A-pillars, side-window openings and roof line sit exactly where they are on the outside
     const ds = c => new THREE.MeshLambertMaterial({ color: c, side: THREE.DoubleSide });
     const taper = (geo, S) => { if (S) { const q = geo.attributes.position; for (let i = 0; i < q.count; i++) q.setX(i, q.getX(i) * widthK(S, q.getY(i), q.getZ(i))); } geo.computeVertexNormals(); return geo; };
@@ -3830,7 +3859,7 @@ function makeInterior(style, paintHex) {
     };
     const along = (a, b, n) => Array.from({ length: n + 1 }, (_, i) => [a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n]);
     const hdr = K.glass[1];
-    const S = K.S, hH = K.houseW / 2, hG = K.glassW / 2, mPil = ds(0x0b0c0f), mHead = ds(P.col.roof);
+    const S = K.S, hH = K.houseW / 2, hG = K.glassW / 2, mPil = ds(style === 'gtr' ? 0x0b0c0f : P.col.dash), mHead = ds(P.col.roof);
     // side walls: the greenhouse outline with the side windows cut out, on the body's side face
     const wall = profile(cabCmds(K.house)); wall.holes = K.side.map(w => profile(poly(w)));
     for (const sx of [1, -1]) {
@@ -3848,15 +3877,28 @@ function makeInterior(style, paintHex) {
     ribbon(pil, hG, hH, mPil, S); ribbon(pil, -hH, -hG, mPil, S);
     ribbon([gt, top[1]], -hH, hH, mPil, S);
     ribbon(top.slice(1), -hH, hH, mHead, S);
-    for (const x of [ex, 0.34]) add(box(0.36, 0.012, 0.17), mRoof, x, hdr[1] + 0.005, hdr[0] - 0.12).rotation.x = 0.1; // sun visors folded up under the roof, behind the glass top so they don't lower the opening
+    if (P.header) {
+      // KX-2: its glass top is above the view, so the roof lining hangs lower inside, as in a real car: a header trim from the glass top down the glass to
+      // P.header, its underside running back into a headliner 4 cm under the roof, and the sun visors stowed flat under the header
+      const [a, b] = top, hb = onWs(a[0] + (P.header - a[1]) * (b[0] - a[0]) / (b[1] - a[1])), zb = hb[0] - 0.11;
+      part(poly([gt, hb, [zb, P.header], [zb, gt[1] + 0.01]]), K.houseW, mRoof, S, grp);
+      ribbon([[zb, P.header], ...top.slice(2).map(([z, y]) => [z, y - 0.04])], -hH, hH, mHead, S);
+      for (const x of [ex, 0.34]) add(box(0.36, 0.012, 0.17), mTrim, x, P.header - 0.008, hb[0] - 0.09);
+    } else for (const x of [ex, 0.34]) add(box(0.36, 0.012, 0.17), mRoof, x, hdr[1] + 0.005, hdr[0] - 0.12).rotation.x = 0.1; // sun visors folded up under the roof, behind the glass top so they don't lower the opening
     // hood: the body's own top surface ahead of the windscreen base, with what stands on it
     const mPaintDS = ds(paintHex);
-    const st = loftStations(K.body).filter(q => q[0] >= K.glass[0][0] - 0.3), pos = [], idx = [];
-    for (const q of st) { const h = loftHalf(q).slice(6); for (const v of h.concat(h.slice(0, -1).reverse().map(v => [-v[0], v[1]]))) pos.push(v[0], v[1], q[0]); } // rows 6..9 and back down the -x side
-    for (let i = 0; i < st.length - 1; i++) for (let j = 0; j < 6; j++) { const a = i * 7 + j; idx.push(a, a + 7, a + 1, a + 1, a + 7, a + 8); }
-    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
-    add(geo, mPaintDS, 0, 0, 0);
-    part(gtBulge(loftStations(K.body)), K.bulgeW, mPaint, null, grp, 0.006);
+    if (style === 'hatch') {
+      ribbon(along(K.hood[0], K.hood[1], 12), -K.bodyW / 2, K.bodyW / 2, mPaintDS, K.S);
+      kxHoodPanel(grp, mPaint);
+      for (const sx of [-1, 1]) kxPod(grp, sx, mBlack, lam(0x121317), mPaint);
+    } else {
+      const st = loftStations(K.body).filter(q => q[0] >= K.glass[0][0] - 0.3), pos = [], idx = [];
+      for (const q of st) { const h = loftHalf(q).slice(6); for (const v of h.concat(h.slice(0, -1).reverse().map(v => [-v[0], v[1]]))) pos.push(v[0], v[1], q[0]); } // rows 6..9 and back down the -x side
+      for (let i = 0; i < st.length - 1; i++) for (let j = 0; j < 6; j++) { const a = i * 7 + j; idx.push(a, a + 7, a + 1, a + 1, a + 7, a + 8); }
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+      add(geo, mPaintDS, 0, 0, 0);
+      part(gtBulge(loftStations(K.body)), K.bulgeW, mPaint, null, grp, 0.006);
+    }
   }
   // door mirrors: housing + a face showing a render target; the UVs are flipped so the image is a mirror image
   const mirrors = [];
