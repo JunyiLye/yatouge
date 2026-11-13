@@ -149,3 +149,10 @@ test('CAB.rally: 引擎蓋進氣口明顯隆起（前緣高出引擎蓋 >= 10 cm
   const sc = CAB.rally.scoop, st = CAB.rally.body, yc = z => { for (let i = 0; i < st.length - 1; i++) if (z <= st[i][0] && z >= st[i + 1][0]) return st[i + 1][4] + (st[i][4] - st[i + 1][4]) * (z - st[i + 1][0]) / (st[i][0] - st[i + 1][0]); };
   assert.ok(sc.y1 - yc(sc.z1) >= 0.1, `前緣高 ${sc.y1 - yc(sc.z1)}`);
 });
+
+test('rally: 拉力藍是偏深的金屬感藍（各色版在 0x1d3a8a–0x24479e 附近），輪圈仍為金色', () => {
+  const c = CARS.rally.colors[0].top, r = c >> 16, g = (c >> 8) & 255, b = c & 255;
+  assert.ok(r >= 0x1d - 4 && r <= 0x24 + 4 && g >= 0x3a - 4 && g <= 0x47 + 8 && b >= 0x8a - 4 && b <= 0x9e + 4, c.toString(16));
+  assert.equal(CARS.rally.colors[0].wheel, 0xc9a14a);
+  assert.deepEqual(CARS.rally.colors.slice(1).map(x => x.top), [0xeceef2, 0xaeb3bc, 0x15161a]);
+});

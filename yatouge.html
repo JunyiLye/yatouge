@@ -2312,7 +2312,7 @@ const CARS = {
     // PROVISIONAL (stage 1): between the SR-7 and the GT-32 so the car is driveable; stage 3 tunes grip / drift / slide / hb for the corner-exit character
     phys: { maxV: 64, engine: 16, lag: 1, grip: 7.2, gripLimit: 17, drift: 0.85, slide: 0.35, hb: 7.5 },
     ai: { top: 51, acc: 8.7, lat: 9 },
-    colors: [{ n: { zh: '拉力藍', en: 'Rally blue' }, top: 0x2b4aa8, wheel: 0xc9a14a }, { n: { zh: '白', en: 'White' }, top: 0xeceef2, wheel: 0xc9a14a }, { n: { zh: '銀', en: 'Silver' }, top: 0xaeb3bc, wheel: 0xb9bec7 }, { n: { zh: '黑', en: 'Black' }, top: 0x15161a, wheel: 0xb9bec7 }]
+    colors: [{ n: { zh: '拉力藍', en: 'Rally blue' }, top: 0x22429a, wheel: 0xc9a14a }, { n: { zh: '白', en: 'White' }, top: 0xeceef2, wheel: 0xc9a14a }, { n: { zh: '銀', en: 'Silver' }, top: 0xaeb3bc, wheel: 0xb9bec7 }, { n: { zh: '黑', en: 'Black' }, top: 0x15161a, wheel: 0xb9bec7 }]
   }
 };
 // Sake Run reward: the player's KX-2 gets a real top-speed upgrade (the AI's KX-2 does not: it uses CARS.hatch.ai)
@@ -2745,11 +2745,11 @@ const CAB = {
     axleZ: 1.26, wheelR: 0.31, roof: 1.4,
     S: { ty0: 0.9, ty1: 1.4, tumble: 0.22, lin: true }, // lin from the shell's lowest point: side plates and the shell taper identically
     // nose: flat bumper shelf (y 0.55 to 0.58) that sticks out 8 cm past a near-vertical lamp band (y 0.58 to 0.72); tail: crisp near-vertical face
-    body: [[2.175, 0.62, 0.3, 0.55, 0.55], [2.168, 0.73, 0.26, 0.565, 0.565], [2.15, 0.795, 0.23, 0.575, 0.575], [2.115, 0.825, 0.22, 0.58, 0.58], [2.095, 0.83, 0.22, 0.72, 0.725], [2.06, 0.835, 0.22, 0.745, 0.755],
+    body: [[2.175, 0.62, 0.3, 0.55, 0.55], [2.172, 0.69, 0.28, 0.557, 0.557], [2.168, 0.73, 0.26, 0.565, 0.565], [2.159, 0.77, 0.245, 0.57, 0.57], [2.15, 0.795, 0.23, 0.575, 0.575], [2.115, 0.825, 0.22, 0.58, 0.58], [2.095, 0.83, 0.22, 0.72, 0.725], [2.06, 0.835, 0.22, 0.745, 0.755],
       [1.85, 0.84, 0.24, 0.775, 0.79], [1.5, 0.845, 0.24, 0.83, 0.845], [1.1, 0.845, 0.24, 0.88, 0.895], [0.8, 0.845, 0.24, 0.92, 0.935],
       [0.4, 0.845, 0.24, 0.965, 0.965], [-0.2, 0.845, 0.24, 0.975, 0.975], [-0.8, 0.845, 0.24, 0.98, 0.98], [-1.3, 0.845, 0.24, 0.985, 0.99],
       [-1.58, 0.84, 0.25, 0.99, 0.995], [-1.9, 0.835, 0.26, 0.985, 0.99], [-2.1, 0.825, 0.28, 0.985, 0.99], [-2.14, 0.82, 0.29, 0.975, 0.975],
-      [-2.16, 0.8, 0.3, 0.95, 0.95], [-2.17, 0.76, 0.31, 0.9, 0.9], [-2.175, 0.66, 0.34, 0.62, 0.62]],
+      [-2.16, 0.8, 0.3, 0.95, 0.95], [-2.165, 0.785, 0.305, 0.925, 0.925], [-2.17, 0.76, 0.31, 0.9, 0.9], [-2.175, 0.66, 0.34, 0.62, 0.62]],
     // body-colour greenhouse: raked windscreen (about 29 deg), a short flat roof that rounds over into a rear glass of about 30 deg down to the short boot
     house: [[0.97, 0.9], [0.08, 1.395], ['Q', -0.02, 1.405, -0.2, 1.4], [-0.55, 1.395], ['Q', -0.85, 1.385, -1, 1.33], [-1.58, 0.99], [-1.58, 0.9]], houseW: 1.48,
     frame: [[0.935, 0.931], [0.145, 1.37]], frameW: 1.44, // black frame round the windscreen (on the house edge, 1 cm proud)
@@ -2941,12 +2941,16 @@ function makeCar(style, colorIdx) {
     // amber corner indicators); two-door glass with a black pillar and no B-pillar frame; wide tail lamps, tall arched wing on two posts, one exhaust, blank plates
     const K = CAB.rally, ax = K.axleZ, LY = 0.652;
     const D = (color, basic = true) => new THREE[basic ? 'MeshBasicMaterial' : 'MeshLambertMaterial']({ color, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
-    const blackD = D(0x060608), amberD = D(0xe08a1c), lensC = D(0xc4ccd8), reflD = D(0x7d8693), whiteD = D(0xf2f4f8), plateD = D(0xc9ccd2, false), paintD = D(col.top, false);
+    const blackD = D(0x060608), amberD = D(0xe08a1c), whiteD = D(0xf2f4f8), plateD = D(0xc9ccd2, false), gapD = D(0x14161a);
+    const seam = new THREE.MeshLambertMaterial({ color: new THREE.Color(col.top).multiplyScalar(0.32) }); // shut lines: a darker shade of the paint, low contrast
+    const chromeM = new THREE.MeshPhongMaterial({ color: 0xb4bac4, specular: 0xffffff, shininess: 50, side: THREE.DoubleSide }), reflM = new THREE.MeshPhongMaterial({ color: 0x2c3138, specular: 0x3a3f48, shininess: 20 });
+    const lensM = new THREE.MeshPhongMaterial({ color: 0xc8d2e0, specular: 0xb8c0cc, shininess: 90, transparent: true, opacity: 0.16, depthWrite: false });
     const silver = new THREE.MeshLambertMaterial({ color: 0x8a8d94 }), fin = new THREE.MeshLambertMaterial({ color: 0x3a3d44 });
     const emblem = new THREE.MeshPhongMaterial({ color: 0x8c929c, specular: 0xffffff, shininess: 60 }), projM = new THREE.MeshPhongMaterial({ color: 0x1a1e26, specular: 0xffffff, shininess: 90 });
-    // flatter sides than the default section: vertical wall up to 85% of the height, then a tight shoulder (rows 3..5 are the wall)
-    const rallyHalf = ([, w, y0, yf, yc]) => { const h = yf - y0; return [[0, y0], [w * 0.8, y0], [w * 0.97, y0 + 0.025], [w, y0 + 0.2 * h], [w, y0 + 0.85 * h], [w * 0.975, yf - 0.02], [w * 0.93, yf - 0.004], [w * 0.6, yf], [w * 0.3, yc + (yf - yc) * 0.35], [0, yc]]; };
-    const body = loftBody(K.body, col.top, g, [[ax, 0.36], [-ax, 0.36]], rallyHalf, [3, 5]), sideX = body.userData.sideX;
+    // flatter sides than the default section, finely rounded: sill roll-in, vertical wall up to 85% of the height, then a tight shoulder (rows 5..9 are the wall)
+    const rallyHalf = ([, w, y0, yf, yc]) => { const h = yf - y0; return [[0, y0], [w * 0.55, y0], [w * 0.8, y0], [w * 0.93, y0 + 0.012], [w * 0.985, y0 + 0.05], [w, y0 + 0.2 * h], [w, y0 + 0.5 * h], [w, y0 + 0.85 * h],
+      [w * 0.99, yf - 0.045], [w * 0.97, yf - 0.022], [w * 0.94, yf - 0.008], [w * 0.88, yf - 0.001], [w * 0.75, yf], [w * 0.5, yc + (yf - yc) * 0.4], [w * 0.25, yc + (yf - yc) * 0.1], [0, yc]]; };
+    const body = loftBody(K.body, col.top, g, [[ax, 0.36], [-ax, 0.36]], rallyHalf, [5, 9]), sideX = body.userData.sideX;
     body.updateMatrixWorld();
     const dec = (outline, axis, dir, mat, off = 0.004, k = 2) => wrapDecal(body, outline, axis, dir, off, mat, g, k);
     const rc = new THREE.Raycaster(), V3 = (x, y, z) => new THREE.Vector3(x, y, z);
@@ -2959,7 +2963,7 @@ function makeCar(style, colorIdx) {
     const xr = (sx, a, b) => [Math.min(sx * a, sx * b), Math.max(sx * a, sx * b)];
     // greenhouse: body-colour shell, black-framed glass skins, door glass + quarter glass on one black surround
     S = K.S;
-    part(cabCmds(K.house), K.houseW, paint, S, g);
+    part(cabCmds(K.house), K.houseW, paint, S, g, 0.008); // bevelled: rounded roof edge
     part(skin(K.frame, 0.012), K.frameW, black, S, g);
     part(skin(K.glass, 0.018), K.glassW, glass, S, g);
     part(skin(K.rearFrame, 0.012), K.rearFrameW, black, S, g);
@@ -2968,7 +2972,7 @@ function makeCar(style, colorIdx) {
     for (const s of K.side) part(poly(s), K.sideW, glass, S, g);
     // hood: centre scoop (wedge open at the front) with a grille, and a vent pair (two slanted slots) on each side
     { const sc = K.scoop, zf = sc.z1 + 0.0075, gy0 = topY(0, sc.z1) + 0.004, gy1 = sc.y1 - 0.012, gh = gy1 - gy0, gy = (gy0 + gy1) / 2;
-      part(poly([[sc.z0, 0.82], [sc.z0, sc.y0], [sc.z1, sc.y1], [sc.z1, 0.82]]), sc.w, paint, null, g, 0.008);
+      part(poly([[sc.z0, 0.82], [sc.z0, sc.y0], [sc.z1, sc.y1], [sc.z1, 0.82]]), sc.w, paint, null, g, 0.014); // rounded scoop shell
       add(box(sc.w - 0.07, gh, 0.01), black, 0, gy, zf); // dark front opening, slats across it
       for (let i = -2; i <= 2; i++) add(box(0.008, gh, 0.012), fin, i * 0.09, gy, zf + 0.004);
       for (const sx of [-1, 1]) for (const dz of [-0.07, 0.07]) {
@@ -2976,35 +2980,53 @@ function makeCar(style, colorIdx) {
         v.rotation.set(0.156, sx * 0.3, 0, 'YXZ');
       }
     }
-    // nose: hexagon-mesh grille in a dark surround with a blank round emblem, rectangular lamps with a round projector inboard
+    // nose: hexagon-mesh grille set behind a raised dark surround, with a blank round emblem standing proud; bumper opening and blank plate
     const meshGeo = new THREE.PlaneGeometry(0.5, 0.075), mu = meshGeo.attributes.uv;
     for (let i = 0; i < mu.count; i++) mu.setXY(i, mu.getX(i) * 0.5 / RALLY_MESH_TILE, mu.getY(i) * 0.075 / RALLY_MESH_TILE);
-    onNose(box(0.54, 0.095, 0.01), dark, 0, LY, 0.001);
-    onNose(meshGeo, new THREE.MeshBasicMaterial({ map: rallyMeshTexture() }), 0, LY, 0.008);
-    onNose(new THREE.CircleGeometry(0.036, 16), blackD, 0, LY + 0.003, 0.012);
-    onNose(new THREE.CircleGeometry(0.028, 16), emblem, 0, LY + 0.003, 0.0135);
+    const gr = onNose(box(0.54, 0.095, 0.004), black, 0, LY, 0);
+    for (const [w, hh, x, y] of [[0.54, 0.012, 0, 0.0415], [0.54, 0.012, 0, -0.0415], [0.012, 0.095, 0.264, 0], [0.012, 0.095, -0.264, 0]]) add(box(w, hh, 0.03), dark, x, y, 0.004, gr);
+    add(meshGeo, new THREE.MeshBasicMaterial({ map: rallyMeshTexture() }), 0, 0, 0.006, gr);
+    add(new THREE.CylinderGeometry(0.036, 0.036, 0.008, 18).rotateX(Math.PI / 2), black, 0, 0.003, 0.01, gr);
+    add(new THREE.CylinderGeometry(0.029, 0.031, 0.012, 18).rotateX(Math.PI / 2), emblem, 0, 0.003, 0.014, gr);
     dec(stad(-0.3, 0.3, 0.325, 0.465, 10), 'z', 1, blackD, 0.004, 3); // bumper opening
     dec(rectO(-0.165, 0.345, 0.165, 0.455, 3), 'z', 1, plateD, 0.012, 3); // blank plate
+    // lamp units like the GT-32's: dark tub, reflector, chrome bowl outboard, projector inboard, clear bulged lens
+    const lensGeo = new THREE.PlaneGeometry(0.395, 0.08, 8, 2), lv = lensGeo.attributes.position;
+    for (let i = 0; i < lv.count; i++) { const u = lv.getX(i) / 0.197, v = lv.getY(i) / 0.04; lv.setZ(i, 0.012 * (1 - u * u) * (1 - 0.6 * v * v)); }
+    lensGeo.computeVertexNormals();
+    const bowlGeo = new THREE.SphereGeometry(0.034, 10, 4, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(-Math.PI / 2); // opening forward
+    const fogGeo = new THREE.SphereGeometry(0.083, 14, 6, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2);
+    // front lip under the bumper: gives the bumper depth and a visible forward step
+    { const lipHalf = [[2.195, 0], [2.19, 0.5], [2.175, 0.63], [2.145, 0.73], [2.1, 0.795], [1.98, 0.82]], ls = new THREE.Shape();
+      ls.moveTo(lipHalf[0][1], lipHalf[0][0]);
+      for (const p of lipHalf.slice(1)) ls.lineTo(p[1], p[0]);
+      for (const p of lipHalf.slice().reverse()) ls.lineTo(-p[1], p[0]);
+      add(new THREE.ExtrudeGeometry(ls, { depth: 0.03, bevelEnabled: false }), dark, 0, 0.255, 0).rotation.x = Math.PI / 2; }
     for (const sx of [-1, 1]) {
-      const [a, b] = xr(sx, 0.3, 0.68), [c, d] = xr(sx, 0.32, 0.665), [e, f] = xr(sx, 0.42, 0.66), [p, q] = xr(sx, 0.55, 0.7);
-      dec(rectO(a, 0.608, b, 0.695, 3), 'z', 1, blackD, 0.004, 3);
-      dec(rectO(c, 0.616, d, 0.688, 3), 'z', 1, lensC, 0.007, 3);
-      dec(rectO(e, 0.622, f, 0.682, 3), 'z', 1, reflD, 0.009, 3);
-      onNose(new THREE.CylinderGeometry(0.036, 0.036, 0.012, 14).rotateX(Math.PI / 2), projM, sx * 0.375, 0.652, 0.012);
-      onNose(new THREE.CircleGeometry(0.014, 10), headMat, sx * 0.375, 0.652, 0.019);
-      dec(ell(sx * 0.47, 0.41, 0.095, 0.095, 18), 'z', 1, blackD, 0.004, 3); // fog-lamp covers: round, body colour, blank
-      dec(ell(sx * 0.47, 0.41, 0.083, 0.083, 18), 'z', 1, paintD, 0.008, 3);
+      const [p, q] = xr(sx, 0.55, 0.7);
+      const L = onNose(box(0.4, 0.085, 0.004), black, sx * 0.49, LY, 0);
+      for (const [w, hh, x, y] of [[0.4, 0.009, 0, 0.038], [0.4, 0.009, 0, -0.038], [0.009, 0.085, 0.196, 0], [0.009, 0.085, -0.196, 0]]) add(box(w, hh, 0.036), black, x, y, 0.004, L);
+      add(box(0.37, 0.062, 0.003), reflM, 0, 0, 0.002, L);
+      add(bowlGeo, chromeM, sx * 0.07, 0, 0.02, L).scale.set(1.5, 0.9, 1);
+      add(new THREE.CircleGeometry(0.011, 10), headMat, sx * 0.07, 0, 0.004, L);
+      add(new THREE.CylinderGeometry(0.028, 0.031, 0.016, 14, 1, true), chromeM, -sx * 0.12, 0, 0.01, L).rotation.x = Math.PI / 2;
+      add(new THREE.CircleGeometry(0.025, 14), projM, -sx * 0.12, 0, 0.017, L);
+      add(new THREE.CircleGeometry(0.01, 10), headMat, -sx * 0.12, 0, 0.0175, L);
+      add(lensGeo, lensM, 0, 0, 0.021, L);
+      dec(ell(sx * 0.47, 0.41, 0.089, 0.089, 18), 'z', 1, gapD, 0.004, 3); // fog-lamp cover: thin shadow gap, then a shallow body-colour dome, blank
+      onNose(fogGeo, paint, sx * 0.47, 0.41, 0.002).scale.set(1, 1, 0.22);
       dec(ell(sx * 0.665, 0.375, 0.05, 0.042, 14), 'z', 1, blackD, 0.004, 3); // corner air intake
       dec(rectO(p, 0.482, q, 0.53, 2), 'z', 1, amberD, 0.006, 3); // amber corner indicator
       // sides: sill skirt, door cut lines, waist and sill lines, handle, mirror on a base
-      const bar = (y, h, z0, z1, mat, dx = 0.003) => add(box(0.006, h, z0 - z1), mat, sx * (sideX((z0 + z1) / 2, y) + dx), y, (z0 + z1) / 2);
+      const bar = (y, hh, z0, z1, dx = 0.002) => add(box(0.004, hh, z0 - z1), seam, sx * (sideX((z0 + z1) / 2, y) + dx), y, (z0 + z1) / 2);
       add(box(0.024, 0.09, 1.7), paint, sx * 0.843, 0.285, 0);
-      bar(0.63, 0.66, 0.626, 0.614, black); bar(0.63, 0.66, -0.614, -0.626, black);
-      bar(0.72, 0.01, 0.62, -0.62, black); bar(0.325, 0.01, 0.62, -0.62, black);
-      add(box(0.008, 0.025, 0.11), dark, sx * (sideX(-0.45, 0.86) + 0.004), 0.86, -0.45);
-      add(box(0.12, 0.03, 0.07), dark, sx * 0.78, 0.99, 0.78);
-      add(box(0.07, 0.09, 0.17), paint, sx * 0.855, 1.03, 0.76);
-      add(box(0.06, 0.07, 0.004), glass, sx * 0.855, 1.03, 0.673);
+      bar(0.63, 0.66, 0.622, 0.618); bar(0.63, 0.66, -0.618, -0.622); // door cut lines, about 4 mm
+      bar(0.72, 0.004, 0.62, -0.62); bar(0.325, 0.004, 0.62, -0.62); // waist crease and sill line
+      add(box(0.008, 0.022, 0.1), seam, sx * (sideX(-0.45, 0.86) + 0.004), 0.86, -0.45);
+      // mirror: body-colour rounded housing on a short arm, glass face turned back
+      add(box(0.09, 0.025, 0.05), paint, sx * 0.79, 0.995, 0.77);
+      add(new THREE.SphereGeometry(1, 14, 10), paint, sx * 0.865, 1.035, 0.76).scale.set(0.042, 0.052, 0.095);
+      { const mg = add(new THREE.CircleGeometry(1, 12), glass, sx * 0.865, 1.035, 0.683); mg.scale.set(0.025, 0.031, 1); mg.rotation.y = Math.PI; }
       // rear: wide lamps from the boot-lid gap to the body corner (outer red, inner amber over white) on a black surround
       const T = K.tail, [g0, g1] = xr(sx, T.x0 - 0.02, T.x1 + 0.01), [r0, r1] = xr(sx, T.split, T.x1), [i0, i1] = xr(sx, T.x0, T.split);
       dec(rectO(g0, 0.71, g1, 0.905, 4), 'z', -1, blackD, 0.004, 4);
@@ -3013,8 +3035,8 @@ function makeCar(style, colorIdx) {
       dec(rectO(i0, 0.805, i1, 0.89, 4), 'z', -1, amberD, 0.007, 4);
       // wing: swept end plate (same height as the blade's raised end, trailing edge higher) and a body-colour post
       { const Wg = K.wing, yE = Wg.y + Wg.rise, c = Wg.chord / 2;
-        part(poly([[Wg.z + c, yE - 0.09], [Wg.z + c, yE + 0.03], [Wg.z - c, yE + 0.07], [Wg.z - c, yE - 0.09]]), 0.025, paint, null, g).position.x = sx * Wg.halfW;
-        add(box(0.05, 0.3, 0.08), paint, sx * Wg.postX, 1.13, Wg.z + 0.01); }
+        part(poly([[Wg.z + c, yE - 0.09], [Wg.z + c, yE + 0.03], [Wg.z - c, yE + 0.07], [Wg.z - c, yE - 0.09]]), 0.025, paint, null, g, 0.006).position.x = sx * Wg.halfW;
+        add(rrect(0.05, 0.08, 0.02, 0.3, 0.006).rotateX(Math.PI / 2), paint, sx * Wg.postX, 1.13, Wg.z + 0.01); }
     }
     tailMat.side = THREE.DoubleSide; tailMat.polygonOffset = true; tailMat.polygonOffsetFactor = -4; tailMat.polygonOffsetUnits = -4;
     dec(rectO(-0.165, 0.45, 0.165, 0.57, 3), 'z', -1, plateD, 0.012, 3); // blank rear plate
@@ -3022,7 +3044,7 @@ function makeCar(style, colorIdx) {
     { const Wg = K.wing, N = 12, top = [], bot = [];
       for (let i = 0; i <= N; i++) { const x = -Wg.halfW + 2 * Wg.halfW * i / N, y = Wg.rise * (x / Wg.halfW) ** 2; top.push([x, y + 0.02]); bot.push([x, y - 0.015]); }
       const sh = new THREE.Shape(); sh.moveTo(top[0][0], top[0][1]); for (const p of top.slice(1)) sh.lineTo(p[0], p[1]); for (const p of bot.reverse()) sh.lineTo(p[0], p[1]);
-      add(new THREE.ExtrudeGeometry(sh, { depth: Wg.chord, bevelEnabled: false }).translate(0, 0, -Wg.chord / 2), paint, 0, Wg.y, Wg.z);
+      add(new THREE.ExtrudeGeometry(sh, { depth: Wg.chord - 0.012, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.006, bevelSegments: 2 }).translate(0, 0, -(Wg.chord - 0.012) / 2), paint, 0, Wg.y, Wg.z);
     }
     const ex = add(new THREE.CylinderGeometry(0.04, 0.036, 0.14, 12), silver, 0.42, 0.325, -2.22); ex.rotation.x = Math.PI / 2; // single exhaust, car's left (+x)
     add(new THREE.CircleGeometry(0.03, 12), black, 0.42, 0.325, -2.2915).rotation.y = Math.PI;
