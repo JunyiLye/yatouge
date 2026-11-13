@@ -57,6 +57,7 @@ body.gp :is(button, input, select):focus { outline: 2px solid var(--sodium); out
 
 .pop { position: absolute; left: 0; right: 0; top: 26%; text-align: center; font-family: var(--display); font-size: clamp(28px, 6vw, 52px); color: var(--sodium); text-shadow: 0 0 24px rgba(255,162,58,.45), 0 2px 0 #000; opacity: 0; transition: opacity .25s, transform .25s; transform: scale(.9); }
 .pop.show { opacity: 1; transform: scale(1); }
+.pop small { display: block; font-family: var(--mono); font-style: italic; font-size: .5em; color: var(--ink); }
 .tsign { position: absolute; top: clamp(96px, 24vh, 170px); width: clamp(56px, 9vw, 84px); aspect-ratio: 1; opacity: 0; transition: opacity .25s; pointer-events: none; filter: drop-shadow(0 2px 6px rgba(0,0,0,.6)); }
 .tsign.show { opacity: 1; }
 .tsign.l { left: calc(7% + env(safe-area-inset-left, 0px)); }
@@ -66,7 +67,6 @@ body.gp :is(button, input, select):focus { outline: 2px solid var(--sodium); out
 @keyframes tsflash { 0%, 100% { opacity: 1; } 25%, 75% { opacity: .15; } 50% { opacity: 1; } }
 @media (orientation: landscape) and (max-height: 500px) { .tsign { top: calc(80px + env(safe-area-inset-top, 0px)); width: 60px; } }
 @media (prefers-reduced-motion: reduce) { .tsign { transition: none; } .tsign.flash svg { animation: none; } }
-.pop small { display: block; font-family: var(--mono); font-style: italic; font-size: .5em; color: var(--ink); }
 .count { position: absolute; left: 0; right: 0; top: 34%; text-align: center; font-family: var(--mono); font-style: italic; font-weight: 700; font-size: clamp(80px, 18vw, 160px); color: var(--ink); text-shadow: 0 0 40px rgba(255,255,255,.35); }
 
 .tools { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); display: flex; gap: 8px; width: max-content; pointer-events: auto; }
@@ -3610,9 +3610,10 @@ function turnSignFrame() {
   const sg = tsOn && state === 'race' && !sakeRun ? nextSign(tsList || (tsList = cornerList(pts)), car.loc.s, Math.hypot(car.vx, car.vz)) : null;
   if (!sg) { tsHide(); return; }
   const el = $('#turnSign'), k = sg.k;
-  el.setAttribute('aria-label', tsLabel(lang, k.kind, k.dir));
   if (tsCur === String(sg.i)) return;
   tsCur = String(sg.i);
+  el.dataset.k = k.kind; el.dataset.d = k.dir;
+  el.setAttribute('aria-label', tsLabel(lang, k.kind, k.dir));
   el.className = 'tsign ' + (k.dir === 'L' ? 'l' : 'r') + ' show' + (k.kind === 'hairpin' ? ' flash' : '');
   el.innerHTML = tsIcon(k.kind, k.dir); // static markup built from constants, no user data
   el.removeAttribute('aria-hidden');
@@ -4474,6 +4475,7 @@ function applyLang() {
   menuRelabel();
   kbRelabel();
   pvpRelabel();
+  const ts = $('#turnSign'); if (ts.dataset.k) ts.setAttribute('aria-label', tsLabel(lang, ts.dataset.k, ts.dataset.d));
 }
 $('#langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'zh'; store.set('yatouge-lang', lang); applyLang(); renderOnline(); });
 applyLang();
