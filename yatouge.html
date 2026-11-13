@@ -3578,6 +3578,8 @@ function cockpitLocal(box, out = { local: {}, mirrorLocal: {} }, eye = COCKPIT) 
   m.x = 0; m.y = COCKPIT.mirrorUp; m.z = Math.min(COCKPIT.mirrorFwd, box.hl * 0.9);
   return out;
 }
+// 後照鏡寬度：也受視窗高度限制，橫向手機上才不會蓋住上方三成畫面
+const mirrorWidth = (w, h) => Math.min(Math.max(Math.min(w * 0.38, h * 0.5), 150), 380);
 /* @camera-modes:end */
 /* @cockpit:start */
 // 檔位門檻：HUD、引擎音效與車內排檔桿共用
@@ -3666,13 +3668,13 @@ function cockpitMotion(m, i, dt) {
 // wheel 方向盤；mirrorX 側鏡離中線距離；col 內裝配色。三台車的引擎蓋、擋風玻璃框、A 柱、側窗與車頂都由外觀的 CAB 數字產生；
 // header（KX-2）車內頂棚前緣飾板下緣的高度：飾板從擋風玻璃上緣沿玻璃往下垂到這個高度，讓車頂從座位看得到
 const COCKPIT_CARS = {
-  hatch: { eye: { fwd: -0.1, right: 0.34, up: 1.12 }, fov: 76, header: 1.25, dashTop: 0.9, dashZ: 1.0, layout: 'box', gauges: 'twin',
+  hatch: { eye: { fwd: -0.1, right: 0.34, up: 1.12 }, fov: 76, header: 1.25, dashTop: 0.9, clusterY: 0.84, dashZ: 1.0, layout: 'box', gauges: 'twin',
     wheel: { r: 0.18, tube: 0.015, y: 0.76, z: 0.5, spokes: [Math.PI, 0, -Math.PI / 2] }, mirrorX: 0.8,
     col: { dash: 0x2b2e34, trim: 0x44474f, roof: 0x1c1d21 } },
   coupe: { eye: { fwd: -0.2, right: 0.34, up: 1.0 }, fov: 78, dashTop: 0.78, clusterY: 0.72, dashZ: 1.0, layout: 'wrap', gauges: 'bigTach',
     wheel: { r: 0.175, tube: 0.017, y: 0.66, z: 0.46, spokes: [Math.PI + 0.45, -0.45, -Math.PI / 2] }, mirrorX: 0.84,
     col: { dash: 0x24262d, trim: 0x5a2a30, roof: 0x18191d } },
-  gtr: { eye: { fwd: -0.12, right: 0.34, up: 1.06 }, fov: 76, dashTop: 0.88, dashZ: 1.0, layout: 'box', gauges: 'twinAux',
+  gtr: { eye: { fwd: -0.12, right: 0.34, up: 1.06 }, fov: 76, dashTop: 0.88, clusterY: 0.78, dashZ: 1.0, layout: 'box', gauges: 'twinAux',
     wheel: { r: 0.175, tube: 0.019, y: 0.72, z: 0.48, spokes: [0, Math.PI / 2, Math.PI, -Math.PI / 2] }, mirrorX: 0.82,
     col: { dash: 0x25272d, trim: 0x34373e, roof: 0x16171b } },
 };
@@ -3717,7 +3719,7 @@ const mirrorImg = new THREE.Mesh(mirrorGeo, overlayMat({ map: mirrorRT.texture, 
 mirrorImg.renderOrder = 1;
 overlayScene.add(mirrorFrame, mirrorImg);
 function layoutMirror(w, h) {
-  const mw = clamp(w * 0.38, 150, 380), mh = mw * MIRROR.h / MIRROR.w;
+  const mw = mirrorWidth(w, h), mh = mw * MIRROR.h / MIRROR.w;
   // sit below whichever HUD blocks share the mirror's horizontal span (real DOM rects, so wrapped or translated layouts are respected)
   const x0 = w / 2 - mw / 2 - 5, x1 = w / 2 + mw / 2 + 5;
   let top = 12;

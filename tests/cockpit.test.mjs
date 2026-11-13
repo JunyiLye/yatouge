@@ -174,7 +174,19 @@ test('COCKPIT_CARS：儀表板頂面前緣在擋風玻璃下緣的視線上或�
   }
   const c = COCKPIT_CARS.coupe, top = clusterY(c) + 0.1; // 大轉速表半徑 0.1，儀表罩頂與錶頂同高
   assert.ok(top <= glassSight(c, CAB.coupe.glass[0], 0.86) + 0.02, `coupe 儀表群頂 ${top} vs 視線 ${glassSight(c, CAB.coupe.glass[0], 0.86).toFixed(3)}`);
-  assert.ok(clusterY(COCKPIT_CARS.hatch) > COCKPIT_CARS.hatch.dashTop, '預設儀表群在儀表板頂面上方');
+  assert.ok(clusterY({ dashTop: 0.9 }) > 0.9, '未覆寫 clusterY 時，預設儀表群在儀表板頂面上方');
+});
+
+// 儀表群太高會擋住前方視野：每台車的儀表群中心至少要比眼睛低 0.25（SR-7 的 0.28 為基準）
+test('clusterY：KX-2 0.84、GT-32 0.78、SR-7 0.72，且都比眼睛低至少 0.25', () => {
+  const { COCKPIT_CARS, clusterY } = load();
+  assert.equal(clusterY(COCKPIT_CARS.hatch), 0.84);
+  assert.equal(clusterY(COCKPIT_CARS.gtr), 0.78);
+  assert.equal(clusterY(COCKPIT_CARS.coupe), 0.72);
+  for (const k of ['hatch', 'gtr', 'coupe']) {
+    const c = COCKPIT_CARS[k];
+    assert.ok(c.eye.up - clusterY(c) >= 0.25 - 1e-9, `${k} 儀表群離眼睛 ${(c.eye.up - clusterY(c)).toFixed(3)}`);
+  }
 });
 
 // 視線不被儀表板擋住時，從玻璃下緣看出去要看得到 KX-2 的引擎蓋（它的引擎蓋高過視線），GT-32 則幾乎被車頭擋線吃掉

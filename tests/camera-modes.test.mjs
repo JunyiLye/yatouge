@@ -7,7 +7,7 @@ const html = readFileSync(new URL('../yatouge.html', import.meta.url), 'utf8');
 function load() {
   const open = '/* @camera-modes:start */', s = html.indexOf(open), e = html.indexOf('/* @camera-modes:end */');
   assert.ok(s >= 0 && e > s, '找不到 @camera-modes 區塊');
-  return new Function(`${html.slice(s + open.length, e)}\nreturn { CAM_MODES, nextCam, camModeFromStore, nearChasePose, cockpitLocal };`)();
+  return new Function(`${html.slice(s + open.length, e)}\nreturn { CAM_MODES, nextCam, camModeFromStore, nearChasePose, cockpitLocal, mirrorWidth };`)();
 }
 const BOXES = { hatch: { hl: 2.15, hw: 0.83 }, coupe: { hl: 2.25, hw: 0.87 } };
 const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `${a} vs ${b}`);
@@ -104,5 +104,24 @@ test('nearChasePose：鏡頭略高於車，向下俯角 9°–15°（spd 0 與 3
     const { pos, look } = nearChasePose({ x: 0, y: 0, z: 0 }, 0.6, spd);
     const pitch = Math.atan2(pos.y - look.y, Math.hypot(look.x - pos.x, look.z - pos.z)) * 180 / Math.PI;
     assert.ok(pitch >= 9 && pitch <= 15, `spd ${spd}: 俯角 ${pitch.toFixed(1)}°`);
+  }
+});
+
+// 後照鏡寬度同時受視窗寬與高限制：橫向手機（844×390）不能讓鏡子蓋住上方三成畫面
+test('mirrorWidth：矮視窗以高度的一半為上限，高視窗維持 380', () => {
+  const { mirrorWidth } = load();
+  assert.equal(mirrorWidth(844, 390), 195);
+  assert.equal(mirrorWidth(667, 375), 187.5);
+  assert.equal(mirrorWidth(1366, 768), 380);
+  assert.equal(mirrorWidth(1920, 1080), 380);
+});
+
+test('mirrorWidth：結果永遠落在 150–380 之間', () => {
+  const { mirrorWidth } = load();
+  assert.equal(mirrorWidth(300, 200), 150);
+  assert.equal(mirrorWidth(5000, 5000), 380);
+  for (const [w, h] of [[320, 568], [390, 844], [844, 390], [1024, 600], [2560, 1440]]) {
+    const m = mirrorWidth(w, h);
+    assert.ok(m >= 150 && m <= 380, `${w}x${h}: ${m}`);
   }
 });
