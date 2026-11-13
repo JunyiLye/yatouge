@@ -747,8 +747,8 @@ const confirmKeys = (what, ta, sake) => what === 'lobby' ? { q: 'igLobbyAsk', ye
 // Player-facing release notes, newest first (at most 12 versions). Add today's version, or extend it, whenever a change the player can see goes out.
 const CHANGELOG = [
   { date: '2026-11-14',
-    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：主畫面選好賽道後可以切換「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式與線上對戰仍是下坡）。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。', '修正：主畫面按 Enter 只有在「開始」鈕上、或焦點不在任何控制項上時才會開始比賽；在其他按鈕、選單上按 Enter 會照常操作它，方向鍵也能切換下拉選單與滑桿。', '修正：可以把 Ctrl 或 Alt 綁成降檔、鏡頭、聊天，綁了之後確實會作用。', '修正：關閉 KX-2 車門字樣後，離開車內視角不會再冒出來。', '修正：計時在整分、整十秒前後不再顯示成 0:60.00 之類的錯誤格式。', '修正：點選卡片後鍵盤焦點會留在原位；再點已選的車不會重設顏色。', '修正：回到主畫面時視角會恢復正常。', '修正：在遊戲內換語言後，主畫面的線上狀態也會跟著換語言。', '修正：壞掉的語言存檔不再讓文字壞掉。', '修正：AI 衝線後不會再停在終點讓你撞上。', '修正：起跑的 GO 消失後，大型與預告彎道提示才會出現。', '修正：線上對戰中對手在比賽時換車不再造成畫面卡頓；連線較忙時大廳會請你稍候。', '修正：線上對戰衝線後，兩台車不會再互撞。'],
-    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after picking a course on the title screen you can switch between Downhill and Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run and online matches stay downhill).', 'Fix: a turn sign no longer disappears and reappears when you brake after it shows up.', 'Fix: if the car is sliding backwards when you cross the line, the auto-brake no longer sends it flying.', 'Fix: in a room with several rounds, later rounds no longer always show a win.', 'Fix: the lobby list now updates right away when someone leaves or closes a room.', 'Fix: a join that finishes after you went back from the lobby no longer pulls you into a room.', 'Fix: on the title screen Enter starts the race only from the Start button or when focus is not on any control; on other buttons and menus it works that control, and the arrow keys now change dropdowns and sliders.', 'Fix: Ctrl or Alt can be bound to downshift, camera or chat and now really work.', 'Fix: with the KX-2 door lettering turned off it no longer pops back when you leave the cockpit view.', 'Fix: timers around full minutes and ten-second marks no longer show formats like 0:60.00.', 'Fix: keyboard focus stays in place after choosing a card, and clicking the car you already picked no longer resets its colour.', 'Fix: the view returns to normal when you are back on the title screen.', 'Fix: switching language in-game also updates the title-screen online status.', 'Fix: a corrupted language save no longer breaks the text.', 'Fix: the AI no longer stops at the finish line for you to crash into.', 'Fix: the large and preview turn signs now appear only after the start GO has gone.', 'Fix: an opponent changing cars during an online race no longer makes the game stutter; the lobby asks you to wait when the connection is busy.', 'Fix: in online races the two cars no longer bump into each other after finishing.'] },
+    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：主畫面選好賽道後可以切換「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式與線上對戰仍是下坡）。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。', '修正：主畫面按 Enter 只有在「開始」鈕上、或焦點不在任何控制項上時才會開始比賽；在其他按鈕、選單上按 Enter 會照常操作它，方向鍵也能切換下拉選單與滑桿。', '修正：可以把 Ctrl 或 Alt 綁成降檔、鏡頭、聊天，綁了之後確實會作用。', '修正：關閉 KX-2 車門字樣後，離開車內視角不會再冒出來。', '修正：計時在整分、整十秒前後不再顯示成 0:60.00 之類的錯誤格式。', '修正：點選卡片後鍵盤焦點會留在原位；再點已選的車不會重設顏色。', '修正：回到主畫面時視角會恢復正常。', '修正：在遊戲內換語言後，主畫面的線上狀態也會跟著換語言。', '修正：壞掉的語言存檔不再讓文字壞掉。', '修正：AI 衝線後不會再停在終點讓你撞上。', '修正：起跑的 GO 消失後，大型與預告彎道提示才會出現。', '修正：線上對戰中對手在比賽時換車不再造成畫面卡頓；連線較忙時大廳會請你稍候。', '修正：線上對戰衝線後，兩台車不會再互撞。', '修正：線上對戰中，房間裡的其他人無法再冒用你的身分；舊版頁面需重新整理後才能進房。'],
+    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after picking a course on the title screen you can switch between Downhill and Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run and online matches stay downhill).', 'Fix: a turn sign no longer disappears and reappears when you brake after it shows up.', 'Fix: if the car is sliding backwards when you cross the line, the auto-brake no longer sends it flying.', 'Fix: in a room with several rounds, later rounds no longer always show a win.', 'Fix: the lobby list now updates right away when someone leaves or closes a room.', 'Fix: a join that finishes after you went back from the lobby no longer pulls you into a room.', 'Fix: on the title screen Enter starts the race only from the Start button or when focus is not on any control; on other buttons and menus it works that control, and the arrow keys now change dropdowns and sliders.', 'Fix: Ctrl or Alt can be bound to downshift, camera or chat and now really work.', 'Fix: with the KX-2 door lettering turned off it no longer pops back when you leave the cockpit view.', 'Fix: timers around full minutes and ten-second marks no longer show formats like 0:60.00.', 'Fix: keyboard focus stays in place after choosing a card, and clicking the car you already picked no longer resets its colour.', 'Fix: the view returns to normal when you are back on the title screen.', 'Fix: switching language in-game also updates the title-screen online status.', 'Fix: a corrupted language save no longer breaks the text.', 'Fix: the AI no longer stops at the finish line for you to crash into.', 'Fix: the large and preview turn signs now appear only after the start GO has gone.', 'Fix: an opponent changing cars during an online race no longer makes the game stutter; the lobby asks you to wait when the connection is busy.', 'Fix: in online races the two cars no longer bump into each other after finishing.', 'Fix: other people in an online room can no longer pretend to be you; older pages need a refresh to join a room.'] },
   { date: '2026-11-13',
     zh: ['彎道前會出現提示圖示，可以在設定裡關掉。', '送酒模式通關有獎勵：KX-2 的極速升級開關，以及白色碳纖維引擎蓋塗裝。', '遊戲內選單新增「重新開始」與「回到大廳」。', '比賽結束後車子不會再倒退。', 'SR-7 新增引擎蓋與尾燈細節。', '手機車內視角：後照鏡縮小，KX-2 與 GT-32 的儀表降低，視野更開闊。', '鍵盤與手把的按鍵都可以自己設定。', '線上房間可以聊天、玩貓捉老鼠，也能在房間裡選賽道和車。', '三台車的外型都依真車照片重新製作。'],
     en: ['Turn signs now appear before corners; you can switch them off in settings.', 'Sake Run rewards: a top-speed upgrade switch for the KX-2 and a white carbon-fibre hood paint.', 'The in-game menu now has Restart and Back to lobby.', 'The car no longer rolls backwards after the race ends.', 'New hood and tail-light details on the SR-7.', 'Phone cockpit view: smaller rear-view mirror, and lower dashboards on the KX-2 and GT-32 for a clearer view.', 'Keyboard and controller buttons can be rebound.', 'Online rooms now have chat and Cat and Mouse, and you can pick the course and car inside the room.', 'All three cars were rebuilt from photos of the real cars.'] },
@@ -2014,7 +2014,7 @@ const specViewKey = code => (typeof code === 'string' && Object.hasOwn(SPEC_KEYS
 /* Picking the course, mode and car inside the room (pure part). Each player votes { t: course, m: mode, g: catch distance m } and
    picks a car / colour; the host draws between two different votes with a seed it publishes, so both sides get the same result.
    V: room states and lobby entries with room picks carry v 2; older clients (v 1) and this one never see each other's rooms. */
-const RP = { V: 2, MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4 } };
+const RP = { V: 3, MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4 } };
 const validSeed = v => Number.isInteger(v) && v >= 0 && v <= 0xffffffff;
 function validVote(x) {
   if (!x || typeof x !== 'object' || Array.isArray(x)) return null;
@@ -2184,6 +2184,154 @@ function makeTrackBudget(limit = 5, windowMs = 30000, now = () => performance.no
   };
 }
 /* @supa:end */
+/* @sign:start */
+/* Sender identity for online messages (B2: the sender id in a payload used to be self-declared, so anyone in a channel could
+   speak as another player). Each tab makes an ECDSA P-256 key pair (memory only). The peer id IS the key: 'p' + 20 characters
+   of SHA-256(raw public key), so an id can only be used by whoever holds the matching private key. Every broadcast carries
+   { p: id, q: seq, s: signature, k?: public key } plus its own fields. The signature covers domain, channel topic, event,
+   id, seq and the canonical body (stableJson, from @supa), so it cannot be moved to another channel / event / sender, and
+   a receiver only takes a seq newer than the last one it accepted from that sender. Needs stableJson and validPeerId. */
+const SIGN = { DOMAIN: 'yatouge-msg-v3', ALG: { name: 'ECDSA', namedCurve: 'P-256' }, SIG: { name: 'ECDSA', hash: 'SHA-256' }, ID_CHARS: 'abcdefghijklmnopqrstuvwxyz0123456789', ID_LEN: 20, RAW: 65, SIGLEN: 64, KEY_MS: 5000, SKEW_MS: 600000 }; // SKEW_MS: how far a first message's t may be from this clock (device clocks are often a minute or two off)
+const b64u = u8 => btoa(String.fromCharCode(...u8)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+function unb64u(s, len) { // exactly len bytes, else null
+  if (typeof s !== 'string' || !/^[A-Za-z0-9_-]+$/.test(s) || s.length % 4 === 1) return null;
+  try { const bin = atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)); return bin.length === len ? Uint8Array.from(bin, ch => ch.charCodeAt(0)) : null; } catch (e) { return null; }
+}
+const sigText = (topic, event, id, q, body) => [SIGN.DOMAIN, topic, event, id, q, stableJson(body)].join('\n');
+const bodyOf = d => Object.fromEntries(Object.entries(d).filter(([k]) => k !== 'p' && k !== 'q' && k !== 's' && k !== 'k'));
+async function peerIdOf(raw, c = globalThis.crypto) {
+  const h = new Uint8Array(await c.subtle.digest('SHA-256', raw));
+  return 'p' + Array.from(h.slice(0, SIGN.ID_LEN), b => SIGN.ID_CHARS[b % SIGN.ID_CHARS.length]).join('');
+}
+async function makeIdentity(c = globalThis.crypto) {
+  if (!c || !c.subtle) throw { code: 'sb_crypto', message: 'WebCrypto is not available' };
+  const kp = await c.subtle.generateKey(SIGN.ALG, false, ['sign', 'verify']); // the private key is not extractable
+  const raw = new Uint8Array(await c.subtle.exportKey('raw', kp.publicKey));
+  return { id: await peerIdOf(raw, c), pub: b64u(raw), priv: kp.privateKey, c, seqs: new Map() };
+}
+// A peer's public key (base64url, as it travels) -> { id, key }; null for anything that is not a P-256 point
+async function importPeerKey(pub, c = globalThis.crypto) {
+  const raw = unb64u(pub, SIGN.RAW); if (!raw || raw[0] !== 4) return null;
+  try { return { id: await peerIdOf(raw, c), key: await c.subtle.importKey('raw', raw, SIGN.ALG, false, ['verify']) }; } catch (e) { return null; }
+}
+async function signPayload(ident, topic, event, q, body, withKey = false) {
+  if (/\n/.test(topic + event)) throw new TypeError('bad topic or event');
+  const sig = new Uint8Array(await ident.c.subtle.sign(SIGN.SIG, ident.priv, new TextEncoder().encode(sigText(topic, event, ident.id, q, body))));
+  return { ...body, p: ident.id, q, s: b64u(sig), ...(withKey ? { k: ident.pub } : {}) };
+}
+// d: the payload as received (untrusted). peerKey: { id, key } from importPeerKey
+async function verifyMsg(peerKey, topic, event, d, c = globalThis.crypto) {
+  try {
+    if (!peerKey || !d || typeof d !== 'object' || d.p !== peerKey.id || !Number.isSafeInteger(d.q) || d.q < 1) return false;
+    const sig = unb64u(d.s, SIGN.SIGLEN); if (!sig) return false;
+    return await c.subtle.verify(SIGN.SIG, peerKey.key, sig, new TextEncoder().encode(sigText(topic, event, d.p, d.q, bodyOf(d))));
+  } catch (e) { return false; }
+}
+// Sending side of one channel. The seq is taken at call time (call order = seq order, kept across leaving and re-joining the
+// channel), the signature is async, so sign + deliver run as one chained step: messages leave in seq order. The public key
+// rides on 'p' every keyMs for late joiners (the roster entry carries it too). Every body gets a signed wall-clock t (ms): a receiver
+// with no baseline for this sender only takes a message whose t is recent, so recorded old messages cannot be replayed to a late joiner.
+function makeSigner(ident, topic, keyMs = SIGN.KEY_MS, now = () => performance.now(), wall = Date.now) {
+  let chain = Promise.resolve(), keyAt = -Infinity;
+  return {
+    post(event, body, deliver) {
+      const q = (ident.seqs.get(topic) || 0) + 1; ident.seqs.set(topic, q);
+      const t = now(), withKey = event === 'p' && t - keyAt >= keyMs; if (withKey) keyAt = t;
+      const signed = { ...body, t: wall() };
+      return chain = chain.then(async () => deliver(await signPayload(ident, topic, event, q, signed, withKey))).catch(() => {});
+    },
+    idle: () => chain
+  };
+}
+// Receiving side of one channel: per-sender key, last accepted seq, an in-order async verification queue, rate caps, and a short
+// buffer for messages whose sender's key has not arrived yet (it comes with the roster entry or a 'p'). Everything is untrusted.
+// onMsg(event, id, body) gets only messages whose signature checked out and whose seq is newer than the sender's last.
+// Cheap shape and size checks run first, before any decoding, queueing or holding.
+// Two tables: `senders` holds only ids that have had a signature verified (LRU; pinned ids, isPinned(id) e.g. the roster, are not
+// evicted while an unpinned one exists); everything unverified lives in the small `pend` table, so junk ids cannot push a real sender
+// out. An evicted verified sender leaves its last seq in `tomb` (ids only, much larger), so its old messages stay rejected.
+// A sender with no baseline here (no accepted message, no tombstone) must send a recent t (see makeSigner). The per-sender bucket is
+// charged on success only; failures charge a small per-id bucket, and an id out of that bucket (suspect) also spends the global one.
+function makeInbox({ topic, selfId, onMsg, events = ['p', 'c', 'x'], c = globalThis.crypto, verify = verifyMsg, now = () => performance.now(), wall = Date.now, isPinned = () => false,
+  rate = { burst: 60, perSec: 60 }, fail = { burst: 20, perSec: 2 }, suspect = { burst: 200, perSec: 200 }, maxQueue = 64, holdMs = 3000, holdMax = 16, maxSenders = 300, maxPending = 128, maxTomb = 5000, maxBytes = 8192, maxSkewMs = SIGN.SKEW_MS }) {
+  const senders = new Map(), pend = new Map(), tomb = new Map(); let active = 0, waiters = []; const warned = new Set(), G = { g: suspect.burst, gAt: now() };
+  const refill = (o, key, at, b, t) => { o[key] = Math.min(b.burst, o[key] + (t - o[at]) * b.perSec / 1000); o[at] = t; };
+  const firstOf = map => { // oldest that is not pinned and not busy; else oldest not busy; else oldest
+    for (const [id, r] of map) if (!isPinned(id) && !r.running) return id;
+    for (const [id, r] of map) if (!r.running) return id;
+    return map.keys().next().value;
+  };
+  const bury = r => { tomb.delete(r.id); tomb.set(r.id, r.last); if (tomb.size > maxTomb) tomb.delete(tomb.keys().next().value); };
+  const drop = (map, id) => { const r = map.get(id); map.delete(id); if (r) r.dead = true; return r; }; // a running queue sees dead and stops
+  const fresh = r => { const t = now(); r.hold = r.hold.filter(h => t - h.at < holdMs).slice(-holdMax); };
+  const find = id => {
+    const r = senders.get(id); if (r) { senders.delete(id); senders.set(id, r); return r; }
+    return pend.get(id) || null;
+  };
+  const make = id => {
+    const t = now();
+    for (const [pid, p] of pend) { fresh(p); if (!p.running && !p.queue.length && !p.hold.length && t - p.at > holdMs && !isPinned(pid) && !p.key) pend.delete(pid); }
+    if (pend.size >= maxPending) drop(pend, firstOf(pend));
+    const r = { id, key: null, last: tomb.get(id) || 0, verified: false, dead: false, queue: [], hold: [], running: false, tokens: rate.burst, tAt: t, fails: fail.burst, fAt: t, at: t }; pend.set(id, r); return r;
+  };
+  const promote = r => { // the first verified signature: from now on this sender is in the protected table
+    r.verified = true; if (pend.get(r.id) === r) pend.delete(r.id);
+    if (senders.size >= maxSenders) { const o = drop(senders, firstOf(senders)); if (o) bury(o); }
+    senders.set(r.id, r);
+  };
+  const settle = () => { if (active === 0) { const w = waiters; waiters = []; for (const f of w) f(); } };
+  const release = r => { fresh(r); r.queue.unshift(...r.hold); r.hold = []; }; // what was held is older than anything queued
+  const recent = d => typeof d.t === 'number' && Math.abs(wall() - d.t) <= maxSkewMs;
+  async function run(r) {
+    if (r.running) return; r.running = true; active++;
+    try {
+      while (r.queue.length && !r.dead) {
+        if (r.key && r.hold.length) release(r);
+        const it = r.queue.shift();
+        if (!r.key && typeof it.d.k === 'string') {
+          const k = await importPeerKey(it.d.k, c);
+          if (k && k.id === r.id) { if (!r.key) r.key = k; r.hold.push(it); release(r); continue; } // a roster key may have arrived meanwhile: older held ones still go first
+        }
+        if (!r.key) { r.hold.push(it); fresh(r); continue; }
+        const t = now(); refill(r, 'tokens', 'tAt', rate, t); refill(r, 'fails', 'fAt', fail, t); refill(G, 'g', 'gAt', suspect, t);
+        if (!(it.d.q > r.last) || r.tokens < 1) continue;
+        if (r.last === 0 && !recent(it.d)) { // skew: say so once per sender (only for a message that really is theirs)
+          if (warned.has(r.id) || warned.size >= 50 || r.fails < 1) continue; // no verify once told, or once this id has spent its failures
+          if (await verify(r.key, topic, it.ev, it.d, c)) { warned.add(r.id); console.warn('room: a message from', r.id, 'was dropped: its clock differs by over', maxSkewMs / 1000, 's'); } else r.fails--;
+          continue;
+        }
+        const sus = r.fails < 1; if (sus) { if (G.g < 1) continue; G.g--; }
+        const ok = await verify(r.key, topic, it.ev, it.d, c);
+        if (!ok) { if (!sus) r.fails--; continue; }
+        if (r.dead || !(it.d.q > r.last)) continue;
+        r.tokens--; r.last = it.d.q; if (!r.verified) promote(r);
+        const body = bodyOf(it.d); delete body.t;
+        try { onMsg(it.ev, r.id, body); } catch (e) { console.error(e); }
+      }
+    } finally { r.running = false; r.at = now(); active--; settle(); }
+  }
+  return {
+    submit(ev, d) {
+      if (!events.includes(ev) || !d || typeof d !== 'object' || Array.isArray(d)) return;
+      if (typeof d.s !== 'string' || d.s.length !== 86 || (d.k !== undefined && (typeof d.k !== 'string' || d.k.length !== 87))) return;
+      if (typeof d.p !== 'string' || d.p.length > 128 || d.p === selfId || !validPeerId(d.p) || !Number.isSafeInteger(d.q) || d.q < 1) return;
+      try { if (JSON.stringify(d).length > maxBytes) return; } catch (e) { return; }
+      if (d.q <= (tomb.get(d.p) || 0)) return; // an evicted sender's old messages never reach the queue
+      const r = find(d.p) || make(d.p);
+      if (d.q <= r.last || r.queue.length >= maxQueue) return;
+      fresh(r); r.queue.push({ ev, d, at: now() }); run(r);
+    },
+    async learn(id, pub) { // a public key from the roster: only kept when it is the one this id is derived from (the record stays unverified until a signature checks out)
+      if (typeof id !== 'string' || id === selfId || !validPeerId(id)) return false;
+      const have = find(id); if (have && have.key) return false;
+      const k = await importPeerKey(pub, c); if (!k || k.id !== id) return false;
+      const r = find(id) || make(id); if (r.key) return false;
+      r.key = k; if (!r.running) { release(r); run(r); } return true; // a running loop releases the held ones itself before its next item
+    },
+    idle: () => active === 0 ? Promise.resolve() : new Promise(res => waiters.push(res))
+  };
+}
+/* @sign:end */
 /* @lobbygate:start */
 // Cancel token for the lobby's async joins: take a token before the await, and when it resolves only go on if it is still valid. cancel() (leaving the lobby, starting a solo race) voids every token taken so far.
 function makeGate() { let g = 0; return { token: () => g, cancel: () => { g++; }, ok: t => t === g }; }
@@ -4756,16 +4904,26 @@ function onlineStatus(i) {
 /* ---------- online 1v1: transport ---------- */
 /* The transport is the claude.ai `room` capability, presence only (no topics: those are admin-only). With ?mockroom=1 a
    BroadcastChannel stand-in of the same shape is used instead, so two tabs of one browser can race each other.
-   Mock protocol (messages on channel 'yatouge-mockroom', {k, s: scope, peer, by, pres}): 'p' = my whole presence (sent on change,
-   at most every 33 ms, and as a 1 s heartbeat), 'hi' = everybody in the scope re-sends, 'bye' = explicit leave. A tab that closes
-   sends nothing: its peer disappears once no message has arrived for 3 s. No room at all = no online button. */
-function makeMockRoom() {
+   Mock protocol (messages on channel 'yatouge-mockroom', {k, s: scope, d}): 'p' = my whole presence (sent on change,
+   at most every 33 ms, and as a 1 s heartbeat), 'hi' = everybody in the scope re-sends, 'x' = explicit leave. 'p' and 'x' carry d =
+   a signed payload exactly like the Supabase transport (see @sign; the public key rides on every 'p'), so tab tests exercise the same
+   checks. A tab that closes sends nothing: its peer disappears once no message has arrived for 3 s. No room at all = no online button. */
+async function makeMockRoom() {
   const bc = new BroadcastChannel('yatouge-mockroom'), TIMEOUT = 3000, scopes = new Map(), connSubs = new Set();
-  const rid = () => Math.random().toString(36).slice(2, 10);
-  const me = { peer: rid() + rid(), by: null }; // like the real room without the `user` capability: nobody has an account id
+  const ident = await makeIdentity();
+  const me = { peer: ident.id, by: null }; // like the real room without the `user` capability: nobody has an account id
   const connected = () => navigator.onLine !== false;
   window.addEventListener('online', () => connSubs.forEach(f => f(true))); window.addEventListener('offline', () => connSubs.forEach(f => f(false)));
-  const send = sc => bc.postMessage({ k: 'p', s: sc.name, peer: me.peer, by: me.by, pres: sc.mine });
+  const send = sc => sc.sg.post('p', { pres: sc.mine }, d => bc.postMessage({ k: 'p', s: sc.name, d }));
+  // a message that passed @sign: the sender id is verified
+  const onSigned = (sc, ev, id, body) => {
+    if (ev === 'x') { if (sc.remote.delete(id)) later(sc); return; }
+    const pres = body.pres; if (!pres || typeof pres !== 'object' || Array.isArray(pres)) return;
+    const old = sc.remote.get(id), now = Date.now(), by = null, kind = 'viewer';
+    const same = !!old && old.by === by && old.kind === kind && JSON.stringify(old.presence) === JSON.stringify(pres);
+    sc.remote.set(id, { by, kind, presence: same ? old.presence : Object.freeze(pres), updatedAt: same ? old.updatedAt : now, seen: now });
+    if (!same) later(sc);
+  };
   // deliver the net change since the last delivery (peers are frozen; an unchanged one stays the same object)
   const flush = sc => {
     sc.flushT = 0;
@@ -4787,6 +4945,8 @@ function makeMockRoom() {
   const later = sc => { if (!sc.flushT) sc.flushT = setTimeout(() => flush(sc), 8); };
   const makeScope = name => {
     const sc = { name, mine: Object.freeze({}), mineAt: Date.now(), remote: new Map(), subs: new Set(), cache: new Map(), arr: Object.freeze([]), flushT: 0, sendT: 0, left: false };
+    sc.sg = makeSigner(ident, 'yatouge-mockroom/' + name, 0);
+    sc.vf = makeInbox({ topic: 'yatouge-mockroom/' + name, selfId: me.peer, c: ident.c, events: ['p', 'x'], isPinned: id => sc.remote.has(id), onMsg: (ev, id, body) => onSigned(sc, ev, id, body) });
     scopes.set(name, sc); flush(sc);
     sc.api = {
       name,
@@ -4808,7 +4968,7 @@ function makeMockRoom() {
       },
       connected,
       onConnection(fn) { connSubs.add(fn); Promise.resolve().then(() => { if (connSubs.has(fn)) fn(connected()); }); return () => { connSubs.delete(fn); }; },
-      leave() { if (!sc.left) { sc.left = true; scopes.delete(name); bc.postMessage({ k: 'bye', s: name, peer: me.peer }); sc.subs.clear(); } return Promise.resolve(); }
+      leave() { if (!sc.left) { sc.left = true; scopes.delete(name); sc.sg.post('x', {}, d => bc.postMessage({ k: 'x', s: name, d })); sc.subs.clear(); } return Promise.resolve(); }
     };
     bc.postMessage({ k: 'hi', s: name }); send(sc);
     return sc;
@@ -4819,13 +4979,7 @@ function makeMockRoom() {
       if (!m || typeof m !== 'object' || typeof m.s !== 'string') return;
       const sc = scopes.get(m.s); if (!sc || sc.left) return;
       if (m.k === 'hi') { send(sc); return; }
-      if (typeof m.peer !== 'string' || m.peer === me.peer) return;
-      if (m.k === 'bye') { if (sc.remote.delete(m.peer)) later(sc); return; }
-      if (m.k !== 'p' || !m.pres || typeof m.pres !== 'object' || Array.isArray(m.pres)) return;
-      const old = sc.remote.get(m.peer), now = Date.now(), by = null, kind = m.kind === 'agent' ? 'agent' : 'viewer';
-      const same = !!old && old.by === by && old.kind === kind && JSON.stringify(old.presence) === JSON.stringify(m.pres);
-      sc.remote.set(m.peer, { by, kind, presence: same ? old.presence : Object.freeze(m.pres), updatedAt: same ? old.updatedAt : now, seen: now });
-      if (!same) later(sc);
+      if (m.k === 'p' || m.k === 'x') sc.vf.submit(m.k, m.d);
     } catch (e) { /* a malformed message from another tab is ignored */ }
   };
   setInterval(() => { for (const sc of scopes.values()) send(sc); }, 1000);
@@ -4873,10 +5027,9 @@ function loadSupabaseSdk() {
     document.head.append(s);
   });
 }
-function makeSupabaseRoom(load = loadSupabaseSdk, onBusy = () => {}, budget = makeTrackBudget(SUPA.TRACK_MAX, SUPA.TRACK_WIN_MS), retryMs = SUPA.TRACK_RETRY_MS) {
-  const ra = new Uint8Array(15);
-  if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(ra); else for (let i = 0; i < 15; i++) ra[i] = Math.random() * 256;
-  const me = { peer: 'p' + Array.from(ra, b => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join(''), by: null }; // random per tab: the only id sent
+function makeSupabaseRoom(load = loadSupabaseSdk, onBusy = () => {}, budget = makeTrackBudget(SUPA.TRACK_MAX, SUPA.TRACK_WIN_MS), retryMs = SUPA.TRACK_RETRY_MS, mkIdent = makeIdentity) {
+  const me = { peer: '', by: null }; // peer: derived from this tab's public key (see @sign), set by start() before any channel opens
+  let ident = null;
   const scopes = new Set(), byName = new Map(), EMPTY = Object.freeze([]);
   let client = null, lobby = null, startP = null, delayed = 0;
   // our roster entry, queued by the budget (never dropped); a result other than 'ok' is tried once more after retryMs. onBusy(true / false): a call is waiting for its slot
@@ -4892,10 +5045,11 @@ function makeSupabaseRoom(load = loadSupabaseSdk, onBusy = () => {}, budget = ma
     if (d > 0) { trackLater(sc, d, retry, true); return; }
     if (sc.busyOn) { sc.busyOn = false; unbusy(); }
     const again = () => { if (retry && !sc.left && !sc.tq) trackLater(sc, retryMs, false, false); };
-    let r; try { r = Promise.resolve(sc.ch.track({ v: 1 })); } catch (e) { r = Promise.reject(e); }
+    let r; try { r = Promise.resolve(sc.ch.track({ v: 1, k: ident.pub })); } catch (e) { r = Promise.reject(e); }
     r.then(res => { if (res !== 'ok') again(); }, again);
   };
-  const canPush = sc => !sc.left && !!client && client.realtime.isConnected() && sc.ch.state === 'joined'; // the sdk's own state: it rejoins by itself and fires no event for every change
+  const chanUp = sc => !!client && client.realtime.isConnected() && sc.ch.state === 'joined'; // the sdk's own state: it rejoins by itself and fires no event for every change
+  const canPush = sc => !sc.left && chanUp(sc);
   const isConn = sc => canPush(sc) && navigator.onLine !== false;
   const flush = sc => { // deliver the net change since the last delivery (same contract as the mock: frozen peers, unchanged ones stay ===)
     sc.flushT = 0;
@@ -4922,17 +5076,19 @@ function makeSupabaseRoom(load = loadSupabaseSdk, onBusy = () => {}, budget = ma
   const setStatus = (sc, s) => { sc.status = s; checkConn(sc); };
   const kill = sc => {
     if (sc.left) return Promise.resolve();
-    try { sc.bye(); } catch (e) { /* not joined: nobody to tell */ }
+    let byeP; try { byeP = sc.bye(); } catch (e) { /* not joined: nobody to tell */ }
     sc.left = true; if (sc.tq) { clearTimeout(sc.tq); sc.tq = null; } if (sc.busyOn) { sc.busyOn = false; unbusy(); } sc.lowL.cancel(); sc.carL.cancel(); clearInterval(sc.hb); clearInterval(sc.tick); scopes.delete(sc); byName.delete(sc.name);
     sc.subs.clear(); sc.conn.clear();
-    return Promise.resolve(client && client.removeChannel(sc.ch)).catch(() => {});
+    return Promise.resolve(byeP).then(() => client && client.removeChannel(sc.ch)).catch(() => {}); // the bye is signed asynchronously: the channel stays until it is out
   };
   const open = (name, isLobby) => new Promise((resolve, reject) => {
     const sc = { name, tq: null, busyOn: false, status: 'none', ch: null, low: {}, clearN: 0, mine: Object.freeze({}), mineAt: Date.now(), car: null, cars: new Map(), lows: new Map(), recs: new Map(), roster: new Set(), seen: new Map(), ghosts: false, connPrev: false, hb: 0, tick: 0, bye: null, cache: new Map(), arr: EMPTY, subs: new Set(), conn: new Set(), flushT: 0, left: false, synced: false, afterSync: null };
     scopes.add(sc); if (!isLobby) byName.set(name, sc);
-    sc.ch = client.channel(isLobby ? 'yatouge-lobby' : 'yatouge-room-' + name, { config: { broadcast: { self: false, ack: false }, presence: { key: me.peer } } });
+    const topic = isLobby ? 'yatouge-lobby' : 'yatouge-room-' + name; // also signed into every message
+    sc.ch = client.channel(topic, { config: { broadcast: { self: false, ack: false }, presence: { key: me.peer } } });
     const live = () => canPush(sc); // never while rejoining: the sdk would fall back to one HTTP request per send
-    const bcast = (event, payload) => { if (live()) Promise.resolve(sc.ch.send({ type: 'broadcast', event, payload: { p: me.peer, ...payload } })).catch(() => {}); };
+    const signer = makeSigner(ident, topic);
+    const bcast = (event, body) => live() ? signer.post(event, body, d => { if (event === 'x' ? chanUp(sc) : live()) return sc.ch.send({ type: 'broadcast', event, payload: d }); }) : Promise.resolve(); // signed in seq order; only the final bye may leave after sc.left
     const sendLow = () => { // a cleared low goes out as an empty one a few times (the heartbeat repeats it, broadcast may drop): without it the others keep the old lobby state
       if (Object.keys(sc.low).length) bcast('p', { low: sc.low }); else if (sc.clearN > 0 && live()) { sc.clearN--; bcast('p', { low: {} }); } // live(): a clear made while disconnected stays pending until it can really go out
     };
@@ -4959,23 +5115,28 @@ function makeSupabaseRoom(load = loadSupabaseSdk, onBusy = () => {}, budget = ma
     sc.ch.on('presence', { event: 'sync' }, () => { // the roster only
       let st; try { st = sc.ch.presenceState(); } catch (e) { return; }
       const ids = new Set(Object.keys(st).filter(id => id !== me.peer && validPeerId(id)));
+      for (const id of ids) for (const m of Array.isArray(st[id]) ? st[id] : []) if (m && typeof m.k === 'string') sc.vf.learn(id, m.k).catch(() => {}); // the public key rides on the roster entry
       const fresh = [...ids].some(id => !sc.recs.has(id));
       sc.roster = ids; sc.synced = true; rebuild();
       if (fresh) sc.lowL.poke(); // somebody new: tell them our state now instead of at the next heartbeat
       if (sc.afterSync) sc.afterSync();
     });
-    sc.ch.on('broadcast', { event: 'x' }, msg => { const d = msg && msg.payload; if (shape(d)) { sc.seen.delete(d.p); rebuild(); } }); // bye
-    sc.ch.on('broadcast', { event: 'p' }, msg => {
-      const d = msg && msg.payload; if (!shape(d) || !room_(sc.lows, d.p)) return;
+    // only messages whose signature checked out reach these (see @sign: the sender id is the sender's public key); d = { p: verified id, ...body }
+    const onBye = d => { if (shape(d)) { sc.seen.delete(d.p); rebuild(); } };
+    const onLow = d => {
+      if (!shape(d) || !room_(sc.lows, d.p)) return;
       const low = lowOf(d.low); if (!low) return;
       sc.lows.set(d.p, { low, at: performance.now() }); sc.seen.set(d.p, performance.now());
       remerge(d.p);
-    });
-    sc.ch.on('broadcast', { event: 'c' }, msg => {
-      const d = msg && msg.payload; if (!shape(d) || !Number.isInteger(d.n) || !room_(sc.cars, d.p)) return;
+    };
+    const onCar = d => {
+      if (!shape(d) || !Number.isInteger(d.n) || !room_(sc.cars, d.p)) return;
       if (!(d.c === null || (d.c && typeof d.c === 'object' && !Array.isArray(d.c)))) return;
       sc.cars.set(d.p, { n: d.n, c: d.c, at: performance.now() }); sc.seen.set(d.p, performance.now()); remerge(d.p);
-    });
+    };
+    const handlers = { x: onBye, p: onLow, c: onCar };
+    sc.vf = makeInbox({ topic, selfId: me.peer, c: ident.c, isPinned: id => sc.roster.has(id) || sc.recs.has(id), onMsg: (ev, id, body) => handlers[ev]({ ...body, p: id }) });
+    for (const ev of ['x', 'p', 'c']) sc.ch.on('broadcast', { event: ev }, msg => sc.vf.submit(ev, msg && msg.payload));
     sc.api = {
       name,
       presence(patch) {
@@ -5024,6 +5185,7 @@ function makeSupabaseRoom(load = loadSupabaseSdk, onBusy = () => {}, budget = ma
   const start = () => startP || (startP = (async () => {
     try {
       const sdk = await load();
+      ident = await mkIdent(); me.peer = ident.id;
       client = sdk.createClient(SUPA.URL, SUPA.KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, realtime: { params: { eventsPerSecond: 40 } } });
       lobby = (await open('', true)).api;
       return room;
@@ -5043,8 +5205,8 @@ function makeSupabaseRoom(load = loadSupabaseSdk, onBusy = () => {}, budget = ma
     }
   };
   // closing the page: leave every channel so the other player sees us go at once instead of after a timeout
-  const close = () => { for (const sc of [...scopes]) kill(sc); try { client && client.removeAllChannels(); } catch (e) { /* page is closing */ } };
-  return { room, start, close, peerId: me.peer };
+  const close = () => { for (const sc of [...scopes]) kill(sc); try { client && client.removeAllChannels(); } catch (e) { /* page is closing */ } }; // the signed bye is async and may not get out: leaving the channels now is what the others see
+  return { room, start, close, get peerId() { return me.peer; } };
 }
 
 /* ---------- online 1v1: lobby and room UI ---------- */
@@ -5911,7 +6073,7 @@ async function initOnline() {
   if (tr === 'supabase') return; // nothing is loaded or contacted until the player presses Online (sbConnect)
   let r = null;
   try {
-    if (mock) r = (onl.mock || (onl.mock = makeMockRoom())).room;
+    if (mock) r = (await (onl.mock || (onl.mock = makeMockRoom()))).room;
     else if (onl.hasClaude) {
       r = await safeUse('room');
       if (!r) { onl.permApi = await safeUse('permissions'); onl.perm = await readPerm(); }

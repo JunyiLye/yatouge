@@ -11,7 +11,7 @@ function block(name) {
   return html.slice(s + open.length, e);
 }
 const cut = (from, to) => { const s = html.indexOf(from); assert.ok(s >= 0, from); const e = html.indexOf(to, s); return html.slice(s, e + to.length); };
-const SRC = `${block('netcode')}\n${block('supa')}\n${cut('const SUPA = {', '\n};')}\n${cut('\nfunction makeSupabaseRoom(', '\n}\n')}\nreturn { makeSupabaseRoom, lobbyRooms, NET };`;
+const SRC = `${block('netcode')}\n${block('supa')}\n${block('sign')}\n${cut('const SUPA = {', '\n};')}\n${cut('\nfunction makeSupabaseRoom(', '\n}\n')}\nreturn { makeSupabaseRoom, lobbyRooms, NET };`;
 
 // 假 SDK：一個 hub 代表伺服器；每個 channel 以名稱分房，track / presenceState / broadcast 的行為照 supabase-js 的介面
 function makeHub() {
