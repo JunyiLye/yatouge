@@ -13,7 +13,7 @@ const G = new Function(`const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 ${block('course-geometry')}\n${block('engine')}\n${block('gearbox')}\n${block('drift-follow')}\n${block('vehicle')}\n${block('collision')}\n${block('cars')}\n${block('cockpit')}
 return { GB, CARS, GEARS, gearFor, engineForce, vehicleAccel, gbRedlineSpeed, gbRpm, gbTorque, gbGearFactor, gbMul, gbShift, gbStep, gbCutting, gbOverSpeed, gbShiftBrake, atGear, atStep, atMul };`)();
 const { GB, CARS, GEARS, gearFor, engineForce, vehicleAccel, gbRedlineSpeed, gbRpm, gbTorque, gbGearFactor, gbMul, gbShift, gbStep, gbCutting, gbOverSpeed, gbShiftBrake, atGear, atStep, atMul } = G;
-const KEYS = ['hatch', 'coupe', 'gtr'];
+const KEYS = ['hatch', 'coupe', 'gtr', 'rally'];
 const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `${a} vs ${b}`);
 
 test('每台車有 6 檔，紅線車速逐檔遞增，紅線轉速在 7000–8500', () => {
@@ -245,4 +245,14 @@ test('自排換檔空檔：斷油只有前 AT_CUT 秒（短於手排），換檔
   let t = GB.SHIFT_CUT, cutN = 0, brakeN = 0;
   while (t > 0) { if (atMul(t) === 0) cutN++; if (gbShiftBrake(20, t, DT) < 20) brakeN++; t = gbStep(t, DT); }
   near(cutN * DT, GB.AT_CUT, DT + 1e-9); near(brakeN * DT, GB.SHIFT_CUT, DT + 1e-9);
+});
+
+test('RV-4：6 檔紅線車速 >= maxV（手排不會在極速前斷油），v6 約為 maxV 的 1.07–1.12 倍，HUD 轉速合理', () => {
+  const { maxV } = CARS.rally.phys, v6 = GB.CARS.rally.v6;
+  assert.ok(v6 >= maxV && v6 / maxV >= 1.07 && v6 / maxV <= 1.12, `v6 ${v6} vs maxV ${maxV}`);
+  assert.equal(GB.CARS.rally.redline, 7500);
+  // 怠速、各檔紅線車速的轉速、極速（6 檔）仍低於紅線但高於 85%
+  assert.equal(gbRpm('rally', 1, 0), GB.IDLE);
+  const r = gbRpm('rally', 6, maxV);
+  assert.ok(r < GB.CARS.rally.redline && r > GB.CARS.rally.redline * 0.85, `極速轉速 ${r}`);
 });

@@ -36,10 +36,9 @@ test('rally: 輪圈顏色依車色（藍、白配金色；銀、黑配銀色）�
   for (const k of ['hatch', 'coupe', 'gtr']) assert.ok(CARS[k].colors.every(c => c.wheel === undefined), k);
 });
 
-test('rally: 暫定物理與 AI 數值介於 SR-7 與 GT-32 之間', () => {
-  const { coupe, gtr, rally } = CARS;
-  for (const k of ['maxV', 'engine']) assert.ok(rally.phys[k] > coupe.phys[k] && rally.phys[k] < gtr.phys[k], k);
-  for (const k of ['gripLimit', 'drift']) assert.ok(rally.phys[k] < coupe.phys[k] && rally.phys[k] > gtr.phys[k], k);
+// 第三段已把暫定物理換成調校值：平衡與數值的測試在 rv4-physics.test.mjs；這裡只留 AI 表可用
+test('rally: AI 數值可用', () => {
+  const { rally } = CARS;
   assert.ok(rally.ai.top > 30 && rally.ai.acc > 3 && rally.ai.lat > 5);
 });
 

@@ -1480,7 +1480,7 @@ const GB = {
   BOOST: [0.20, 0.12, 0.07, 0.03, 0.01, 0],
   TORQUE: [[0, 0.15], [1000, 0.15], [2000, 0.4], [3000, 0.7], [4500, 1], [7000, 1], [8000, 0.9]], // rpm -> 扭力係數
   CARS: { hatch: { redline: 8000, v6: 58, gain: 1.25 }, coupe: { redline: 8000, v6: 67, gain: 0.75 }, gtr: { redline: 7600, v6: 78, gain: 0.8 },
-    rally: { redline: 7500, v6: 70, gain: 1 } } // rally: provisional (stage 1), tuned in stage 3
+    rally: { redline: 7500, v6: 64, gain: 0.8 } } // rally: v6 = 1.1 x maxV like the others; gain keeps the manual 0-100 advantage within 3-8%
 };
 const gbGear = g => Math.min(GB.TOP, Math.max(1, Math.round(Number(g)) || 1));
 const gbRedlineSpeed = (car, g) => GB.CARS[car].v6 * GB.K[gbGear(g) - 1];
@@ -2309,9 +2309,9 @@ const CARS = {
   rally: {
     name: { zh: 'RV-4 拉力四驅', en: 'RV-4 Rally 4WD' }, sub: { zh: '90 年代雙門四驅渦輪房車。起步與出彎最猛，但彎中推頭、不好甩尾', en: '90s two-door all-wheel-drive turbo saloon. Launches and exits hardest, but understeers mid-corner and is hard to drift' },
     stats: [[STAT.acc, 4], [STAT.top, 3], [STAT.corner, 2], [STAT.exit, 5]],
-    // PROVISIONAL (stage 1): between the SR-7 and the GT-32 so the car is driveable; stage 3 tunes grip / drift / slide / hb for the corner-exit character
-    phys: { maxV: 64, engine: 16, lag: 1, grip: 7.2, gripLimit: 17, drift: 0.85, slide: 0.35, hb: 7.5 },
-    ai: { top: 51, acc: 8.7, lat: 9 },
+    // AWD exit king: no power lag (hardest launch), exitBoost = extra pull while on the gas with steering on, heavy (low gripLimit, understeers), drift follows the heading fast (hard to start and holds little), slide is low
+    phys: { maxV: 58, engine: 13, lag: 0, grip: 7.5, gripLimit: 17.4, drift: 1.35, slide: 0.1, hb: 8, exitBoost: 0.8 },
+    ai: { top: 47, acc: 8.5, lat: 9 },
     colors: [{ n: { zh: '拉力藍', en: 'Rally blue' }, top: 0x22429a, wheel: 0xc9a14a }, { n: { zh: '白', en: 'White' }, top: 0xeceef2, wheel: 0xc9a14a }, { n: { zh: '銀', en: 'Silver' }, top: 0xaeb3bc, wheel: 0xb9bec7 }, { n: { zh: '黑', en: 'Black' }, top: 0x15161a, wheel: 0xb9bec7 }]
   }
 };
@@ -3417,7 +3417,7 @@ function vehicleAccel(c, P, u, loc, dt) {
   // lag = 1: power builds with speed (strong on straights, slow out of corners)
   const lagF = P.lag ? clamp(0.42 + Math.max(0, vf) / 36, 0.42, 1.15) : 1;
   const pen = c.penalty > 0 ? 0.1 : 1;
-  if (u.gas && vf < P.maxV) a += engineForce(P.engine, lagF, vf, P.maxV, pen) * (u.mul ?? 1); // u.mul: manual-gearbox multiplier (gbMul); absent = automatic
+  if (u.gas && vf < P.maxV) a += engineForce(P.engine, lagF, vf, P.maxV, pen) * (u.mul ?? 1) * (P.exitBoost ? 1 + P.exitBoost * Math.min(1, Math.abs(c.steer) / 0.4) : 1); // u.mul: manual-gearbox multiplier (gbMul); absent = automatic
   if (u.brake) { if (vf > 0.5) a -= P.brake; else if (!u.gas && vf > -6) a -= 5; }
   if (u.hb) a -= Math.sign(vf) * P.hb;
   a -= P.drag * vf * Math.abs(vf) + (Math.abs(vf) > 0.3 ? Math.sign(vf) * P.roll : 0);
@@ -3580,17 +3580,26 @@ function shiftEvent(prevGear, gear, vf) {
   return gear > prevGear ? 'up' : 'down';
 }
 // spool: target follows rpm under throttle, boost climbs slowly (lag) and bleeds fast off throttle
-function boostStep(boost, gas, rpm, dt) {
+function boostStep(boost, gas, rpm, dt, rate = 1.1) { // rate: spool-up speed per second (RV-4 spools slower)
   const target = gas ? clamp((rpm - 2500) / 5000, 0, 1) : 0;
-  return boost < target ? Math.min(target, boost + dt * 1.1) : Math.max(target, boost - dt * 3);
+  return boost < target ? Math.min(target, boost + dt * rate) : Math.max(target, boost - dt * 3);
 }
 const cooldownStep = (cd, dt) => Math.max(0, cd - dt);
 /* @turbo-sfx:end */
+/* @rally-sfx:start */
+// RV-4 flat-four turbo: unequal-length headers give a lumpy burble at half the firing frequency (f = rpm/30), deep at low rpm and smoothing out as it revs.
+const RALLY_SPOOL = 0.8; // boost climbs slower than the GT-32 (1.1/s): turbo lag
+function rallySfx(rpm, boost) {
+  const b = clamp(boost, 0, 1);
+  return { lpHz: 600 + rpm * 0.5, wobbleHz: rpm / 60, wobbleDepth: clamp(0.36 - (rpm - 1000) / 6000 * 0.26, 0.08, 0.36),
+    whineHz: 1700 + b * 2600 + rpm * 0.08, whineGain: b * b * 0.018, airGain: b * 0.04 };
+}
+/* @rally-sfx:end */
 function buildEngine(type) {
   const out = ac.createGain(); out.gain.value = 0; out.connect(master);
   const pre = ac.createGain(); pre.gain.value = 0.6;
-  const sh = ac.createWaveShaper(); sh.curve = shaperCurve(type === 'hatch' ? 2.2 : type === 'gtr' ? 3 : 4.5);
-  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = type === 'hatch' ? 4 : type === 'gtr' ? 2 : 1.5;
+  const sh = ac.createWaveShaper(); sh.curve = shaperCurve(type === 'hatch' ? 2.2 : type === 'gtr' ? 3 : type === 'rally' ? 3.6 : 4.5);
+  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = type === 'hatch' ? 4 : type === 'gtr' ? 2 : type === 'rally' ? 1.8 : 1.5;
   pre.connect(sh).connect(lp).connect(out);
   const e = { type, out, lp, oscs: [], boost: 0, gasWas: false };
   const osc = (wave, mult, g, det) => { const o = ac.createOscillator(); o.type = wave; if (det) o.detune.value = det; const gg = ac.createGain(); gg.gain.value = g; o.connect(gg).connect(pre); o.start(); e.oscs.push([o, mult]); return gg; };
@@ -3607,6 +3616,16 @@ function buildEngine(type) {
     e.air = ac.createBiquadFilter(); e.air.type = 'bandpass'; e.air.Q.value = 14; e.airG = ac.createGain(); e.airG.gain.value = 0;
     air.connect(e.air).connect(e.airG).connect(master); air.start();
     e.bovCd = 0; e.gear = 0;
+  } else if (type === 'rally') {
+    osc('sawtooth', 1, 0.36); osc('sawtooth', 1, 0.28, 11); osc('square', 0.5, 0.2); // two detuned saws beat against each other; the half-order square is the uneven thump
+    const lfo = ac.createOscillator(); lfo.type = 'sine';
+    const lg = ac.createGain(); lg.gain.value = 0.3; lfo.connect(lg).connect(pre.gain); lfo.start(); e.lfo = lfo; e.lfoG = lg;
+    e.whine = ac.createOscillator(); e.whine.type = 'sine'; e.whineG = ac.createGain(); e.whineG.gain.value = 0;
+    e.whine.connect(e.whineG).connect(master); e.whine.start();
+    const air = ac.createBufferSource(); air.buffer = noiseBuf; air.loop = true;
+    e.air = ac.createBiquadFilter(); e.air.type = 'bandpass'; e.air.Q.value = 10; e.airG = ac.createGain(); e.airG.gain.value = 0;
+    air.connect(e.air).connect(e.airG).connect(master); air.start();
+    e.bovCd = 0;
   } else {
     osc('square', 1, 0.38); osc('square', 1, 0.32, 16); osc('sawtooth', 0.5, 0.18);
     const lfo = ac.createOscillator(); lfo.type = 'square';
@@ -3625,7 +3644,7 @@ function initAudio() {
   musicGain = ac.createGain(); musicGain.gain.value = musicLevel(musicOn, musicVol); musicGain.connect(outG);
   noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
   const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-  engines = { hatch: buildEngine('hatch'), coupe: buildEngine('coupe'), gtr: buildEngine('gtr') };
+  engines = { hatch: buildEngine('hatch'), coupe: buildEngine('coupe'), gtr: buildEngine('gtr'), rally: buildEngine('rally') };
   const gr = ac.createBufferSource(); gr.buffer = noiseBuf; gr.loop = true; // low rumble while hooked into a gutter
   const grF = ac.createBiquadFilter(); grF.type = 'lowpass'; grF.frequency.value = 160;
   gutG = ac.createGain(); gutG.gain.value = 0; gr.connect(grF).connect(gutG).connect(master); gr.start();
@@ -3822,6 +3841,15 @@ function updateEngineAudio(dt) {
       const wf = 2000 + e.boost * 3000 + car.rpm * 0.1;
       e.whine.frequency.setTargetAtTime(wf, t, 0.05); e.whineG.gain.setTargetAtTime(e.boost * e.boost * 0.02, t, 0.05);
       e.air.frequency.setTargetAtTime(wf * 1.1, t, 0.05); e.airG.gain.setTargetAtTime(e.boost * 0.05, t, 0.05);
+    } else if (k === 'rally') {
+      const gas = car.gas && state !== 'title', brake = car.brakeOn && spd > 15 && state !== 'title', S = rallySfx(car.rpm, e.boost);
+      e.bovCd = cooldownStep(e.bovCd, dt);
+      if (bovTrigger(e.gasWas, gas, brake, e.boost, e.bovCd, e.brakeWas)) { sfxBov(t); e.bovCd = BOV_COOLDOWN; e.boost *= 0.2; }
+      e.brakeWas = brake; e.gasWas = gas; e.boost = boostStep(e.boost, gas, car.rpm, dt, RALLY_SPOOL);
+      e.lp.frequency.setTargetAtTime(S.lpHz, t, 0.05);
+      e.lfo.frequency.setTargetAtTime(S.wobbleHz, t, 0.05); e.lfoG.gain.setTargetAtTime(S.wobbleDepth, t, 0.1);
+      e.whine.frequency.setTargetAtTime(S.whineHz, t, 0.05); e.whineG.gain.setTargetAtTime(S.whineGain, t, 0.05);
+      e.air.frequency.setTargetAtTime(S.whineHz * 1.1, t, 0.05); e.airG.gain.setTargetAtTime(S.airGain, t, 0.05);
     } else {
       e.lp.frequency.setTargetAtTime(650 + car.rpm * 0.6, t, 0.05);
       e.lfo.frequency.setTargetAtTime(f * 0.25, t, 0.05);
