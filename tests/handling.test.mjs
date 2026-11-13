@@ -103,3 +103,22 @@ test('一般煞車（無 hold）：停下後仍會倒車蠕行到約 -6 m/s（�
   const r = stopSim({ sIn: 0, gas: false, brake: true, hb: false }, 0, 12);
   assert.ok(r.minVf < -5.5, `應倒車蠕行：${r.minVf}`);
 });
+
+// 衝線時還在倒著甩尾（車頭與行進方向差 > 90°，vf < 0）：自動煞車也只能讓車慢下來，不可暴衝
+test('衝線自動煞車（hold）：倒著甩尾（diff 1.8 / 2.2 / 2.8 rad）速度只降不升，數秒內停住', () => {
+  const P = { ...CARS.coupe.phys, brake: 24, drag: 0.0008, roll: 0.3 }, u = { sIn: 0, gas: false, brake: true, hb: false, hold: true };
+  for (const diff of [1.8, 2.2, 2.8]) {
+    for (const grade of [0, 0.08]) {
+      const va = -diff, c = { x: 0, z: 0, h: 0, vx: Math.sin(va) * 20, vz: Math.cos(va) * 20, w: 0, steer: 0, drift: true, penalty: 0 };
+      let prev = Math.hypot(c.vx, c.vz), max = prev;
+      for (let i = 0; i < 6 * 120; i++) {
+        const a = vehicleAccel(c, P, u, { grade, h: 0 }, 1 / 120);
+        vehicleTurn(c, P, u, a, 1 / 120);
+        const sp = Math.hypot(c.vx, c.vz);
+        assert.ok(sp <= prev + 1e-9, `diff ${diff} grade ${grade} 第 ${i} 步加速：${prev} -> ${sp}`);
+        prev = sp; max = Math.max(max, sp);
+      }
+      assert.ok(prev < 0.05, `diff ${diff} grade ${grade} 沒停住：${prev}`);
+    }
+  }
+});

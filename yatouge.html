@@ -747,8 +747,8 @@ const confirmKeys = (what, ta, sake) => what === 'lobby' ? { q: 'igLobbyAsk', ye
 // Player-facing release notes, newest first (at most 12 versions). Add today's version, or extend it, whenever a change the player can see goes out.
 const CHANGELOG = [
   { date: '2026-11-14',
-    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：主畫面選好賽道後可以切換「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式與線上對戰仍是下坡）。'],
-    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after picking a course on the title screen you can switch between Downhill and Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run and online matches stay downhill).'] },
+    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：主畫面選好賽道後可以切換「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式與線上對戰仍是下坡）。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。'],
+    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after picking a course on the title screen you can switch between Downhill and Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run and online matches stay downhill).', 'Fix: a turn sign no longer disappears and reappears when you brake after it shows up.', 'Fix: if the car is sliding backwards when you cross the line, the auto-brake no longer sends it flying.', 'Fix: in a room with several rounds, later rounds no longer always show a win.', 'Fix: the lobby list now updates right away when someone leaves or closes a room.', 'Fix: a join that finishes after you went back from the lobby no longer pulls you into a room.'] },
   { date: '2026-11-13',
     zh: ['彎道前會出現提示圖示，可以在設定裡關掉。', '送酒模式通關有獎勵：KX-2 的極速升級開關，以及白色碳纖維引擎蓋塗裝。', '遊戲內選單新增「重新開始」與「回到大廳」。', '比賽結束後車子不會再倒退。', 'SR-7 新增引擎蓋與尾燈細節。', '手機車內視角：後照鏡縮小，KX-2 與 GT-32 的儀表降低，視野更開闊。', '鍵盤與手把的按鍵都可以自己設定。', '線上房間可以聊天、玩貓捉老鼠，也能在房間裡選賽道和車。', '三台車的外型都依真車照片重新製作。'],
     en: ['Turn signs now appear before corners; you can switch them off in settings.', 'Sake Run rewards: a top-speed upgrade switch for the KX-2 and a white carbon-fibre hood paint.', 'The in-game menu now has Restart and Back to lobby.', 'The car no longer rolls backwards after the race ends.', 'New hood and tail-light details on the SR-7.', 'Phone cockpit view: smaller rear-view mirror, and lower dashboards on the KX-2 and GT-32 for a clearer view.', 'Keyboard and controller buttons can be rebound.', 'Online rooms now have chat and Cat and Mouse, and you can pick the course and car inside the room.', 'All three cars were rebuilt from photos of the real cars.'] },
@@ -1404,18 +1404,18 @@ function cornerList(pts) {
   return tsMerge(runs.filter(r => r.kind));
 }
 // the sign to show at course position s: the first corner not yet passed (HOLD m after its entry) once it is within max(LEAD_MIN, LEAD_S seconds of travel)
-function nextSign(list, s, speed) {
+function nextSign(list, s, speed, shown = -1) {
   const lead = Math.max(TS.LEAD_MIN, (speed > 0 ? speed : 0) * TS.LEAD_S);
   for (let i = 0; i < list.length; i++) {
     if (s > list[i].s0 + TS.HOLD) continue;
-    return list[i].s0 - s <= lead ? { i, k: list[i] } : null;
+    return list[i].s0 - s <= lead || i === shown ? { i, k: list[i] } : null; // shown: the corner whose sign is up stays until passed, braking shrinks lead but must not hide it
   }
   return null;
 }
 // preview: the corner after the next one rides along when it is close enough to matter (gap = its entry minus the next corner's exit)
 const TS_PREVIEW_GAP = 200;
-function nextTwoSigns(list, s, speed) {
-  const a = nextSign(list, s, speed);
+function nextTwoSigns(list, s, speed, shown = -1) {
+  const a = nextSign(list, s, speed, shown);
   if (!a) return null;
   const b = list[a.i + 1];
   return { i: a.i, k: a.k, second: b && b.s0 - a.k.s1 <= TS_PREVIEW_GAP ? { i: a.i + 1, k: b } : null };
@@ -2143,6 +2143,11 @@ function makeLimiter(interval, fn, now = () => performance.now(), later = setTim
   };
 }
 /* @supa:end */
+/* @lobbygate:start */
+// Cancel token for the lobby's async joins: take a token before the await, and when it resolves only go on if it is still valid. cancel() (leaving the lobby, starting a solo race) voids every token taken so far.
+function makeGate() { let g = 0; return { token: () => g, cancel: () => { g++; }, ok: t => t === g }; }
+/* @lobbygate:end */
+const lobbyGate = makeGate();
 /* @chat:start */
 /* Room and race chat (pure part). A message rides in the sender's room state as a small rolling field ch: the last KEEP messages as
    [seq, text], seq counting up for the whole tab. The claude.ai room has presence only; on Supabase that state already travels by
@@ -3318,6 +3323,7 @@ function vehicleTurn(c, P, u, a, dt) {
   let fx = Math.sin(c.h), fz = Math.cos(c.h), rx = -Math.cos(c.h), rz = Math.sin(c.h);
   let vf = c.vx * fx + c.vz * fz, vl = c.vx * rx + c.vz * rz;
   const spd = Math.hypot(c.vx, c.vz);
+  if (c.drift && u.hold && u.brake && vf <= 0.5) c.drift = false; // after the finish the auto-brake stops the car for good: a backwards slide ends here instead of feeding the drift integration
   if (!c.drift && spd > 11 && u.hb && Math.abs(c.steer) > 0.2) { c.drift = true; c.w += -Math.sign(c.steer) * 0.7; }
   const sf = clamp(vf / 9, -1, 1);
   let wT;
@@ -3745,7 +3751,7 @@ function showPop(big, small) { const el = $('#pop'); el.innerHTML = ''; el.appen
 function tsPopClear(pop) { pop.classList.remove('ts-below', 'ts-beside'); for (const v of ['--ts-pop', '--ts-pop-y', '--ts-pop-r', '--ts-pop-w']) pop.style.removeProperty(v); }
 function tsHide() { tsCur = ''; tsKey = ''; const el = $('#turnSign'); if (!el.classList.contains('show')) return; el.classList.remove('show', 'flash'); el.setAttribute('aria-hidden', 'true'); tsPopClear($('#pop')); } // the DOM is the truth: safe to call after tsCur was cleared elsewhere
 function turnSignFrame() {
-  const sg = tsStyle !== 'off' && state === 'race' && !sakeRun && !tsGoGated(tsStyle, performance.now() < goUntil) ? nextTwoSigns(tsList || (tsList = cornerList(pts)), car.loc.s, Math.hypot(car.vx, car.vz)) : null;
+  const sg = tsStyle !== 'off' && state === 'race' && !sakeRun && !tsGoGated(tsStyle, performance.now() < goUntil) ? nextTwoSigns(tsList || (tsList = cornerList(pts)), car.loc.s, Math.hypot(car.vx, car.vz), tsCur === '' ? -1 : +tsCur) : null;
   if (!sg) { tsHide(); return; }
   const el = $('#turnSign'), k = sg.k;
   if (tsCur !== String(sg.i)) {
@@ -4668,6 +4674,7 @@ function startRace() {
   document.body.classList.toggle('manual', trans === 'manual');
   if (!pvp && mode === 'sake' && (trackId !== SAKE_TRACK || choice.car !== SAKE_CAR.car || choice.color !== SAKE_CAR.color)) sakeForce(true); // defensive: online play may have moved the course
   initAudio(); resetRace(); taBegin(); sakeBegin(); Object.assign(P, carPhys(choice.car, kxUpActive())); camera.clearViewOffset();
+  lobbyGate.cancel(); // a join still pending from the lobby must not pull the player into a room over this race
   state = 'count'; countT = 3.999;
   $('#title').hidden = true; $('#result').hidden = true; $('#hud').hidden = false; $('#lobby').hidden = true; $('#room').hidden = true; onlineUI = false;
   camera.position.set(car.x - Math.sin(car.h) * 7, car.loc.y + 3, car.z - Math.cos(car.h) * 7);
@@ -4790,6 +4797,7 @@ function makeMockRoom() {
    (see mergePeer):
    - low-rate fields (st, car, col, trk, go, opp, ft, nk, lobby ...): event 'p' { p: sender peer, low }, on change (at most every
      LOW_MS) and as a HB_MS heartbeat while non-empty, so a lost message or a late joiner is repaired within a second;
+     a cleared low is sent as an empty one 3 times (so the others drop the old state);
    - the car: event 'c' { p, n, c }, at most every CAR_MS.
    The sdk is loaded from the CDN (pinned, with an integrity hash) only when the player presses Online. */
 const SUPA = {
@@ -4850,12 +4858,14 @@ function makeSupabaseRoom(load = loadSupabaseSdk) {
     return Promise.resolve(client && client.removeChannel(sc.ch)).catch(() => {});
   };
   const open = (name, isLobby) => new Promise((resolve, reject) => {
-    const sc = { name, status: 'none', ch: null, low: {}, mine: Object.freeze({}), mineAt: Date.now(), car: null, cars: new Map(), lows: new Map(), recs: new Map(), roster: new Set(), seen: new Map(), ghosts: false, connPrev: false, hb: 0, tick: 0, bye: null, cache: new Map(), arr: EMPTY, subs: new Set(), conn: new Set(), flushT: 0, left: false, synced: false, afterSync: null };
+    const sc = { name, status: 'none', ch: null, low: {}, clearN: 0, mine: Object.freeze({}), mineAt: Date.now(), car: null, cars: new Map(), lows: new Map(), recs: new Map(), roster: new Set(), seen: new Map(), ghosts: false, connPrev: false, hb: 0, tick: 0, bye: null, cache: new Map(), arr: EMPTY, subs: new Set(), conn: new Set(), flushT: 0, left: false, synced: false, afterSync: null };
     scopes.add(sc); if (!isLobby) byName.set(name, sc);
     sc.ch = client.channel(isLobby ? 'yatouge-lobby' : 'yatouge-room-' + name, { config: { broadcast: { self: false, ack: false }, presence: { key: me.peer } } });
     const live = () => canPush(sc); // never while rejoining: the sdk would fall back to one HTTP request per send
     const bcast = (event, payload) => { if (live()) Promise.resolve(sc.ch.send({ type: 'broadcast', event, payload: { p: me.peer, ...payload } })).catch(() => {}); };
-    const sendLow = () => { if (Object.keys(sc.low).length) bcast('p', { low: sc.low }); };
+    const sendLow = () => { // a cleared low goes out as an empty one a few times (the heartbeat repeats it, broadcast may drop): without it the others keep the old lobby state
+      if (Object.keys(sc.low).length) bcast('p', { low: sc.low }); else if (sc.clearN > 0 && live()) { sc.clearN--; bcast('p', { low: {} }); } // live(): a clear made while disconnected stays pending until it can really go out
+    };
     const sendCar = () => { if (sc.car) bcast('c', { n: sc.car.n, c: sc.car.c }); };
     sc.lowL = makeLimiter(SUPA.LOW_MS, sendLow); sc.carL = makeLimiter(SUPA.CAR_MS, sendCar);
     sc.bye = () => bcast('x', {});
@@ -4906,7 +4916,7 @@ function makeSupabaseRoom(load = loadSupabaseSdk) {
         for (const [k, v] of carP) nextCar[k] = v;
         let size = Infinity; try { size = Math.max(new TextEncoder().encode(JSON.stringify(next)).length, nextCar ? new TextEncoder().encode(JSON.stringify(nextCar)).length : 0); } catch (e) { /* not JSON */ }
         if (size > 4096) return Promise.reject({ code: 'invalid_argument', message: 'presence over 4 KiB' });
-        if (lowP.length) { sc.low = next; sc.mine = Object.freeze({ ...next }); sc.mineAt = Date.now(); later(sc); sc.lowL.poke(); }
+        if (lowP.length) { sc.low = next; sc.clearN = Object.keys(next).length ? 0 : 3; sc.mine = Object.freeze({ ...next }); sc.mineAt = Date.now(); later(sc); sc.lowL.poke(); }
         if (nextCar) {
           sc.car = nextCar;
           if (nextCar.c === null) { sendCar(); setTimeout(sendCar, 150); } else sc.carL.poke(); // clearing the car matters and is cheap: sent now and once more (broadcast may drop)
@@ -5009,7 +5019,7 @@ function showPanel(which) {
 let lobbyKey = '', emptySince = null;
 const lobbyNote = k => { lobbyKey = k; $('#lobbyNote').textContent = k ? T(k) : ''; }; // k is an i18n key, so a language change can re-render it
 function openLobby() { showPanel('lobby'); $('#codeBox').hidden = $('#btnCreatePriv').hidden = onl.transport !== 'supabase'; /* private rooms: Supabase transport only */ lobbyNote(room ? '' : 'onConnecting'); emptySince = null; $('#codeInput').value = ''; syncCode(); renderLobby(true); clearInterval(lobbyT); lobbyT = setInterval(renderLobby, 500); $('#btnCreate').focus(); }
-function closeLobby() { clearInterval(lobbyT); showPanel(null); $('#btnOnline').focus(); }
+function closeLobby() { lobbyGate.cancel(); clearInterval(lobbyT); showPanel(null); $('#btnOnline').focus(); }
 function renderLobby(force) {
   if (!room || $('#lobby').hidden) return;
   const rooms = lobbyRooms(room.peers(), Date.now(), Object.keys(TRACKS), NET.LOBBY_TTL, RP.V).filter(r => !r.mine), now = performance.now();
@@ -5034,10 +5044,10 @@ function randName() {
 }
 async function createRoom() {
   if (busy || pvp || !room) return;
-  busy = true;
+  busy = true; const gt = lobbyGate.token();
   try {
     const name = randName(), rm = await room.join(name);
-    startMatch({ rm, name, host: true, hostPeer: null });
+    if (!lobbyGate.ok(gt)) rm.leave().catch(() => {}); else startMatch({ rm, name, host: true, hostPeer: null });
   } catch (e) { lobbyNote('pvpCreateFail'); netFail(e, 'join'); }
   busy = false;
 }
@@ -5045,10 +5055,11 @@ const rand4 = () => { const a = new Uint8Array(4); if (window.crypto && crypto.g
 // Private room (Supabase transport): the channel is derived from a 4-character code and never advertised in the lobby
 async function createPrivateRoom() {
   if (busy || pvp || !room) return;
-  busy = true;
+  busy = true; const gt = lobbyGate.token();
   try {
     for (let i = 0; i < 3; i++) { // a code somebody is already using is skipped
       const code = genRoomCode(rand4()), name = privRoomName(code), rm = await room.join(name);
+      if (!lobbyGate.ok(gt)) { rm.leave().catch(() => {}); busy = false; return; }
       if (rm.peers().some(x => !x.isMe)) { await rm.leave().catch(() => {}); continue; }
       startMatch({ rm, name, code, host: true, hostPeer: null });
       busy = false; return;
@@ -5060,12 +5071,13 @@ async function createPrivateRoom() {
 async function joinByCode(raw) {
   const code = normalizeCode(raw);
   if (busy || pvp || !room || !code) return;
-  busy = true; lobbyNote('pvpJoining');
+  busy = true; lobbyNote('pvpJoining'); const gt = lobbyGate.token();
   try {
     const name = privRoomName(code), rm = await room.join(name), t0 = performance.now(), seenOthers = () => rm.peers().filter(x => !x.isMe && x.kind === 'viewer');
     let others = seenOthers();
     while (!others.length && performance.now() - t0 < 3000) { await new Promise(r => setTimeout(r, 150)); others = seenOthers(); } // the roster can arrive a moment after the join
-    if (others.length !== 1) { await rm.leave().catch(() => {}); lobbyNote(others.length ? 'pvpCodeFull' : 'pvpCodeNone'); }
+    if (!lobbyGate.ok(gt)) rm.leave().catch(() => {});
+    else if (others.length !== 1) { await rm.leave().catch(() => {}); lobbyNote(others.length ? 'pvpCodeFull' : 'pvpCodeNone'); }
     else startMatch({ rm, name, code, host: false, hostPeer: others[0].peer });
   } catch (e) { lobbyNote('pvpJoinFail'); netFail(e, 'join'); }
   busy = false;
@@ -5074,10 +5086,10 @@ const codeInputVal = () => [...$('#codeInput').value.toUpperCase()].filter(ch =>
 function syncCode() { const i = $('#codeInput'), v = codeInputVal(); if (i.value !== v) i.value = v; $('#btnJoinCode').disabled = !validRoomCode(v); }
 async function joinRoom(r) {
   if (busy || pvp || !room || !validRoomName(r.room)) return;
-  busy = true; lobbyNote('pvpJoining');
+  busy = true; lobbyNote('pvpJoining'); const gt = lobbyGate.token();
   try {
     const rm = await room.join(r.room);
-    startMatch({ rm, name: r.room, host: false, hostPeer: r.peer });
+    if (!lobbyGate.ok(gt)) rm.leave().catch(() => {}); else startMatch({ rm, name: r.room, host: false, hostPeer: r.peer });
   } catch (e) { lobbyNote('pvpJoinFail'); netFail(e, 'join'); }
   busy = false;
 }
@@ -5253,7 +5265,7 @@ function beginCountdown(go) {
   // p.match: { t, m, g } of this match. Cat and mouse ('cat') runs rounds on the same course (catBegin); the leader starts CAT.LEAD m ahead.
   if (!p.match) p.match = { t: p.track, m: 'first', g: null, dt: false, dm: false, dg: false };
   if (p.match.m === 'cat') catBegin(); else Object.assign(p, { cat: null, ck: null });
-  Object.assign(p, { go, st: 'countdown', oppFt: null, ft: null, note: '' });
+  Object.assign(p, { go, st: 'countdown', oppFt: null, ft: null, note: '', dnfLocked: false }); // each round is judged on its own: a "did not finish" from an earlier round must not turn later ones into wins
   startLat = p.host ? 2.2 : -2.2; startS = p.cat ? catStart(p.cat.L, catMe(p)) : 0; p.goAt = performance.now();
   pvpPublish(); advertise(p);
   startRace();
@@ -5556,10 +5568,10 @@ const specCache = new WeakMap(); // frozen presences: each one is validated once
 const specValid = pres => { if (!pres || typeof pres !== 'object') return null; if (!specCache.has(pres)) specCache.set(pres, pvpCheck(pres)); return specCache.get(pres); };
 async function watchRoom(r) {
   if (busy || pvp || spec || !room || !r.live || !validRoomName(r.room)) return;
-  busy = true; lobbyNote('pvpJoining');
+  busy = true; lobbyNote('pvpJoining'); const gt = lobbyGate.token();
   try {
     const rm = await room.join(r.room);
-    startSpectate({ rm, name: r.room, hostPeer: r.peer, track: r.track });
+    if (!lobbyGate.ok(gt)) rm.leave().catch(() => {}); else startSpectate({ rm, name: r.room, hostPeer: r.peer, track: r.track });
   } catch (e) { lobbyNote('pvpJoinFail'); netFail(e, 'join'); }
   busy = false;
 }
