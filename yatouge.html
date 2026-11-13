@@ -2392,8 +2392,57 @@ const loftHalf = ([, w, y0, yf, yc]) => { const h = yf - y0; return [[0, y0], [w
 // rows 8..15 are the top surface the driver sees over the hood). Shared by the exterior body and the cockpit hood
 const rallyHalf = ([, w, y0, yf, yc]) => { const h = yf - y0; return [[0, y0], [w * 0.55, y0], [w * 0.8, y0], [w * 0.93, y0 + 0.012], [w * 0.985, y0 + 0.05], [w, y0 + 0.2 * h], [w, y0 + 0.5 * h], [w, y0 + 0.85 * h],
   [w * 0.99, yf - 0.045], [w * 0.97, yf - 0.022], [w * 0.94, yf - 0.008], [w * 0.88, yf - 0.001], [w * 0.75, yf], [w * 0.5, yc + (yf - yc) * 0.4], [w * 0.25, yc + (yf - yc) * 0.1], [0, yc]]; };
-// RV-4 hood scoop shell (bevelled wedge standing on the hood centre); shared by the exterior and the cockpit hood
-const rallyScoop = (parent, sc, mat) => part(poly([[sc.z0, 0.82], [sc.z0, sc.y0], [sc.z1, sc.y1], [sc.z1, 0.82]]), sc.w, mat, null, parent, 0.014);
+/* @rally-scoop:start */
+// RV-4 hood scoop shell as pure arrays (no THREE): a wedge standing on the hood centre, rising from y0 at z0 to y1 at z1, full width sc.w. The cross-section is a
+// rounded rectangle (corner radius r) with a gently crowned top, so the top, the corners and the side walls all face different ways and shade differently;
+// the open ring runs -x base, up the wall, over the top, down the +x wall to the base. Caps close the front (z1, flat, +z) and the back (z0, buried in the hood).
+function rallyScoopGeo(sc) {
+  const hw = sc.w / 2, r = 0.05, crown = 0.035, yb = 0.82, NZ = 12;
+  const ring = z => {
+    const t = sc.y0 + (sc.y1 - sc.y0) * (z - sc.z0) / (sc.z1 - sc.z0), p = [[hw, yb], [hw, t - r]];
+    for (let k = 1; k <= 4; k++) { const a = k * Math.PI / 8; p.push([hw - r + r * Math.cos(a), t - r + r * Math.sin(a)]); }
+    for (let k = 2; k >= 0; k--) p.push([(hw - r) * k / 3, t]);
+    const up = p.map(([x, y]) => [x, y + crown * (1 - (x / hw) * (x / hw))]);
+    return up.map(([x, y]) => [-x, y]).concat(up.slice(0, -1).reverse());
+  };
+  const pos = [], idx = [], N = ring(sc.z0).length;
+  for (let i = 0; i <= NZ; i++) { const z = sc.z0 + (sc.z1 - sc.z0) * i / NZ; for (const [x, y] of ring(z)) pos.push(x, y, z); }
+  for (let i = 0; i < NZ; i++) for (let j = 0; j < N - 1; j++) { const a = i * N + j; idx.push(a, a + N, a + 1, a + 1, a + N, a + N + 1); }
+  for (const [z, front] of [[sc.z1, true], [sc.z0, false]]) {
+    const rg = ring(z), c = pos.length / 3 + N;
+    for (const [x, y] of rg) pos.push(x, y, z);
+    pos.push(0, yb + 0.05, z);
+    for (let j = 0; j < N; j++) { const a = c - N + j, b = c - N + (j + 1) % N; if (front) idx.push(c, b, a); else idx.push(c, a, b); }
+  }
+  return { pos, idx, N };
+}
+// hood surface height at (x, z) from the body keys: station interpolation like loftBody, then rows 8..15 of rallyHalf (the top surface), linear in |x|
+function rallyHoodY(keys, x, z) {
+  const st = loftStations(keys); let i = 0; while (i < st.length - 2 && z < st[i + 1][0]) i++;
+  const a = st[i], b = st[i + 1], t = Math.min(Math.max((a[0] - z) / (a[0] - b[0]), 0), 1), h = rallyHalf(a.map((v, f) => v + (b[f] - v) * t)).slice(8), ax = Math.abs(x);
+  for (let k = 0; k < h.length - 1; k++) if (ax >= h[k + 1][0]) return h[k + 1][1] + (h[k][1] - h[k + 1][1]) * (ax - h[k + 1][0]) / (h[k][0] - h[k + 1][0]);
+  return h[h.length - 1][1];
+}
+/* @rally-scoop:end */
+// shell mesh with smooth normals (caps are separate vertices, so the front face stays flat), plus a thin dark shut line where it meets the hood:
+// hoodY(x, z) gives the hood height, seamMat the line's material
+function rallyScoop(parent, sc, mat, hoodY, seamMat) {
+  const { pos, idx } = rallyScoopGeo(sc), geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+  const m = new THREE.Mesh(geo, mat); parent.add(m);
+  const hw = sc.w / 2 + 0.006, hf = 0.007, sp = [], si = [], path = [];
+  for (let i = 0; i <= 8; i++) path.push([-hw, sc.z0 + (sc.z1 - sc.z0) * i / 8]);
+  for (let i = 1; i <= 8; i++) path.push([-hw + 2 * hw * i / 8, sc.z1 + 0.006]);
+  for (let i = 8; i >= 0; i--) path.push([hw, sc.z0 + (sc.z1 - sc.z0) * i / 8]);
+  path.forEach(([x, z], i) => {
+    const dx = i < path.length - 1 ? path[i + 1][0] - x : x - path[i - 1][0], dz = i < path.length - 1 ? path[i + 1][1] - z : z - path[i - 1][1], l = Math.hypot(dx, dz), nx = -dz / l * hf, nz = dx / l * hf;
+    for (const s of [-1, 1]) { const px = x + s * nx, pz = z + s * nz; sp.push(px, hoodY(px, pz) + 0.003, pz); }
+    if (i) si.push(i * 2 - 2, i * 2 - 1, i * 2, i * 2, i * 2 - 1, i * 2 + 1);
+  });
+  const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3)); sg.setIndex(si);
+  parent.add(new THREE.Mesh(sg, seamMat));
+  return m;
+}
 // halfOf: station -> +x half outline (default loftHalf); side = [first, last] outline rows of the side wall the arch liner follows
 function loftBody(keys, hex, parent, wells = [], halfOf = loftHalf, side = [3, 7]) {
   const st = loftStations(keys), pos = [], idx = [];
@@ -2975,7 +3024,7 @@ function makeCar(style, colorIdx) {
     for (const s of K.side) part(poly(s), K.sideW, glass, S, g);
     // hood: centre scoop (wedge open at the front) with a grille, and a vent pair (two slanted slots) on each side
     { const sc = K.scoop, zf = sc.z1 + 0.0075, gy0 = topY(0, sc.z1) + 0.004, gy1 = sc.y1 - 0.012, gh = gy1 - gy0, gy = (gy0 + gy1) / 2;
-      rallyScoop(g, sc, paint); // rounded scoop shell
+      rallyScoop(g, sc, paint, topY, seam); // rounded, crowned scoop shell with a shut line
       add(box(sc.w - 0.07, gh, 0.01), black, 0, gy, zf); // dark front opening, slats across it
       for (let i = -2; i <= 2; i++) add(box(0.008, gh, 0.012), fin, i * 0.09, gy, zf + 0.004);
       for (const sx of [-1, 1]) for (const dz of [-0.07, 0.07]) {
@@ -4257,11 +4306,13 @@ function makeInterior(style, paintHex, carbonOn) {
     } else if (style === 'rally') {
       // rows 7..15 of the body section (top of the wall, shoulder, hood top, centre line) and back down the -x side, then the centre scoop standing on it
       const st = loftStations(K.body).filter(q => q[0] >= K.glass[0][0] - 0.3), pos = [], idx = [], R = 17;
-      for (const q of st) { const h = rallyHalf(q).slice(7); for (const v of h.concat(h.slice(0, -1).reverse().map(v => [-v[0], v[1]]))) pos.push(v[0], v[1], q[0]); }
+      // the hood under the cowl is shaded darker (vertex colours, 0.6 up to z 0.95, easing to the paint colour by z 1.6), so it doesn't read as a flat bright band
+      const hc = [], mHood = new THREE.MeshLambertMaterial({ color: paintHex, side: THREE.DoubleSide, vertexColors: true });
+      for (const q of st) { const h = rallyHalf(q).slice(7), f = 0.6 + 0.4 * sstep(0.95, 1.6, q[0]); for (const v of h.concat(h.slice(0, -1).reverse().map(v => [-v[0], v[1]]))) { pos.push(v[0], v[1], q[0]); hc.push(f, f, f); } }
       for (let i = 0; i < st.length - 1; i++) for (let j = 0; j < R - 1; j++) { const a = i * R + j; idx.push(a, a + R, a + 1, a + 1, a + R, a + R + 1); }
-      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
-      add(geo, mPaintDS, 0, 0, 0);
-      rallyScoop(grp, K.scoop, mPaint); // same Lambert paint colour as the exterior's
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.Float32BufferAttribute(hc, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+      add(geo, mHood, 0, 0, 0);
+      rallyScoop(grp, K.scoop, mPaint, (x, z) => rallyHoodY(K.body, x, z), new THREE.MeshLambertMaterial({ color: new THREE.Color(paintHex).multiplyScalar(0.32) })); // same Lambert paint colour as the exterior's
     } else {
       const st = loftStations(K.body).filter(q => q[0] >= K.glass[0][0] - 0.3), pos = [], idx = [];
       for (const q of st) { const h = loftHalf(q).slice(6); for (const v of h.concat(h.slice(0, -1).reverse().map(v => [-v[0], v[1]]))) pos.push(v[0], v[1], q[0]); } // rows 6..9 and back down the -x side

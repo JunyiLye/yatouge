@@ -346,7 +346,7 @@ test('RV-4 車內：窗框、A 柱、側窗、車頂與引擎蓋由 CAB.rally �
   // 車身斷面函式只有一份（外觀的 loftBody 與車內引擎蓋共用），不是兩份各自抄一遍
   assert.equal((html.match(/const rallyHalf = /g) || []).length, 1);
   assert.ok(src.includes('rallyHalf('), '車內引擎蓋用 rallyHalf');
-  assert.equal((html.match(/const rallyScoop = /g) || []).length, 1, '進氣口外殼只有一份建構函式');
+  assert.equal((html.match(/function rallyScoop[(]/g) || []).length, 1, '進氣口外殼只有一份建構函式');
   assert.ok(src.includes('rallyScoop(grp, K.scoop'), '車內進氣口用共用外殼');
   assert.ok(fnSrc('makeCar').includes('rallyScoop(g, sc'), '外觀進氣口用共用外殼');
   assert.ok(fnSrc('makeCar').includes('loftBody(K.body, col.top, g, [[ax, 0.36], [-ax, 0.36]], rallyHalf'), '外觀同樣用 rallyHalf');
@@ -374,4 +374,54 @@ test('RV-4：眼睛高度不高於 1.13（再高引擎蓋與進氣口占畫面�
   assert.ok(K.body.find(q => q[0] === 1.85)[4] > ray(1.85) + 0.005, '車頭段的引擎蓋中線在視線之上');
   // 引擎蓋與進氣口用的車身顏色材質與外觀一樣（Lambert、同一個色票），見 makeInterior 的 mPaint
   assert.ok(fnSrc('makeInterior').includes('mPaint = lam(paintHex)') && fnSrc('makeCar').includes('const paint = new THREE.MeshLambertMaterial({ color: col.top })'));
+});
+
+// ---- RV-4 引擎蓋進氣口的明暗與細節（純幾何，不需要 THREE）----
+const loadScoop = () => {
+  const s = html.indexOf('/* @rally-scoop:start */'), e = html.indexOf('/* @rally-scoop:end */'), a = html.indexOf('const rallyHalf = '), b = html.indexOf('\n// RV-4 hood scoop');
+  const ls = html.indexOf('function loftStations'), lsrc = html.slice(ls, html.indexOf('\n}\n', ls) + 3);
+  assert.ok(s > 0 && e > s && a > 0, '找不到 @rally-scoop 區塊');
+  const rh = html.slice(a, html.indexOf('\n// ', a));
+  return new Function(`${lsrc}\n${rh}\n${html.slice(s, e)}\nreturn { rallyScoopGeo, rallyHoodY, rallyHalf };`)();
+};
+const faceNormals = ({ pos, idx }) => {
+  const out = [];
+  for (let i = 0; i < idx.length; i += 3) {
+    const [a, b, c] = [0, 1, 2].map(k => idx[i + k] * 3), u = [0, 1, 2].map(k => pos[b + k] - pos[a + k]), v = [0, 1, 2].map(k => pos[c + k] - pos[a + k]);
+    const n = [u[1] * v[2] - u[2] * v[1], u[2] * v[0] - u[0] * v[2], u[0] * v[1] - u[1] * v[0]], l = Math.hypot(...n);
+    if (l > 1e-12) out.push({ n: n.map(q => q / l), c: [0, 1, 2].map(k => (pos[a + k] + pos[b + k] + pos[c + k]) / 3) });
+  }
+  return out;
+};
+
+test('RV-4 進氣口外殼：頂面、圓角、側壁的法線明顯不同（才會有不同明暗），頂面略為隆起，前面是平的 +z 面', () => {
+  const sc = loadCab().rally.scoop, g = loadScoop().rallyScoopGeo(sc), f = faceNormals(g), hw = sc.w / 2;
+  const body = f.filter(q => q.c[2] > sc.z0 + 0.01 && q.c[2] < sc.z1 - 0.01);
+  const top = body.filter(q => Math.abs(q.c[0]) < hw * 0.6), wall = body.filter(q => Math.abs(q.c[0]) > hw - 0.002), corner = body.filter(q => Math.abs(q.c[0]) > hw * 0.8 && Math.abs(q.c[0]) < hw - 0.002 && q.c[1] > 0.9);
+  assert.ok(top.length && wall.length && corner.length);
+  for (const q of body) assert.ok(q.n[1] > -0.05 || Math.abs(q.c[0]) > hw - 0.002, '外殼法線朝外（頂面朝上）');
+  assert.ok(top.every(q => q.n[1] > 0.9), "頂面朝上");
+  assert.ok(wall.every(q => Math.abs(q.n[1]) < 0.2 && Math.abs(q.n[0]) > 0.95), '側壁近乎垂直、朝外');
+  assert.ok(corner.some(q => q.n[1] > 0.3 && q.n[1] < 0.9), '圓角的法線介於頂面與側壁之間');
+  const ys = top.map(q => q.n[1]); assert.ok(Math.max(...ys) - Math.min(...ys) > 0.003, '頂面有隆起（法線不全相同）');
+  const front = f.filter(q => Math.abs(q.c[2] - sc.z1) < 1e-9); assert.ok(front.length >= 10 && front.every(q => q.n[2] > 0.99), '前面是朝 +z 的平面');
+  assert.ok(Math.max(...g.pos.filter((_, i) => i % 3 === 1)) > sc.y1 + 0.02, '隆起讓頂面中央高過 y1');
+});
+
+test('rallyHoodY：與車身中線高度一致、往外側單調下降；進氣口底下沒有穿出引擎蓋', () => {
+  const { rallyHoodY } = loadScoop(), K = loadCab().rally, sc = K.scoop;
+  const yc = z => { for (let i = 0; i < K.body.length - 1; i++) if (z <= K.body[i][0] && z >= K.body[i + 1][0]) return K.body[i + 1][4]; };
+  near(rallyHoodY(K.body, 0, 1.5), K.body.find(q => q[0] === 1.5)[4], 1e-9);
+  for (const z of [0.9, 1.2, 1.44]) { let p = Infinity; for (const x of [0, 0.1, 0.2, 0.3, 0.5, 0.7]) { const y = rallyHoodY(K.body, x, z); assert.ok(y <= p + 1e-9, `z ${z} x ${x}`); p = y; } }
+  assert.ok(sc.y0 >= rallyHoodY(K.body, 0, sc.z0) - 0.01 && sc.y1 > rallyHoodY(K.body, 0, sc.z1) + 0.1, '進氣口後緣貼著引擎蓋、前緣高出');
+  assert.ok(yc);
+});
+
+test('RV-4 進氣口細節：頂面與引擎蓋接縫有深色細線（外觀與車內共用）；車內引擎蓋近座艙段較暗、不是一整片亮色', () => {
+  const src = html.slice(html.indexOf('function rallyScoop('), html.indexOf('// halfOf: station'));
+  assert.ok(src.includes('seamMat') && src.includes('hoodY('), 'rallyScoop 會畫接縫細線');
+  assert.ok(fnSrc('makeCar').includes('rallyScoop(g, sc, paint, topY, seam)'));
+  const mi = fnSrc('makeInterior');
+  assert.ok(mi.includes('vertexColors: true') && mi.includes('sstep(0.95, 1.6, q[0])'), '車內引擎蓋近座艙段較暗');
+  assert.ok(mi.includes('rallyHoodY(K.body'), '接縫高度由車身數字算出');
 });
