@@ -2803,8 +2803,9 @@ const CAB = {
     body: [[2.175, 0.62, 0.3, 0.55, 0.55], [2.172, 0.69, 0.28, 0.557, 0.557], [2.168, 0.73, 0.26, 0.565, 0.565], [2.159, 0.77, 0.245, 0.57, 0.57], [2.15, 0.795, 0.23, 0.575, 0.575], [2.115, 0.825, 0.22, 0.58, 0.58], [2.095, 0.83, 0.22, 0.72, 0.725], [2.06, 0.835, 0.22, 0.745, 0.755],
       [1.85, 0.84, 0.24, 0.775, 0.79], [1.5, 0.845, 0.24, 0.83, 0.845], [1.1, 0.845, 0.24, 0.88, 0.895], [0.8, 0.845, 0.24, 0.92, 0.935],
       [0.4, 0.845, 0.24, 0.965, 0.965], [-0.2, 0.845, 0.24, 0.975, 0.975], [-0.8, 0.845, 0.24, 0.98, 0.98], [-1.3, 0.845, 0.24, 0.985, 0.99],
-      [-1.58, 0.84, 0.25, 0.99, 0.995], [-1.9, 0.835, 0.26, 0.985, 0.99], [-2.1, 0.825, 0.28, 0.985, 0.99], [-2.14, 0.82, 0.29, 0.975, 0.975],
-      [-2.16, 0.8, 0.3, 0.95, 0.95], [-2.165, 0.785, 0.305, 0.925, 0.925], [-2.17, 0.76, 0.31, 0.9, 0.9], [-2.175, 0.66, 0.34, 0.62, 0.62]],
+      [-1.58, 0.84, 0.25, 0.99, 0.995], [-1.8, 0.838, 0.26, 0.99, 0.998], [-1.95, 0.835, 0.27, 0.982, 0.99], [-2.03, 0.83, 0.28, 0.96, 0.97], [-2.07, 0.825, 0.285, 0.925, 0.93],
+      [-2.092, 0.818, 0.29, 0.87, 0.875], [-2.103, 0.812, 0.295, 0.805, 0.805], [-2.108, 0.808, 0.3, 0.74, 0.74], [-2.13, 0.8, 0.31, 0.73, 0.73], [-2.155, 0.78, 0.32, 0.722, 0.722],
+      [-2.167, 0.73, 0.335, 0.715, 0.715], [-2.175, 0.66, 0.345, 0.7, 0.7]], // tail: the boot lid rolls down (convex) to a short near-vertical lamp face (z -2.108), then a separate chunky bumper sticks out 7 cm (top shelf y 0.72)
     // body-colour greenhouse: raked windscreen (about 29 deg), a short flat roof that rounds over into a rear glass of about 30 deg down to the short boot
     house: [[0.97, 0.9], [0.08, 1.395], ['Q', -0.02, 1.405, -0.2, 1.4], [-0.55, 1.395], ['Q', -0.85, 1.385, -1, 1.33], [-1.58, 0.99], [-1.58, 0.9]], houseW: 1.48,
     frame: [[0.935, 0.931], [0.145, 1.37]], frameW: 1.44, // black frame round the windscreen (on the house edge, 1 cm proud)
@@ -2815,11 +2816,15 @@ const CAB = {
     // hood scoop: wedge standing on the hood centre, open at the front [z, y top] from the cowl to the opening, full width
     scoop: { z0: 0.85, z1: 1.44, y0: 0.935, y1: 0.965, w: 0.56 },
     // tail lamp (each side): x0 inner (next to the boot lid) to x1 at the body corner; red from split outward, amber over white inboard
-    tail: { x0: 0.24, x1: 0.78, split: 0.5 },
+    // wedge lamp per side, lofted on the body: u runs from the boot-lid gap (x0) round the corner (phi1 = angle about the boot, past the corner) to a rounded end; bottom edge level at yb,
+    // height grows from h0 to h1 (top edge slopes down toward the centre); the lower clearV of the height is the clear reverse lamp, the rest red with an amber band
+    tail: { x0: 0.24, x1: 0.8, phi1: 1.08, yb: 0.755, h0: 0.1, h1: 0.15, clearV: 0.38, amber: { u0: 0.04, u1: 0.5, v0: 0.5, v1: 0.76 } },
     // tall arched wing on two posts: centre height y, ends rise by 'rise', end plates plateH high; chord along z
     wing: { z: -1.98, chord: 0.3, y: 1.26, rise: 0.045, halfW: 0.76, postX: 0.5, plateH: 0.16 },
   },
 };
+// RV-4 tail lamp edge at u (0 inboard .. 1 outboard end) -> [yBottom, yTop]; the outer 12% rounds the end off
+const rallyLampEdge = (T, u) => { const H = T.h0 + (T.h1 - T.h0) * u, r = u < 0.88 ? 1 : Math.sqrt(Math.max(0, 1 - ((u - 0.88) / 0.12) ** 2)), yc = T.yb + H / 2; return [yc - H / 2 * r, yc + H / 2 * r]; };
 // a CAB outline ([z, y] points, or ['Q', cz, cy, z, y] curves) as part() commands
 const cabCmds = pts => pts.map((p, i) => p[0] === 'Q' ? p : [i ? 'L' : 'M', p[0], p[1]]);
 /* @cabin-shape:end */
@@ -3079,28 +3084,54 @@ function makeCar(style, colorIdx) {
       add(box(0.09, 0.025, 0.05), paint, sx * 0.79, 0.995, 0.77);
       add(new THREE.SphereGeometry(1, 14, 10), paint, sx * 0.865, 1.035, 0.76).scale.set(0.042, 0.052, 0.095);
       { const mg = add(new THREE.CircleGeometry(1, 12), glass, sx * 0.865, 1.035, 0.683); mg.scale.set(0.025, 0.031, 1); mg.rotation.y = Math.PI; }
-      // rear: wide lamps from the boot-lid gap to the body corner (outer red, inner amber over white) on a black surround
-      const T = K.tail, [g0, g1] = xr(sx, T.x0 - 0.02, T.x1 + 0.01), [r0, r1] = xr(sx, T.split, T.x1), [i0, i1] = xr(sx, T.x0, T.split);
-      dec(rectO(g0, 0.71, g1, 0.905, 4), 'z', -1, blackD, 0.004, 4);
-      dec(rectO(r0, 0.72, r1, 0.89, 4), 'z', -1, tailMat, 0.007, 4);
-      dec(rectO(i0, 0.72, i1, 0.805, 4), 'z', -1, whiteD, 0.007, 4);
-      dec(rectO(i0, 0.805, i1, 0.89, 4), 'z', -1, amberD, 0.007, 4);
       // wing: swept end plate (same height as the blade's raised end, trailing edge higher) and a body-colour post
       { const Wg = K.wing, yE = Wg.y + Wg.rise, c = Wg.chord / 2;
         part(poly([[Wg.z + c, yE - 0.09], [Wg.z + c, yE + 0.03], [Wg.z - c, yE + 0.07], [Wg.z - c, yE - 0.09]]), 0.025, paint, null, g, 0.006).position.x = sx * Wg.halfW;
-        add(rrect(0.05, 0.08, 0.02, 0.3, 0.006).rotateX(Math.PI / 2), paint, sx * Wg.postX, 1.13, Wg.z + 0.01); }
+        part(poly([[Wg.z + 0.13, 0.955], [Wg.z - 0.13, 0.955], [Wg.z - 0.07, 1.27], [Wg.z + 0.07, 1.27]]), 0.07, paint, null, g, 0.008).position.x = sx * Wg.postX; } // wide flattened post blending into the lid
     }
     tailMat.side = THREE.DoubleSide; tailMat.polygonOffset = true; tailMat.polygonOffsetFactor = -4; tailMat.polygonOffsetUnits = -4;
+    // rear: separate bumper below a thin shut line, recessed blank plate, lower lip; wedge tail lamps lofted onto the body by radial rays from the boot (so they
+    // follow the rounded corner and wrap onto the quarter panel): upper red (tailMat, lit on braking), amber band inside it, clear reverse lamp below
+    dec(rectO(-0.76, 0.738, 0.76, 0.744, 24), 'z', -1, D(new THREE.Color(col.top).multiplyScalar(0.32).getHex(), false), 0.003, 2);
+    dec(rectO(-0.235, 0.4, 0.235, 0.62, 6), 'z', -1, gapD, 0.004, 3);
     dec(rectO(-0.165, 0.45, 0.165, 0.57, 3), 'z', -1, plateD, 0.012, 3); // blank rear plate
+    { const lh = [[-2.215, 0], [-2.215, 0.55], [-2.19, 0.68], [-2.135, 0.77], [-2.06, 0.82], [-1.95, 0.83]], ls = new THREE.Shape();
+      ls.moveTo(lh[0][1], lh[0][0]);
+      for (const p of lh.slice(1)) ls.lineTo(p[1], p[0]);
+      for (const p of lh.slice().reverse()) ls.lineTo(-p[1], p[0]);
+      add(new THREE.ExtrudeGeometry(ls, { depth: 0.035, bevelEnabled: false }), paint, 0, 0.375, 0).rotation.x = Math.PI / 2; } // lower lip / diffuser
+    const T = K.tail, phi0 = Math.atan2(T.x0, 0.6), A = T.amber;
+    const clearM = new THREE.MeshPhongMaterial({ color: 0xdfe3ea, specular: 0xffffff, shininess: 60, side: THREE.DoubleSide }), ambL = new THREE.MeshBasicMaterial({ color: 0xd8801c, side: THREE.DoubleSide });
+    const lampPt = (sx, u, v, off) => {
+      const [yb, yt] = rallyLampEdge(T, u), y = yb + (yt - yb) * v, phi = phi0 + (T.phi1 - phi0) * u, d = V3(Math.sin(phi), 0, -Math.cos(phi));
+      const p = shoot(V3(0, y, -1.5).addScaledVector(d, 3), d.clone().negate()), o = off + 0.012 * Math.sqrt(Math.sin(Math.PI * Math.min(1, u * 1.05))) * Math.sqrt(Math.sin(Math.PI * v)); // bulged lens
+      return [sx * (p.x + d.x * o), p.y, p.z + d.z * o];
+    };
+    const lampPatch = (sx, u0, u1, v0, v1, mat, off, nu = 18, nv = 4) => {
+      const pos = [], idx = [];
+      for (let i = 0; i <= nu; i++) for (let j = 0; j <= nv; j++) pos.push(...lampPt(sx, u0 + (u1 - u0) * i / nu, v0 + (v1 - v0) * j / nv, off));
+      for (let i = 0; i < nu; i++) for (let j = 0; j < nv; j++) { const a = i * (nv + 1) + j, c = a + nv + 1; idx.push(a, c, a + 1, a + 1, c, c + 1); }
+      const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); lg.setIndex(idx); lg.computeVertexNormals();
+      g.add(new THREE.Mesh(lg, mat));
+    };
+    const glowAt = [];
+    for (const sx of [-1, 1]) {
+      lampPatch(sx, 0, 1, 0, T.clearV, clearM, 0.006);
+      lampPatch(sx, 0, 1, T.clearV, 1, tailMat, 0.006);
+      lampPatch(sx, A.u0, A.u1, A.v0, A.v1, ambL, 0.0085, 10, 2);
+      glowAt.push(lampPt(sx, 0.5, T.clearV + (1 - T.clearV) * 0.5, 0.03));
+    }
     // wing: one arched blade across the boot
     { const Wg = K.wing, N = 12, top = [], bot = [];
       for (let i = 0; i <= N; i++) { const x = -Wg.halfW + 2 * Wg.halfW * i / N, y = Wg.rise * (x / Wg.halfW) ** 2; top.push([x, y + 0.02]); bot.push([x, y - 0.015]); }
       const sh = new THREE.Shape(); sh.moveTo(top[0][0], top[0][1]); for (const p of top.slice(1)) sh.lineTo(p[0], p[1]); for (const p of bot.reverse()) sh.lineTo(p[0], p[1]);
       add(new THREE.ExtrudeGeometry(sh, { depth: Wg.chord - 0.012, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.006, bevelSegments: 2 }).translate(0, 0, -(Wg.chord - 0.012) / 2), paint, 0, Wg.y, Wg.z);
     }
-    const ex = add(new THREE.CylinderGeometry(0.04, 0.036, 0.14, 12), silver, 0.42, 0.325, -2.22); ex.rotation.x = Math.PI / 2; // single exhaust, car's left (+x)
-    add(new THREE.CircleGeometry(0.03, 12), black, 0.42, 0.325, -2.2915).rotation.y = Math.PI;
-    heads = [[-0.5, LY, 2.17], [0.5, LY, 2.17]]; tailsPos = [[-0.58, 0.81, -2.2], [0.58, 0.81, -2.2]];
+    // third brake light: a thin red strip on the blade's rear edge, centre (the same tailMat, so it lights with the lamps)
+    add(rrect(0.46, 0.016, 0.006, 0.006, 0.002), tailMat, 0, K.wing.y + 0.002, K.wing.z - (K.wing.chord - 0.012) / 2 - 0.0075);
+    const ex = add(new THREE.CylinderGeometry(0.04, 0.036, 0.14, 12), silver, 0.42, 0.295, -2.24); ex.rotation.x = Math.PI / 2; // single exhaust under the lip, car's left (+x)
+    add(new THREE.CircleGeometry(0.03, 12), black, 0.42, 0.295, -2.3115).rotation.y = Math.PI;
+    heads = [[-0.5, LY, 2.17], [0.5, LY, 2.17]]; tailsPos = glowAt;
     W = { x: 0.735, zf: ax, zr: -ax, r: K.wheelR, arch: 0.36, half: 0.845 };
   } else {
     const W0 = { x: 0.76, zf: 1.3, zr: -1.3, r: 0.32, arch: 0.4, half: 0.86 };

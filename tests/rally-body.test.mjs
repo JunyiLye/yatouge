@@ -133,14 +133,35 @@ test('CAB.rally: 車頭保險桿明顯前凸、燈帶是近乎垂直的平面（
   assert.ok(b[0][0] - b.find(s => s[3] > 0.7)[0] >= 0.07, '保險桿比燈帶前凸 7 cm 以上');
 });
 
-test('CAB.rally: 尾燈每邊約占車寬三分之一、貼到車身角落', () => {
+const { rallyLampEdge } = new Function(`${block('cabin-shape')}
+return { rallyLampEdge };`)();
+
+test('CAB.rally: 尾燈是楔形：內側窄而低、外側高，外端收圓繞過車尾角落；上緣向中央傾斜；上紅下白，紅色內有一條琥珀帶', () => {
   const T = CAB.rally.tail, half = Math.max(...CAB.rally.body.map(s => s[1]));
   assert.ok(T, 'CAB.rally.tail 不存在');
   const w = T.x1 - T.x0;
   assert.ok(w / (2 * half) >= 0.3 && w / (2 * half) <= 0.38, `寬度比 ${w / (2 * half)}`);
-  assert.ok(T.x1 >= half - 0.08 && T.x1 <= half, '外側到車身角落');
-  assert.ok(T.x0 > 0.15 && T.x0 < 0.3, '內側留出行李箱蓋');
-  assert.ok(T.split > T.x0 && T.split < T.x1 && T.x1 - T.split > T.split - T.x0, '外側紅色部分比內側大');
+  assert.ok(T.x1 >= half - 0.08 && T.x1 <= half && T.x0 > 0.15 && T.x0 < 0.3);
+  assert.ok(T.h1 >= T.h0 * 1.4, '外側至少比內側高 40%');
+  assert.ok(T.phi1 > Math.atan2(T.x1, 0.6), '外端繞過車尾角落');
+  const e = u => { const [b, t] = rallyLampEdge(T, u); return { b, t, h: t - b }; };
+  assert.ok(e(0).h > 0.08 && e(0.8).h > e(0).h * 1.3, '高度由內向外增加');
+  assert.ok(e(0.8).t > e(0).t + 0.03, '上緣向外上升、向中央下傾');
+  assert.ok(e(1).h < 0.01 && e(0.97).h < e(0.8).h, '外端收圓');
+  assert.ok(e(0).b >= 0.7 && e(0.5).b >= 0.7, '燈在保險桿上緣之上');
+  assert.ok(T.clearV > 0.25 && T.clearV < 0.5, '下方白色倒車燈占 25–50%');
+  const A = T.amber; assert.ok(A.v0 >= T.clearV && A.v1 <= 1 && A.u0 >= 0 && A.u1 < 0.7 && A.u1 > A.u0, '琥珀帶在紅色範圍內、靠內側');
+});
+
+test('CAB.rally: 車尾圓潤——行李箱蓋是向下漸陡的凸面，保險桿獨立、前凸 >= 5 cm、有水平上緣與足夠高度', () => {
+  const b = CAB.rally.body, lid = b.filter(s => s[0] <= -1.58 && s[3] > 0.78);
+  for (let i = 1; i < lid.length; i++) assert.ok(lid[i][3] <= lid[i - 1][3] + 1e-9, '蓋面只下降不上翹');
+  const sl = i => (lid[i - 1][3] - lid[i][3]) / (lid[i - 1][0] - lid[i][0]);
+  for (let i = 2; i < lid.length; i++) assert.ok(sl(i) >= sl(i - 1) - 1e-9, `第 ${i} 站起坡度漸陡（凸面）`);
+  const end = b[b.length - 1], lidEnd = lid[lid.length - 1];
+  assert.ok(lidEnd[0] - end[0] >= 0.05, '保險桿比蓋面尾端凸出 5 cm 以上');
+  assert.ok(end[3] > 0.68 && end[3] < 0.76 && end[3] - end[2] >= 0.3, '保險桿高度 >= 30 cm、上緣約 0.7');
+  assert.ok(b.find(s => s[0] < lidEnd[0])[3] < 0.76, '蓋面下緣接保險桿上緣的水平檯面');
 });
 
 test('CAB.rally: 引擎蓋進氣口明顯隆起（前緣高出引擎蓋 >= 10 cm）', () => {
