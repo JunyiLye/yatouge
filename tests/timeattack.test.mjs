@@ -33,6 +33,16 @@ test('紀錄 key 依賽道 × 車型，與比賽模式的最佳時間 key 不同
   assert.notEqual(taKey('kurosagi', 'hatch'), 'yatouge-best');
 });
 
+test('taKey：升級的 KX-2 有自己的紀錄；其他情況舊 key 一字不差，其他車忽略 up', () => {
+  for (const t of ['kurosagi', 'seiran', 'hakuro']) for (const c of ['hatch', 'coupe', 'gtr']) {
+    assert.equal(taKey(t, c, false), 'yatouge-ta-best-' + t + '-' + c, `${t}/${c} 關`);
+    assert.equal(taKey(t, c), taKey(t, c, false), `${t}/${c} 省略 up`);
+  }
+  assert.equal(taKey('seiran', 'hatch', true), 'yatouge-ta-best-seiran-hatch-up');
+  assert.notEqual(taKey('seiran', 'hatch', true), taKey('seiran', 'hatch', false));
+  for (const c of ['coupe', 'gtr']) assert.equal(taKey('seiran', c, true), 'yatouge-ta-best-seiran-' + c, c);
+});
+
 test('幽靈車開關：沒存過或存 1 時開，存 0 時關', () => {
   assert.equal(taGhostOn(null), true);
   assert.equal(taGhostOn('1'), true);

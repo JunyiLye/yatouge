@@ -462,6 +462,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div id="tKx" class="tctl" hidden>
       <div class="igrow"><span id="tKxChimeL" data-i18n="kxChime">時速警示音</span><button id="tKxChime" type="button" role="switch" aria-labelledby="tKxChimeL" aria-checked="true"></button></div>
       <div class="igrow"><span id="tKxLetterL" data-i18n="kxLetter">車門字樣</span><button id="tKxLetter" type="button" role="switch" aria-labelledby="tKxLetterL" aria-checked="true"></button></div>
+      <div class="igrow" id="tKxUpRow" hidden><span id="tKxUpL" data-i18n="kxUp">極速升級</span><button id="tKxUp" type="button" role="switch" aria-labelledby="tKxUpL" aria-checked="true"></button></div>
     </div>
     <div class="tctl">
       <div class="igrow"><span id="tVibeL" data-i18n="vibe">震動</span><button id="tVibe" type="button" role="switch" aria-labelledby="tVibeL" aria-checked="true"></button></div>
@@ -501,6 +502,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <div id="resSakeBox" hidden><div class="lbl" data-i18n="sakeLiqLbl">剩餘酒量</div><div id="resSake" class="num">—</div></div>
       <div id="resOppBox" hidden><div class="lbl" id="resOppLbl" data-i18n="pvpOppTime">對手完賽時間</div><div id="resOpp" class="num">—</div></div>
     </div>
+    <p id="resUnlock" class="note" role="status" data-i18n="sakeUnlock" hidden>解鎖：KX-2 極速升級、白色碳纖維引擎蓋塗裝</p>
     <div id="resCat" class="rescat" hidden>
       <p id="resCatNote" class="note" role="status"></p>
       <ol id="resCatHist" class="cathist"></ol>
@@ -804,7 +806,8 @@ function kxChime({ enabled, car, state, kmh, over, t, last }) {
 const TA = { V: 1, DT: 0.1, MAX_SAMPLES: 6000, MAX_CHARS: 60000, HU: 4096 }; // MAX_SAMPLES: 10 min at 10 Hz; HU: heading units per turn
 const TA_Q = [100, 10, 10, 10]; // t, s, x, z per unit: 0.01 s, 0.1 m
 const TA_ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
-const taKey = (track, car) => 'yatouge-ta-best-' + track + '-' + car;
+// up: the player's KX-2 has the Sake Run top-speed upgrade on; it keeps its own record (old keys stay as the plain KX-2 record), other cars ignore it
+const taKey = (track, car, up) => 'yatouge-ta-best-' + track + '-' + car + (up && car === 'hatch' ? '-up' : '');
 const taGhostOn = v => v !== '0'; // saved as '0' / '1'; a missing value means on
 const taWrap = a => a - 2 * Math.PI * Math.round(a / (2 * Math.PI));
 // p: { s, x, z, h }. s is kept as the furthest progress so far, so time-at-distance stays searchable. false = full (no ghost for this run).
@@ -936,6 +939,9 @@ function sakeParseBest(v) {
   return n > 0 && n < SAKE.LIMIT ? n : null;
 }
 const sakeIsNewBest = (prev, t) => !(prev > 0) || t < prev;
+// one successful delivery unlocks the KX-2 rewards for good; only the exact string '1' counts, so a damaged value never unlocks
+const sakeClearKey = 'yatouge-sake-clear';
+const sakeCleared = v => v === '1';
 /* @sake:end */
 /* ---------- language (zh = Traditional Chinese, en = English) ---------- */
 const I18N = {
@@ -983,7 +989,7 @@ const I18N = {
     nickTitle: '你的暱稱', nickLbl: '暱稱', nickHint: '1 到 16 個字，只在這次線上對戰使用，不會被記住；其他玩家看得到。', nickOk: '確定', nickCancel: '取消',
     pvpPlayer: '玩家', pvpYouTag: n => `${n}（你）`, pvpNickIs: n => `你的暱稱：${n}。`, pvpTimeOf: n => `${n} 完賽時間`,
     igAria: '選單', igTitle: '選單', igResume: '繼續', igSettings: '設定', igForfeit: '認輸', igRestart: '重新開始', igLobby: '回到大廳', igLobbyAsk: '確定回到大廳？這場比賽會中止。', igLobbyYes: '是，回到大廳', igRestartAsk: '確定重新開始？這一趟的成績不會儲存。', igRestartYes: '是，重新開始', igBack: '返回', igMusic: '音樂', igMusicVol: '音樂音量', igSfxVol: '音效音量', igCam: '鏡頭', igLang: '語言',
-    igOn: '開', igOff: '關', kxChime: '時速警示音', kxLetter: '車門字樣', vibe: '震動', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
+    igOn: '開', igOff: '關', kxChime: '時速警示音', kxLetter: '車門字樣', kxUp: '極速升級', sakeUnlock: '解鎖：KX-2 極速升級、白色碳纖維引擎蓋塗裝', vibe: '震動', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
     ctlLbl: '操作設定', igSteer: '轉向方式', stDrag: '拖曳', stTilt: '傾斜', stZones: '分區', igTiltSens: '傾斜靈敏度', recenter: '回正', zoneBrake: '煞車 + 手煞', tiltFail: '此環境無法使用傾斜轉向，已改回拖曳',
     transTitle: '選擇變速箱', transAT: '自排 AT', transATd: '自動換檔，專心過彎。', transMT: '手排 MT', transMTd: (u, d) => `自己換檔：${u} 升檔、${d} 降檔。換得好比自排快。`, transHint: '手機會多出 ▲ ▼ 換檔鈕。每次開賽前都會再問一次。', transKeys: 'Enter 或點一下確認，Esc 取消。',
     kShift: '手排：升檔／降檔', kPad: p => `手把：左搖桿轉向、${p.gas} 油門、${p.brake} 煞車、${p.hb} 手煞車、${p.shiftDown}／${p.shiftUp} 降／升檔、${p.cam} 鏡頭、Menu 選單`,
@@ -1053,7 +1059,7 @@ const I18N = {
     nickTitle: 'Your nickname', nickLbl: 'Nickname', nickHint: '1 to 16 characters. Used for this online session only and never saved; other players can see it.', nickOk: 'Confirm', nickCancel: 'Cancel',
     pvpPlayer: 'Player', pvpYouTag: n => `${n} (you)`, pvpNickIs: n => `Your nickname: ${n}.`, pvpTimeOf: n => `${n} · finish time`,
     igAria: 'Menu', igTitle: 'Menu', igResume: 'Resume', igSettings: 'Settings', igForfeit: 'Forfeit', igRestart: 'Restart', igLobby: 'Back to lobby', igLobbyAsk: 'Back to the lobby? This race will end.', igLobbyYes: 'Yes, back to lobby', igRestartAsk: 'Restart? This run will not be saved.', igRestartYes: 'Yes, restart', igBack: 'Back', igMusic: 'Music', igMusicVol: 'Music volume', igSfxVol: 'Sound effects volume', igCam: 'Camera', igLang: 'Language',
-    igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', vibe: 'Vibration', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
+    igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', kxUp: 'Top speed upgrade', sakeUnlock: 'Unlocked: KX-2 top speed upgrade and the white, carbon hood paint', vibe: 'Vibration', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
     ctlLbl: 'Controls', igSteer: 'Steering', stDrag: 'Drag', stTilt: 'Tilt', stZones: 'Zones', igTiltSens: 'Tilt sensitivity', recenter: 'Re-center', zoneBrake: 'BRAKE + E-BRAKE', tiltFail: 'Tilt steering is unavailable here; switched back to drag.',
     transTitle: 'Choose a gearbox', transAT: 'Automatic AT', transATd: 'Shifts for you. Focus on the corners.', transMT: 'Manual MT', transMTd: (u, d) => `Shift yourself: ${u} = up, ${d} = down. Shift well and you beat the automatic.`, transHint: 'On a phone, ▲ ▼ shift buttons appear. You are asked again before every race.', transKeys: 'Enter or a tap confirms, Esc cancels.',
     kShift: 'Manual: shift up / down', kPad: p => `Controller: left stick steer, ${p.gas} gas, ${p.brake} brake, ${p.hb} handbrake, ${p.shiftDown} / ${p.shiftUp} shift down / up, ${p.cam} camera, Menu menu`,
@@ -1786,7 +1792,7 @@ const specViewKey = code => (typeof code === 'string' && Object.hasOwn(SPEC_KEYS
 /* Picking the course, mode and car inside the room (pure part). Each player votes { t: course, m: mode, g: catch distance m } and
    picks a car / colour; the host draws between two different votes with a seed it publishes, so both sides get the same result.
    V: room states and lobby entries with room picks carry v 2; older clients (v 1) and this one never see each other's rooms. */
-const RP = { V: 2, MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 4, coupe: 4, gtr: 4 } };
+const RP = { V: 2, MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4 } };
 const validSeed = v => Number.isInteger(v) && v >= 0 && v <= 0xffffffff;
 function validVote(x) {
   if (!x || typeof x !== 'object' || Array.isArray(x)) return null;
@@ -2194,7 +2200,8 @@ const CARS = {
     stats: [[STAT.acc, 2], [STAT.top, 2], [STAT.corner, 5], [STAT.exit, 4]],
     phys: { maxV: 54, engine: 11.5, lag: 0, grip: 9, gripLimit: 20.5, drift: 1.12, slide: 0.1, hb: 3.5 },
     ai: { top: 44, acc: 6, lat: 11.5 },
-    colors: [{ n: { zh: '紅黑雙色', en: 'Red & black' }, top: 0xc41e28, low: 0x141518 }, { n: { zh: '銀黑雙色', en: 'Silver & black' }, top: 0xb7bcc6, low: 0x141518 }, { n: { zh: '深藍', en: 'Deep blue' }, top: 0x1e3c7a, low: 0x1e3c7a }, { n: { zh: '白色', en: 'White' }, top: 0xeceef2, low: 0x141518 }]
+    colors: [{ n: { zh: '紅黑雙色', en: 'Red & black' }, top: 0xc41e28, low: 0x141518 }, { n: { zh: '銀黑雙色', en: 'Silver & black' }, top: 0xb7bcc6, low: 0x141518 }, { n: { zh: '深藍', en: 'Deep blue' }, top: 0x1e3c7a, low: 0x1e3c7a }, { n: { zh: '白色', en: 'White' }, top: 0xeceef2, low: 0x141518 },
+      { n: { zh: '白色碳纖維引擎蓋', en: 'White, carbon hood' }, top: 0xeceef2, low: 0x141518, hood: 'carbon', locked: true }] // locked: opens with the Sake Run reward
   },
   coupe: {
     name: { zh: 'SR-7 轉子跑車', en: 'SR-7 Rotary' }, sub: { zh: '90 年代轉子跑車。直線很快，過彎與出彎表現均衡', en: '90s rotary sports car. Quick on straights, balanced through and out of corners' },
@@ -2211,6 +2218,13 @@ const CARS = {
     colors: [{ n: { zh: '鐵灰', en: 'Gunmetal' }, top: 0x4a4e56 }, { n: { zh: '黑', en: 'Black' }, top: 0x17181c }, { n: { zh: '珍珠白', en: 'Pearl white' }, top: 0xdcdfe4 }, { n: { zh: '深藍', en: 'Deep blue' }, top: 0x1c3f8f }]
   }
 };
+// Sake Run reward: the player's KX-2 gets a real top-speed upgrade (the AI's KX-2 does not: it uses CARS.hatch.ai)
+const KX_UP = { maxV: 57, top: 3 };
+const carPhys = (k, up) => (k === 'hatch' && up ? { ...CARS.hatch.phys, maxV: KX_UP.maxV } : CARS[k].phys);
+const carStats = (k, up) => CARS[k].stats.map(([n, v]) => [n, k === 'hatch' && up && n === STAT.top ? KX_UP.top : v]);
+// a colour can be picked when it exists and is not locked (or the reward is unlocked)
+const colorOpen = (k, i, unlocked) => { const c = CARS[k] && Number.isInteger(i) ? CARS[k].colors[i] : null; return !!c && (!c.locked || !!unlocked); };
+const safeChoice = (c, unlocked) => ({ car: c.car, color: colorOpen(c.car, c.color, unlocked) ? c.color : 0 });
 const rivalOf = k => k === 'hatch' ? 'coupe' : k === 'gtr' ? 'coupe' : 'hatch';
 // the single-player rival belongs to the track, not to the player's car; a track without an entry falls back to rivalOf (colour 1)
 // a future third track gets { car: 'gtr', color: 1 } (black GT-32)
@@ -2487,6 +2501,33 @@ function doorLetteringTex(light) {
     g.font = `800 70px ${CJK_BOLD}`; g.fillText(small, x0 + wb + gap, base);
   }));
 }
+// carbon-fibre twill for the KX-2's carbon hood: shared by every car and the cockpit (never disposed); one tile = CARBON_TILE m of hood, 4 x 4 weave cells
+const CARBON_TILE = 0.16;
+const carbonTex = canvasTex(128, 128, (g, w) => {
+  const n = 4, c = w / n; g.fillStyle = '#0e0f12'; g.fillRect(0, 0, w, w);
+  for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+    const x = i * c, y = j * c, flip = (i + j) % 2, gr = flip ? g.createLinearGradient(x, y, x + c, y) : g.createLinearGradient(x, y, x, y + c);
+    gr.addColorStop(0, '#2a2d33'); gr.addColorStop(0.5, '#101114'); gr.addColorStop(1, '#22252a');
+    g.fillStyle = gr; g.fillRect(x + 1, y + 1, c - 2, c - 2);
+    g.strokeStyle = 'rgba(0,0,0,.45)'; g.lineWidth = 1.5; g.beginPath();
+    for (let k = 1; k < 4; k++) { const t = k * c / 4; if (flip) { g.moveTo(x, y + t); g.lineTo(x + c, y + t); } else { g.moveTo(x + t, y); g.lineTo(x + t, y + c); } }
+    g.stroke();
+  }
+});
+carbonTex.wrapS = carbonTex.wrapT = THREE.RepeatWrapping; carbonTex.anisotropy = 4;
+// polygonOffset lets the carbon skin sit on the body's own hood surface without z-fighting; DoubleSide because the cockpit ribbon is seen from above and below
+const carbonMat = () => new THREE.MeshLambertMaterial({ map: carbonTex, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -1, polygonOffsetUnits: -1 });
+// the whole hood in carbon: a strip along the hood line a -> b (side-profile [z, y]) across `width`, lifted dy, tapered like the body, UVs in hood metres
+function carbonStrip(parent, a, b, width, S, mat, dy) {
+  const n = 12, pos = [], uv = [], idx = [], hw = width / 2;
+  for (let i = 0; i <= n; i++) {
+    const z = a[0] + (b[0] - a[0]) * i / n, y = a[1] + (b[1] - a[1]) * i / n + dy;
+    for (const x of [-hw, hw]) { pos.push(x * widthK(S, y, z), y, z); uv.push(x / CARBON_TILE, z / CARBON_TILE); }
+    if (i) idx.push(i * 2 - 2, i * 2 - 1, i * 2, i * 2, i * 2 - 1, i * 2 + 1);
+  }
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); geo.setIndex(idx); geo.computeVertexNormals();
+  const m = new THREE.Mesh(geo, mat); parent.add(m); return m;
+}
 const trimTex = {};
 function trimBadgeTex(light) { // rear-left trim badge: bold wide "KX-2" then smaller "DOWNHILL 16" on one baseline
   return trimTex[light] || (trimTex[light] = canvasTex(640, 96, (g, w, h) => {
@@ -2574,7 +2615,9 @@ function kxPod(g, sx, black, dark, paint) {
   part(poly([[1.86, 0.735], [2.09, 0.892], [2.09, 0.876], [1.86, 0.719]]), 0.34, paint, null, g, 0.003).position.x = sx * 0.6;
 }
 function kxHoodPanel(g, paint) { // slightly raised hood centre, following the hood slope
-  const m = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.014, 1.15), paint); m.position.set(0, 0.811, 1.4); m.rotation.x = 0.147; g.add(m);
+  const geo = new THREE.BoxGeometry(0.5, 0.014, 1.15);
+  if (paint.map) { const uv = geo.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * 0.5 / CARBON_TILE, uv.getY(i) * 1.15 / CARBON_TILE); } // carbon: weave in hood metres, not stretched over the panel
+  const m = new THREE.Mesh(geo, paint); m.position.set(0, 0.811, 1.4); m.rotation.x = 0.147; g.add(m);
 }
 // loft station field f at z, linear between stations like the mesh (1 = half-width, 4 = centreline height)
 function stationAt(st, z, f) { for (let i = 0; i < st.length - 1; i++) { const a = st[i], b = st[i + 1]; if (z <= a[0] && z >= b[0]) return b[f] + (a[f] - b[f]) * (z - b[0]) / (a[0] - b[0]); } return st[st.length - 1][f]; }
@@ -2649,7 +2692,10 @@ function makeCar(style, colorIdx) {
     const trimMat = new THREE.MeshBasicMaterial({ map: trimBadgeTex(doorInkLight(col.top)), transparent: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
     add(new THREE.PlaneGeometry(0.39, 0.058), trimMat, 0.46, 0.878, -2.158).rotation.y = Math.PI; // above the left (+x) tail cluster
     add(new THREE.PlaneGeometry(0.3, 0.047), nameMat, 0, 0.585, nose(0.585) + 0.03).rotation.x = -0.229; // grille band, below the slats, centred
-    kxHoodPanel(g, paint);
+    // carbon hood: the body's own hood stays white underneath; a carbon skin 4 mm above it covers the whole hood (and the raised centre panel is carbon too)
+    const carbon = col.hood === 'carbon', hoodMat = carbon ? carbonMat() : paint;
+    if (carbon) carbonStrip(g, K.hood[0], K.hood[1], K.bodyW - 0.01, S, hoodMat, 0.004);
+    kxHoodPanel(g, hoodMat);
     add(box(1.5, 0.24, 0.02), black, 0, 0.72, -2.18); // full-width black tail panel
     add(box(0.34, 0.11, 0.01), plate, 0, 0.72, -2.19); // blank plate
     const sp = add(box(1.5, 0.03, 0.15), paint, 0, 0.99, -2.02); sp.rotation.x = 0.15; // small spoiler lip at the hatch base
@@ -2863,8 +2909,11 @@ function makeCar(style, colorIdx) {
   scene.add(g);
   return { g, tailMat, tails, spin, steer, door };
 }
+// Sake Run reward (see sakeCleared): kxUpOn is the title switch for the KX-2 top-speed upgrade, default on once unlocked
+let sakeUnlocked = sakeCleared(store.get(sakeClearKey)), kxUpOn = kxOn(store.get('yatouge-kx-up'));
+const kxUpActive = () => sakeUnlocked && kxUpOn;
 function savedChoice() {
-  try { const c = JSON.parse(store.get('yatouge-car') || 'null'); if (c && CARS[c.car]) return c; } catch (e) { /* ignore bad saved choice */ }
+  try { const c = JSON.parse(store.get('yatouge-car') || 'null'); if (c && CARS[c.car]) return safeChoice(c, sakeUnlocked); } catch (e) { /* ignore bad saved choice */ }
   return { car: 'hatch', color: 0 };
 }
 let choice = store.get('yatouge-mode') === 'sake' ? { ...SAKE_CAR } : savedChoice();
@@ -3762,7 +3811,7 @@ function dialTex(kind) {
     if (kind === 'rpm') g.fillText('x1000r/min', c, c + 62); else if (kind === 'speed') g.fillText('km/h', c, c + 62);
   });
 }
-function makeInterior(style, paintHex) {
+function makeInterior(style, paintHex, carbonHood) {
   const P = COCKPIT_CARS[style], e = P.eye, ex = -e.right, dt = P.dashTop, pz = 0.74, hw = CAR_BOX[style].hw, FLOOR = 0.1;
   const grp = new THREE.Group(); grp.visible = false;
   const lam = c => new THREE.MeshLambertMaterial({ color: c });
@@ -3899,8 +3948,9 @@ function makeInterior(style, paintHex) {
     // hood: the body's own top surface ahead of the windscreen base, with what stands on it
     const mPaintDS = ds(paintHex);
     if (style === 'hatch') {
-      ribbon(along(K.hood[0], K.hood[1], 12), -K.bodyW / 2, K.bodyW / 2, mPaintDS, K.S);
-      kxHoodPanel(grp, mPaint);
+      const mCarbon = carbonHood ? carbonMat() : null; if (mCarbon) mCarbon.userData.shared = true; // disposeInterior must leave the shared weave texture alone
+      if (mCarbon) carbonStrip(grp, K.hood[0], K.hood[1], K.bodyW, K.S, mCarbon, 0); else ribbon(along(K.hood[0], K.hood[1], 12), -K.bodyW / 2, K.bodyW / 2, mPaintDS, K.S);
+      kxHoodPanel(grp, mCarbon || mPaint);
       for (const sx of [-1, 1]) kxPod(grp, sx, mBlack, lam(0x121317), mPaint);
     } else {
       const st = loftStations(K.body).filter(q => q[0] >= K.glass[0][0] - 0.3), pos = [], idx = [];
@@ -3952,7 +4002,7 @@ function syncBody(hide) {
   if (playerCar === bodyCar && hide === bodyHidden) return;
   bodyCar = playerCar; bodyHidden = hide;
   if (hide && !playerInterior) {
-    const cols = CARS[choice.car].colors; playerInterior = makeInterior(choice.car, (cols[choice.color] || cols[0]).top);
+    const cols = CARS[choice.car].colors; const pc = cols[choice.color] || cols[0]; playerInterior = makeInterior(choice.car, pc.top, pc.hood === 'carbon');
     playerCar.g.add(playerInterior.group);
   }
   for (const o of playerCar.g.children) if (o !== head && o !== headTarget && o !== playerInterior?.group) o.visible = !hide;
@@ -4052,7 +4102,7 @@ function taSample(force) { const r = taRun; if (!r.full && !taRecord(r.buf, race
 function taBegin() {
   disposeGhost(); taRun = null;
   if (pvp || mode !== 'ta') return;
-  const rec = taParse(store.get(taKey(trackId, choice.car))), ghost = rec && rec.g ? taDecode(rec.g) : null;
+  const rec = taParse(store.get(taKey(trackId, choice.car, kxUpActive()))), ghost = rec && rec.g ? taDecode(rec.g) : null;
   taRun = { best: rec ? rec.t : null, ghost, buf: [], full: false, gi: 0, gs: null, gpos: { x: 0, z: 0, idx: 8 } };
   if (ghost) ghostCar = makeGhost();
 }
@@ -4061,7 +4111,7 @@ function taEnd() { taRun = null; disposeGhost(); }
 function showTaResult() {
   const prev = taRun.best, nb = taIsNewBest(prev, playerFinishT);
   if (nb) {
-    const k = taKey(trackId, choice.car), g = taRun.full ? null : taEncode(taRun.buf);
+    const k = taKey(trackId, choice.car, kxUpActive()), g = taRun.full ? null : taEncode(taRun.buf);
     if (!store.set(k, taSerialize(playerFinishT, g)) && g) store.set(k, taSerialize(playerFinishT, null)); // storage full: keep the time without the ghost
   }
   const t = $('#resTitle'); t.textContent = T(nb ? 'taNew' : 'taDone'); t.className = 'res-title' + (nb ? ' win' : '');
@@ -4122,6 +4172,9 @@ function sakeHud() {
 function showSakeResult() {
   const r = sakeRun, ok = r.end === 'win', used = ok ? playerFinishT : r.endT, nb = ok && sakeIsNewBest(r.best, used);
   if (nb) { store.set(sakeKey, String(used)); r.best = used; }
+  const firstClear = ok && !sakeUnlocked;
+  if (firstClear) { sakeUnlocked = true; store.set(sakeClearKey, '1'); }
+  $('#resUnlock').hidden = !firstClear; // its text follows the language through data-i18n
   $('#resEyebrow').textContent = ok ? (nb ? T('sakeNew') + ' · ' : '') + T('resEyebrow') : T('sakeEyebrowFail');
   const t = $('#resTitle'); t.textContent = T(ok ? 'sakeOk' : r.end === 'hits' ? 'sakeFailHits' : 'sakeFailTime'); t.className = 'res-title ' + (ok ? 'win' : 'lose');
   $('#resTimeLbl').textContent = T('sakeUsed'); $('#resTime').textContent = fmtT(used);
@@ -4195,7 +4248,7 @@ function sakeVisual(dt) {
 }
 function showResult() {
   for (const el of $('#result').querySelectorAll('[data-i18n]')) el.textContent = T(el.dataset.i18n); // a Sake Run result relabels these
-  $('#resSakeBox').hidden = true; $('#resCat').hidden = true; $('#result .stats').hidden = false; $('#btnAgain').disabled = false;
+  $('#resSakeBox').hidden = true; $('#resCat').hidden = true; $('#resUnlock').hidden = true; $('#result .stats').hidden = false; $('#btnAgain').disabled = false;
   $('#resGapLbl').textContent = T(taRun ? 'taGap' : 'resGap');
   if (pvp) { showPvpResult(); return; }
   if (taRun) { showTaResult(); return; }
@@ -4218,13 +4271,14 @@ function renderPicker() {
   pick.innerHTML = ''; sw.innerHTML = '';
   for (const [k, d] of Object.entries(CARS)) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(k === choice.car));
-    b.innerHTML = `<b></b><small></small>` + d.stats.map(([n, v]) => `<div class="stat"><span>${Lz(n)}</span><div class="pips">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= v ? 'on' : ''}"></i>`).join('')}</div></div>`).join('');
+    b.innerHTML = `<b></b><small></small>` + carStats(k, kxUpActive()).map(([n, v]) => `<div class="stat"><span>${Lz(n)}</span><div class="pips">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= v ? 'on' : ''}"></i>`).join('')}</div></div>`).join('');
     b.querySelector('b').textContent = Lz(d.name); b.querySelector('small').textContent = Lz(d.sub);
     b.disabled = mode === 'sake'; // the car is fixed in Sake Run
     b.addEventListener('click', () => { if (mode === 'sake') return; choice = { car: k, color: 0 }; chosen(); });
     pick.append(b);
   }
   CARS[choice.car].colors.forEach((c, i) => {
+    if (!colorOpen(choice.car, i, sakeUnlocked)) return; // a locked colour is not offered at all
     const b = document.createElement('button'); b.type = 'button'; b.className = 'swatch'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(i === choice.color));
     const dot = document.createElement('i'); const hex = n => '#' + n.toString(16).padStart(6, '0');
     dot.style.background = c.low !== undefined && c.low !== c.top ? `linear-gradient(180deg, ${hex(c.top)} 50%, ${hex(c.low)} 50%)` : hex(c.top);
@@ -4237,7 +4291,7 @@ function renderPicker() {
 }
 // race / time attack cards; the time-attack card shows the best for the chosen course × car
 function renderModePicker() {
-  const el = $('#modePick'), best = taParse(store.get(taKey(trackId, choice.car)));
+  const el = $('#modePick'), best = taParse(store.get(taKey(trackId, choice.car, kxUpActive())));
   el.innerHTML = '';
   const sb = sakeParseBest(store.get(sakeKey));
   for (const m of ['race', 'ta', 'sake']) {
@@ -4273,8 +4327,8 @@ for (const id of ['#tGhost', '#igGhost']) $(id).addEventListener('click', () => 
 // KX-2 options: the title block and the in-game menu rows show only while the player's car is the KX-2; both controls stay in sync
 function syncKxUI() {
   const kx = choice.car === 'hatch';
-  $('#tKx').hidden = !kx; $('#igKxChimeRow').hidden = $('#igKxLetterRow').hidden = !kx;
-  for (const [ids, on] of [[['#tKxChime', '#igKxChime'], kxChimeOn], [['#tKxLetter', '#igKxLetter'], kxLetterOn], [['#tVibe', '#igVibe'], vibeOn]]) // + the vibration switch (any car)
+  $('#tKx').hidden = !kx; $('#tKxUpRow').hidden = !(kx && sakeUnlocked); $('#igKxChimeRow').hidden = $('#igKxLetterRow').hidden = !kx;
+  for (const [ids, on] of [[['#tKxChime', '#igKxChime'], kxChimeOn], [['#tKxLetter', '#igKxLetter'], kxLetterOn], [['#tKxUp'], kxUpOn], [['#tVibe', '#igVibe'], vibeOn]]) // + the top-speed upgrade (title only) and the vibration switch (any car)
     for (const id of ids) { const b = $(id); b.setAttribute('aria-checked', String(on)); b.textContent = T(on ? 'igOn' : 'igOff'); }
 }
 function setKx(kind, on) {
@@ -4284,6 +4338,8 @@ function setKx(kind, on) {
 }
 for (const [id, kind] of [['#tKxChime', 'chime'], ['#igKxChime', 'chime'], ['#tKxLetter', 'letter'], ['#igKxLetter', 'letter']])
   $(id).addEventListener('click', () => setKx(kind, !(kind === 'chime' ? kxChimeOn : kxLetterOn)));
+// the upgrade is changed on the title screen only (never mid-race); renderPicker redraws the top-speed pips and calls syncKxUI
+$('#tKxUp').addEventListener('click', () => { kxUpOn = !kxUpOn; store.set('yatouge-kx-up', kxUpOn ? '1' : '0'); renderPicker(); });
 for (const id of ['#tVibe', '#igVibe']) $(id).addEventListener('click', () => { vibeOn = !vibeOn; store.set('yatouge-vibe', vibeOn ? '1' : '0'); syncKxUI(); });
 function renderTrackPicker() {
   const el = $('#trackPick'); el.innerHTML = '';
@@ -4319,7 +4375,7 @@ applyLang();
 function startRace() {
   document.body.classList.toggle('manual', trans === 'manual');
   if (!pvp && mode === 'sake' && (trackId !== SAKE_TRACK || choice.car !== SAKE_CAR.car || choice.color !== SAKE_CAR.color)) sakeForce(true); // defensive: online play may have moved the course
-  initAudio(); resetRace(); taBegin(); sakeBegin(); Object.assign(P, CARS[choice.car].phys); camera.clearViewOffset();
+  initAudio(); resetRace(); taBegin(); sakeBegin(); Object.assign(P, carPhys(choice.car, kxUpActive())); camera.clearViewOffset();
   state = 'count'; countT = 3.999;
   $('#title').hidden = true; $('#result').hidden = true; $('#hud').hidden = false; $('#lobby').hidden = true; $('#room').hidden = true; onlineUI = false;
   camera.position.set(car.x - Math.sin(car.h) * 7, car.loc.y + 3, car.z - Math.cos(car.h) * 7);
@@ -4748,7 +4804,7 @@ function courseBox(id) {
   return boxCache[id];
 }
 // free the GPU side of a car we are done with (the shared glow / badge textures stay)
-function disposeCar(c) { disposeTree(c.g, new Set([glowTex, badgeTex, tougeTex, doorTex[true], doorTex[false], trimTex[true], trimTex[false]])); }
+function disposeCar(c) { disposeTree(c.g, new Set([glowTex, badgeTex, carbonTex, tougeTex, doorTex[true], doorTex[false], trimTex[true], trimTex[false]])); }
 const pvpCheck = pres => catState(pres, courseBox(pres && NET.TRACKS.includes(pres.trk) ? pres.trk : trackId));
 function pvpPublish(extra) {
   const p = pvp; if (!p) return;
@@ -4844,13 +4900,13 @@ function rpBuild() {
   fill('#rpGap', RP.GAPS.map(g => ({ v: g, label: T('rpGapV', g), go: () => rpSet({ vote: { g } }) })));
   fill('#rpCar', Object.keys(CARS).map(k => ({ v: k, label: Lz(CARS[k].name), go: () => rpSet({ car: k }) })));
   const hex = n => '#' + n.toString(16).padStart(6, '0');
-  fill('#rpCol', CARS[p.pick.car].colors.map((c, i) => ({ v: i, label: Lz(c.n), dot: c.low !== undefined && c.low !== c.top ? `linear-gradient(180deg, ${hex(c.top)} 50%, ${hex(c.low)} 50%)` : hex(c.top), go: () => rpSet({ col: i }) })));
+  fill('#rpCol', CARS[p.pick.car].colors.map((c, i) => ({ c, i })).filter(({ i }) => colorOpen(p.pick.car, i, sakeUnlocked)).map(({ c, i }) => ({ v: i, label: Lz(c.n), dot: c.low !== undefined && c.low !== c.top ? `linear-gradient(180deg, ${hex(c.top)} 50%, ${hex(c.low)} 50%)` : hex(c.top), go: () => rpSet({ col: i }) })));
 }
 // One pick changed in the room. Never saved: the title's car and course stay as they are. A ready player goes back to waiting.
 function rpSet(o) {
   const p = pvp; if (!p || (p.st !== 'waiting' && p.st !== 'ready') || transOpen) return;
   const car = o.car || p.pick.car, next = { car, col: o.col ?? (car !== p.pick.car ? 0 : p.pick.col), vote: { ...p.pick.vote, ...(o.vote || {}) } };
-  if (!validVote(next.vote) || !NET.CARS.includes(next.car) || !(next.col >= 0 && next.col < RP.COLS[next.car]) || (next.vote.m === 'cat' && !RP_CAT_OPEN)) return;
+  if (!validVote(next.vote) || !NET.CARS.includes(next.car) || !(next.col >= 0 && next.col < RP.COLS[next.car]) || !colorOpen(next.car, next.col, sakeUnlocked) || (next.vote.m === 'cat' && !RP_CAT_OPEN)) return;
   if (pickSig(next) === pickSig(p.pick)) return;
   const carChanged = next.car !== p.pick.car || next.col !== p.pick.col, newCar = next.car !== p.pick.car;
   p.pick = rpLast = next;

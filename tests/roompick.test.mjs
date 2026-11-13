@@ -25,6 +25,7 @@ test('RP：模式、距離與預設值；顏色數與 CARS 一致', () => {
   assert.equal(RP.GAP, 50);
   assert.ok(RP.V !== NET.V, '房間狀態與大廳換了版本號，舊版本互相看不到');
   for (const k of NET.CARS) assert.equal(RP.COLS[k], CARS[k].colors.length, k);
+  assert.deepEqual(RP.COLS, { hatch: 5, coupe: 4, gtr: 4 });
 });
 
 /* ---------- validVote ---------- */
@@ -59,6 +60,8 @@ test('roomState：投票、顏色、gb、sd 任一錯誤整筆丟棄', () => {
     { sd: -1 }, { sd: 2 ** 32 }, { sd: 1.5 }, { sd: '7' }, { sd: NaN }, { role: 'spectator' }, { st: 'hax' }, { car: 'tank' }])
     assert.equal(roomState(R(o), BOUNDS), null, JSON.stringify(o));
   assert.equal(roomState(R({ col: 3 }), BOUNDS).col, 3);
+  assert.equal(roomState(R({ car: 'hatch', col: 4 }), BOUNDS).col, 4, 'KX-2 第 5 色（碳纖維引擎蓋）要接受');
+  for (const car of ['hatch', 'coupe', 'gtr']) assert.equal(roomState(R({ car, col: car === 'hatch' ? 5 : 4 }), BOUNDS), null, car);
   assert.equal(roomState(R({ sd: 0 }), BOUNDS).sd, 0);
   assert.equal(roomState(R({ sd: 2 ** 32 - 1 }), BOUNDS).sd, 2 ** 32 - 1);
   assert.equal(roomState(R({ sd: null }), BOUNDS).sd, null);
