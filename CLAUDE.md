@@ -33,7 +33,7 @@
 | 賽道與物理 | `course-geometry`（含 `lerpAngle`）、`gutter`、`engine`（`ACCEL_SCALE` 2/3）、`gearbox`（手排、換檔煞車、引擎煞車）、`collision`、`vehicle`、`drift-follow` |
 | 車輛外觀 | `cars`（`CARS`、`rivalFor`）、`lettering`、`cabin-shape`（`CAB`：外觀與車內共用的車艙資料）、`dispose` |
 | 車內視角 | `cockpit`（`COCKPIT_CARS`）、`lean`（慣性前傾）、`camera-modes` |
-| 模式 | `timeattack`（幽靈車壓縮）、`sake`（送酒模式）、`kx-chime` |
+| 模式 | `timeattack`（幽靈車壓縮）、`sake`（送酒模式）、`kx-chime`、`changelog`（更新紀錄資料與是否顯示的判斷） |
 | 線上 | `netcode`、`supa`、`onlinestatus`、`spectate`、`roompick`（房間投票）、`catmouse`、`chat` |
 | 輸入與介面 | `keybind`、`gamepad`（含震動 `shiftBuzz`）、`touch`、`tilt`、`tapguard`、`ingame-menu`、`own-music`、`turbo-sfx` |
 
@@ -51,7 +51,7 @@
 - `?mockroom=1` 是只在 localhost 運作的雙分頁模擬，測試用。
 
 ### 本機儲存
-所有設定存在 localStorage，key 以 `yatouge-` 開頭（例如 `yatouge-car`、`yatouge-track`、`yatouge-trans`、`yatouge-keys`、`yatouge-vibe`、`yatouge-ta-best-<track>-<car>`、`yatouge-sake-best`）。新增 key 時沿用這個前綴，讀取時要能容忍壞掉的資料。
+所有設定存在 localStorage，key 以 `yatouge-` 開頭（例如 `yatouge-car`、`yatouge-log-seen`、`yatouge-track`、`yatouge-trans`、`yatouge-keys`、`yatouge-vibe`、`yatouge-ta-best-<track>-<car>`、`yatouge-sake-best`）。新增 key 時沿用這個前綴，讀取時要能容忍壞掉的資料。
 
 ## 四、改動流程
 1. 先讀相關區塊與既有測試（Constitution：先讀再寫）。
@@ -63,7 +63,8 @@
    - 換行只能是 LF：`tr -cd '\r' < yatouge.html | wc -c` 必須是 0（`.gitattributes` 強制 LF，測試依賴它）。
    - 不能留下除錯掛鉤：`grep -c "__lc" yatouge.html` 必須是 0。
    - Edit/Write/Bash 工具可能把 `\uXXXX` 跳脫字元變成真正的字元（U+2028、零寬、bidi），會讓正規表示式壞掉。寫完要檢查沒有這類隱形字元，並確認 script 可以被解析。
-7. Commit、push。
+7. 玩家看得到的改動（新功能、操控或外觀變化、修正）要推上去時，在 `yatouge.html` 的 `@changelog` 區塊新增或補充當天的版本（中英文各一份、白話、不寫技術細節、最多保留 12 版），避免更新紀錄停更。純內部或測試的改動不用寫。
+8. Commit、push。
 
 ## 五、瀏覽器測試（硬性規定）
 使用者的電腦（16 GB）曾因兩個 agent 同時跑 headless Chromium 而當機兩次。規定：

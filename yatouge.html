@@ -293,6 +293,14 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 .kbacts { display: flex; gap: 10px; margin-top: 8px; } .kbacts button { flex: 1; padding: 10px 14px; font-size: 15px; }
 @media (max-width: 380px) { .kbslot { min-width: 62px; padding: 4px 6px; } .kbrow { font-size: 13px; } }
 @media (orientation: landscape) and (max-height: 500px) { .kbsheet { padding: 12px 14px; } .kbsheet .stripe { margin: 6px 0 8px; } .kblist { grid-template-columns: 1fr 1fr; gap: 4px 14px; } .kbslot, .kbx { min-height: 30px; } }
+/* update log window (over the title) */
+#clog { z-index: 8; background: rgba(5,7,15,.94); }
+.clsheet { width: min(440px, 100%); }
+.cllist { max-height: min(55vh, 440px); overflow-y: auto; margin-bottom: 14px; padding-right: 6px; overscroll-behavior: contain; }
+.cllist h3 { font-family: var(--display); font-size: 18px; margin: 14px 0 4px; color: var(--sodium); } .cllist h3:first-child { margin-top: 0; }
+.cllist ul { margin: 0; padding-left: 1.2em; font-size: 14px; line-height: 1.6; }
+.clsheet .go { width: 100%; padding: 12px 16px; font-size: 16px; }
+@media (orientation: landscape) and (max-height: 500px) { .cllist { max-height: calc(100vh - 150px); min-height: 90px; } .clsheet { padding: 12px 14px; } .clsheet .stripe { margin: 6px 0 8px; } }
 .igq { font-size: 18px; margin: 4px 0 6px; }
 /* short landscape screens (phones on their side): compact HUD, scrollable pages, two-column settings */
 @media (orientation: landscape) and (max-height: 500px) {
@@ -478,6 +486,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <div class="igrow"><span id="tVibeL" data-i18n="vibe">震動</span><button id="tVibe" type="button" role="switch" aria-labelledby="tVibeL" aria-checked="true"></button></div>
       <div class="igrow"><span id="tTurnL" data-i18n="turnSigns">彎道提示</span><button id="tTurn" type="button" role="switch" aria-labelledby="tTurnL" aria-checked="true"></button></div>
       <div class="igrow"><span id="tKeysL" data-i18n="kbTitle">按鍵設定</span><button id="tKeys" type="button" aria-haspopup="dialog" aria-describedby="tKeysL" data-i18n="kbOpen">變更</button></div>
+      <div class="igrow"><span id="tLogL" data-i18n="clBtn">更新內容</span><button id="tLog" type="button" aria-haspopup="dialog" aria-describedby="tLogL" data-i18n="clView">查看</button></div>
     </div>
     <div id="tCtl" class="tctl" hidden>
       <div class="lbl" style="margin-top:16px" data-i18n="ctlLbl">操作設定</div>
@@ -627,6 +636,15 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
   </div>
 </div>
 
+<div id="clog" class="screen" role="dialog" aria-modal="true" aria-labelledby="clTitle" hidden>
+  <div class="sheet igsheet clsheet">
+    <h2 id="clTitle" class="igh" data-i18n="clTitle">更新內容</h2>
+    <div class="stripe"></div>
+    <div id="clList" class="cllist" role="region" tabindex="0" data-i18n-aria="clAria" aria-label="各版本的更新重點"></div>
+    <button class="go" id="clOk" type="button" data-i18n="clOk">知道了</button>
+  </div>
+</div>
+
 <div id="nick" class="screen" role="dialog" aria-modal="true" aria-labelledby="nickTitle" hidden>
   <div class="sheet">
     <h2 id="nickTitle" class="pvp-h" data-i18n="nickTitle">你的暱稱</h2>
@@ -711,6 +729,31 @@ const confirmKeys = (what, ta, sake) => what === 'lobby' ? { q: 'igLobbyAsk', ye
   : what === 'restart' ? { q: 'igRestartAsk', yes: 'igRestartYes' }
   : { q: ta ? 'taQuitAsk' : sake ? 'sakeQuitAsk' : 'igConfirm', yes: ta || sake ? 'taQuitYes' : 'igYes' };
 /* @ingame-menu:end */
+/* @changelog:start */
+// Player-facing release notes, newest first (at most 12 versions). Add today's version, or extend it, whenever a change the player can see goes out.
+const CHANGELOG = [
+  { date: '2026-11-14',
+    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。'],
+    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.'] },
+  { date: '2026-11-13',
+    zh: ['彎道前會出現提示圖示，可以在設定裡關掉。', '送酒模式通關有獎勵：KX-2 的極速升級開關，以及白色碳纖維引擎蓋塗裝。', '遊戲內選單新增「重新開始」與「回到大廳」。', '比賽結束後車子不會再倒退。', 'SR-7 新增引擎蓋與尾燈細節。', '手機車內視角：後照鏡縮小，KX-2 與 GT-32 的儀表降低，視野更開闊。', '鍵盤與手把的按鍵都可以自己設定。', '線上房間可以聊天、玩貓捉老鼠，也能在房間裡選賽道和車。', '三台車的外型都依真車照片重新製作。'],
+    en: ['Turn signs now appear before corners; you can switch them off in settings.', 'Sake Run rewards: a top-speed upgrade switch for the KX-2 and a white carbon-fibre hood paint.', 'The in-game menu now has Restart and Back to lobby.', 'The car no longer rolls backwards after the race ends.', 'New hood and tail-light details on the SR-7.', 'Phone cockpit view: smaller rear-view mirror, and lower dashboards on the KX-2 and GT-32 for a clearer view.', 'Keyboard and controller buttons can be rebound.', 'Online rooms now have chat and Cat and Mouse, and you can pick the course and car inside the room.', 'All three cars were rebuilt from photos of the real cars.'] },
+  { date: '2026-11-12',
+    zh: ['新增計時賽：記錄最佳成績，並可以和幽靈車一起跑。', '可以選手排或自排。', '新增送酒模式。', '可以觀戰別人的線上對戰。', '支援遊戲手把，手排換檔時手把會震動。', 'KX-2 新增時速警示音，車門字樣可以開關。', '新增線上對戰，手機可用傾斜與分區操控。'],
+    en: ['Time attack: your best time is saved and you can race a ghost car.', 'Choose a manual or automatic gearbox.', 'New Sake Run mode.', 'You can spectate other players\' online races.', 'Game controllers are supported, and they rumble on manual shifts.', 'The KX-2 gets a speed warning chime, and the door lettering can be switched off.', 'Online 1v1 races, plus tilt and split-zone steering on phones.'] },
+  { date: '2026-11-10',
+    zh: ['遊戲上線。', '新增遊戲內選單。', '手機可以橫向操控。'],
+    en: ['The game is live.', 'New in-game menu.', 'Phones can play in landscape.'] }
+];
+const LOG_DATE = /^\d{4}-\d{2}-\d{2}$/;
+// seen = the last version the player closed the window on (any junk allowed): show unless it is exactly the latest
+const shouldShowLog = (seen, latest) => seen !== latest;
+// first visit or junk: just the latest version; otherwise every version newer than the one seen
+const logEntries = seen => {
+  const fresh = typeof seen === 'string' && LOG_DATE.test(seen) ? CHANGELOG.filter(v => v.date > seen) : [];
+  return fresh.length ? fresh : CHANGELOG.slice(0, 1);
+};
+/* @changelog:end */
 /* @keybind:start */
 /* Key bindings (pure part). Keyboard: 1-2 event.code values per action; controller: one standard-mapping button index (or none).
    Fixed and never bindable: Esc / Enter / Tab / R / the spectator 1-2-3 keys / Win, and the pad's A / B / Menu / d-pad down-left-right
@@ -800,6 +843,7 @@ const kbPadLabel = (i, lang) => (!kbPadOk(i) ? '—' : i < 12 ? KB_PAD_NAMES[i] 
 const kbShort = (b, a, lang) => [...new Set(b.keys[a].map(c => kbKeyLabel(c, lang, true)))];
 /* @keybind:end */
 let kb = kbLoad(store.get(KB.STORE)); // the player's bindings; the page that edits them is next to the in-game menu
+let clOpen = false, clShown = [], clFocus = false; // the update-log window; clFocus: opened by its title button (focus returns there on close)
 let kbOpen = false, kbCap = null, kbFrom = 'title', kbSide = 'keys', kbSwallow = null; // kbCap: { side, a, s } while waiting for the new key / button
 /* @kx-chime:start */
 // KX-2 only: speed warning chime, the original timing: rings above 100 km/h, repeats every 0.9 s while over.
@@ -998,6 +1042,7 @@ const I18N = {
     rpOppVote: d => `對手投：${d}`, rpChanged: '選擇有變更，請重新準備。', rpWaitTrans: '等待對手選擇變速箱…', rpWaitSeed: '等待房主抽籤…',
     pvpLine: '衝線！', pvpOppDone: '對手已完賽', pvpWaitOpp: '等待對手衝線…', pvpTie: '平手', pvpDnf: '對手未完賽',
     pvpOppTime: '對手完賽時間', pvpBackRoom: '回房間再來一場', pvpLeaveEnd: '離開並回主畫面',
+    clTitle: '更新內容', clBtn: '更新內容', clView: '查看', clOk: '知道了', clAria: '各版本的更新重點',
     nickTitle: '你的暱稱', nickLbl: '暱稱', nickHint: '1 到 16 個字，只在這次線上對戰使用，不會被記住；其他玩家看得到。', nickOk: '確定', nickCancel: '取消',
     pvpPlayer: '玩家', pvpYouTag: n => `${n}（你）`, pvpNickIs: n => `你的暱稱：${n}。`, pvpTimeOf: n => `${n} 完賽時間`,
     igAria: '選單', igTitle: '選單', igResume: '繼續', igSettings: '設定', igForfeit: '認輸', igRestart: '重新開始', igLobby: '回到大廳', igLobbyAsk: '確定回到大廳？這場比賽會中止。', igLobbyYes: '是，回到大廳', igRestartAsk: '確定重新開始？這一趟的成績不會儲存。', igRestartYes: '是，重新開始', igBack: '返回', igMusic: '音樂', igMusicVol: '音樂音量', igSfxVol: '音效音量', igCam: '鏡頭', igLang: '語言',
@@ -1068,6 +1113,7 @@ const I18N = {
     rpOppVote: d => `Opponent votes: ${d}`, rpChanged: 'A pick changed. Ready up again.', rpWaitTrans: 'Waiting for your opponent to pick a gearbox…', rpWaitSeed: 'Waiting for the host to draw…',
     pvpLine: 'Across the line!', pvpOppDone: 'Opponent finished', pvpWaitOpp: 'Waiting for your opponent…', pvpTie: 'Tie', pvpDnf: 'Opponent did not finish',
     pvpOppTime: "Opponent's time", pvpBackRoom: 'Back to the room', pvpLeaveEnd: 'Leave and go to title',
+    clTitle: 'What\'s new', clBtn: 'What\'s new', clView: 'View', clOk: 'Got it', clAria: 'Highlights by version',
     nickTitle: 'Your nickname', nickLbl: 'Nickname', nickHint: '1 to 16 characters. Used for this online session only and never saved; other players can see it.', nickOk: 'Confirm', nickCancel: 'Cancel',
     pvpPlayer: 'Player', pvpYouTag: n => `${n} (you)`, pvpNickIs: n => `Your nickname: ${n}.`, pvpTimeOf: n => `${n} · finish time`,
     igAria: 'Menu', igTitle: 'Menu', igResume: 'Resume', igSettings: 'Settings', igForfeit: 'Forfeit', igRestart: 'Restart', igLobby: 'Back to lobby', igLobbyAsk: 'Back to the lobby? This race will end.', igLobbyYes: 'Yes, back to lobby', igRestartAsk: 'Restart? This run will not be saved.', igRestartYes: 'Yes, restart', igBack: 'Back', igMusic: 'Music', igMusicVol: 'Music volume', igSfxVol: 'Sound effects volume', igCam: 'Camera', igLang: 'Language',
@@ -4497,6 +4543,7 @@ function applyLang() {
   renderTrackPicker(); renderPicker();
   menuRelabel();
   kbRelabel();
+  if (clOpen) clRender();
   pvpRelabel();
   const ts = $('#turnSign'); if (ts.dataset.k) ts.setAttribute('aria-label', tsLabel(lang, ts.dataset.k, ts.dataset.d));
 }
@@ -4839,6 +4886,7 @@ function netFail(e, scope = 'lobby') {
 }
 const roomFail = e => netFail(e, 'room');
 function showPanel(which) {
+  if (which) clClose(); // an online panel took over (e.g. a join link): the log window must not stay on top
   onlineUI = !!which; if (!which) { nick = null; rpLast = null; } // back to the title screen: the next online battle asks again (and starts from the title's car and course)
   $('#title').hidden = onlineUI; $('#lobby').hidden = which !== 'lobby'; $('#room').hidden = which !== 'room';
   syncNet();
@@ -5798,6 +5846,7 @@ window.addEventListener('resize', resize); resize();
 /* ---------- controls ---------- */
 const KB_DRIVE = ['gas', 'brake', 'left', 'right', 'hb']; // held while down (input.* of the same name)
 window.addEventListener('keydown', e => {
+  if (clOpen) { clKeydown(e); return; } // the update-log window owns the keyboard
   if (kbOpen) { kbKeydown(e); return; } // the key-binding page owns the keyboard: no hotkey fires there
   if (nickOpen || transOpen || e.target.id === 'codeInput' || e.target.classList.contains('chatin')) return; // typing a nickname, a room code or a chat message must not drive the car, toggle music or start a race
   if (e.key === 'Escape') {
@@ -5824,7 +5873,7 @@ window.addEventListener('keydown', e => {
   if (e.code === 'KeyR' && (state === 'race')) resetCar();
   if (act === 'music') setMusic(!musicOn);
   if (act === 'cam' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && !hudEl.hidden) setCamMode(nextCam(camMode), true);
-  if (e.code === 'Enter' && state === 'title' && !onlineUI && !e.target.closest('.music, #tKx, #tTa, #tKeys')) { e.preventDefault(); askTrans(startRace); } // Enter on a music button, a KX-2 option or "key bindings" activates it, not the race
+  if (e.code === 'Enter' && !e.repeat && state === 'title' && !onlineUI && !e.target.closest('.music, #tKx, #tTa, #tKeys, #tLog')) { e.preventDefault(); askTrans(startRace); } // Enter on a music button, a KX-2 option or "key bindings" or "what's new" activates it, not the race
 });
 window.addEventListener('keyup', e => {
   if (kbOpen && kbSwallow === e.code) { kbSwallow = null; e.preventDefault(); } // the key just bound must not also press the focused slot (Space clicks on keyup)
@@ -5920,7 +5969,7 @@ const shiftBuzz = ({ on, ok, dir, vf, top }) => {
 const GP_IDLE = { gas: false, brake: false, hb: false, steer: null }, GP_DPAD = [12, 13, 14, 15], SPEC_VIEWS = ['a', 'b', 'top'];
 const gp = { btn: Array(GP.N).fill(false), down: {}, held: {}, last: { ...GP_IDLE }, pad: null };
 function gpScope() {
-  if (kbOpen) return $('#kbs'); if (transOpen) return $('#trans'); if (nickOpen) return $('#nick'); if (menuOpen) return $('#igmenu'); if (spec) return $('#spec');
+  if (clOpen) return $('#clog'); if (kbOpen) return $('#kbs'); if (transOpen) return $('#trans'); if (nickOpen) return $('#nick'); if (menuOpen) return $('#igmenu'); if (spec) return $('#spec');
   return ['#result', '#room', '#lobby', '#title'].map(s => $(s)).find(el => !el.hidden) || null;
 }
 const gpFocusables = root => [...root.querySelectorAll('button, input, select')].filter(el => !el.disabled && el.getAttribute('aria-disabled') !== 'true' && el.tabIndex >= 0 && !el.closest('[hidden], [inert]') && el.getClientRects().length);
@@ -5948,17 +5997,18 @@ function gpOk() {
   else gpNav('down'); // nothing focused yet: the first press only shows where focus is
 }
 function gpBack() {
-  if (kbOpen) { if (kbCap) kbCancel(); else kbClose(); } else if (transOpen) transCancel(); else if (nickOpen) nickCancel();
+  if (clOpen) clClose(); else if (kbOpen) { if (kbCap) kbCancel(); else kbClose(); } else if (transOpen) transCancel(); else if (nickOpen) nickCancel();
   else if (menuOpen) menuEsc(menuEscAction(menuOpen, menuView, state, nickOpen));
   else if (!$('#lobby').hidden) closeLobby();
 }
 function gpDo(act) {
+  if (clOpen && (act === 'up' || act === 'down')) { $('#clList').scrollBy(0, act === 'down' ? 48 : -48); return; } // the list is the only scrollable part: d-pad up / down scrolls it
   switch (act) {
     case 'up': case 'down': case 'left': case 'right': gpNav(act); break;
     case 'ok': gpOk(); break;
     case 'back': gpBack(); break;
-    case 'menu': if (kbOpen) kbClose(); else if (menuOpen) closeMenu(); else if (!transOpen && !nickOpen) openMenu(); break;
-    case 'music': if (!transOpen && !nickOpen && !kbOpen) { setMusic(!musicOn); if (menuOpen) syncMenuUI(); } break;
+    case 'menu': if (clOpen) clClose(); else if (kbOpen) kbClose(); else if (menuOpen) closeMenu(); else if (!transOpen && !nickOpen) openMenu(); break;
+    case 'music': if (!transOpen && !nickOpen && !kbOpen && !clOpen) { setMusic(!musicOn); if (menuOpen) syncMenuUI(); } break;
     case 'cam': if (!hudEl.hidden) setCamMode(nextCam(camMode), true); break;
     case 'shiftUp': shiftGear(1); break;
     case 'shiftDown': shiftGear(-1); break;
@@ -5966,7 +6016,7 @@ function gpDo(act) {
     case 'viewPrev': case 'viewNext': if (spec) specView(SPEC_VIEWS[gpCycle(SPEC_VIEWS.indexOf(spec.view), SPEC_VIEWS.length, act === 'viewNext' ? 1 : -1)]); break;
   }
 }
-const gpCtx = () => gpContext({ spec: !!spec, overlay: menuOpen || transOpen || nickOpen || kbOpen, hud: !hudEl.hidden });
+const gpCtx = () => gpContext({ spec: !!spec, overlay: menuOpen || transOpen || nickOpen || kbOpen || clOpen, hud: !hudEl.hidden });
 function gamepadTick(now) {
   let pad = null;
   try { pad = gpPick(navigator.getGamepads ? navigator.getGamepads() : null); } catch (_) { pad = null; } // blocked by permissions policy (e.g. an iframe): no pad
@@ -6342,6 +6392,46 @@ $('#igKeys').addEventListener('click', kbOpenPage);
 $('#kbBack').addEventListener('click', kbClose);
 for (const b of document.querySelectorAll('.kbtabs button')) b.addEventListener('click', () => kbSetSide(b.dataset.p));
 $('#kbReset').addEventListener('click', () => { kbCap = null; kbStore(kbReset(kb, kbSide)); kbNote(T('kbDone')); kbRender('#kbReset'); });
+// update-log window: the title button shows every version; the automatic open shows only what is new
+function clRender() {
+  const list = $('#clList'); list.textContent = '';
+  for (const v of clShown) {
+    const h = document.createElement('h3'), ul = document.createElement('ul');
+    h.textContent = v.date;
+    for (const line of v[lang]) { const li = document.createElement('li'); li.textContent = line; ul.append(li); }
+    list.append(h, ul);
+  }
+}
+function clShow(entries, fromButton) {
+  if (clOpen) return;
+  clOpen = true; clFocus = fromButton; clShown = entries;
+  for (const k in input) input[k] = k === 'steerAxis' ? null : false;
+  releaseTouch();
+  $('#title').inert = true; $('#clog').hidden = false; clRender(); $('#clList').scrollTop = 0; $('#clOk').focus();
+}
+function clClose() {
+  if (!clOpen) return;
+  clOpen = false; $('#clog').hidden = true; $('#title').inert = false;
+  store.set('yatouge-log-seen', CHANGELOG[0].date);
+  const back = clFocus ? '#tLog' : '#btnStart'; // opened by the button: back to it; opened automatically: the start button, so the keyboard / pad never lands on body
+  if (!$('#title').hidden && !nickOpen && !kbOpen && !transOpen && !menuOpen) $(back).focus();
+}
+function clKeydown(e) {
+  if (e.key === 'Escape') { e.preventDefault(); if (!e.repeat) clClose(); return; }
+  const list = $('#clList');
+  if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); list.scrollBy(0, e.key === 'ArrowDown' ? 48 : -48); }
+  else if (e.key === 'Tab') { // keep focus inside the window: the list and the button
+    const f = [list, $('#clOk')], i = f.indexOf(document.activeElement);
+    e.preventDefault(); f[i === 0 ? 1 : 0].focus();
+  }
+}
+$('#tLog').addEventListener('click', () => clShow(CHANGELOG, true));
+$('#clOk').addEventListener('click', clClose);
+// once per new version, on the title screen only (not when a URL already took the player online)
+{
+  const seen = store.get('yatouge-log-seen');
+  if (state === 'title' && !onlineUI && !pvp && !spec && !$('#title').hidden && shouldShowLog(seen, CHANGELOG[0].date)) clShow(logEntries(seen), false);
+}
 kbRelabel();
 requestAnimationFrame(frame);
 })();
