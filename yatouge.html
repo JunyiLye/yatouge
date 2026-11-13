@@ -572,6 +572,8 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <button class="go" id="igResume" type="button" data-i18n="igResume">繼續</button>
       <button class="ghost" id="igSettings" type="button" data-i18n="igSettings">設定</button>
       <button class="ghost" id="igChat" type="button" data-i18n="chatLbl" hidden>聊天</button>
+      <button class="ghost" id="igRestart" type="button" data-i18n="igRestart">重新開始</button>
+      <button class="ghost" id="igLobby" type="button" data-i18n="igLobby" hidden>回到大廳</button>
       <button class="ghost" id="igForfeit" type="button" data-i18n="igForfeit">認輸</button>
     </div>
     <div id="igSet" class="igview" hidden>
@@ -688,6 +690,12 @@ const musicLevel = (on, vol) => on ? MUSIC_BASE * clampVol(vol) : 0;
 const menuCanOpen = (st, nickOpen) => !nickOpen && (st === 'count' || st === 'race');
 const menuEscAction = (open, view, st, nickOpen) => open ? (view === 'main' ? 'close' : 'back') : menuCanOpen(st, nickOpen) ? 'open' : 'none';
 const forfeitPlan = isPvp => ({ action: isPvp ? 'leave' : 'title', saveBest: false });
+// restart is for solo races only; back-to-lobby is for online races only
+const menuItems = isPvp => ({ restart: !isPvp, lobby: !!isPvp });
+// i18n keys of the confirm view's question and yes-button; what: 'forfeit' | 'lobby' | 'restart' (forfeit reads "quit" in time attack / Sake Run)
+const confirmKeys = (what, ta, sake) => what === 'lobby' ? { q: 'igLobbyAsk', yes: 'igLobbyYes' }
+  : what === 'restart' ? { q: 'igRestartAsk', yes: 'igRestartYes' }
+  : { q: ta ? 'taQuitAsk' : sake ? 'sakeQuitAsk' : 'igConfirm', yes: ta || sake ? 'taQuitYes' : 'igYes' };
 /* @ingame-menu:end */
 /* @keybind:start */
 /* Key bindings (pure part). Keyboard: 1-2 event.code values per action; controller: one standard-mapping button index (or none).
@@ -974,7 +982,7 @@ const I18N = {
     pvpOppTime: '對手完賽時間', pvpBackRoom: '回房間再來一場', pvpLeaveEnd: '離開並回主畫面',
     nickTitle: '你的暱稱', nickLbl: '暱稱', nickHint: '1 到 16 個字，只在這次線上對戰使用，不會被記住；其他玩家看得到。', nickOk: '確定', nickCancel: '取消',
     pvpPlayer: '玩家', pvpYouTag: n => `${n}（你）`, pvpNickIs: n => `你的暱稱：${n}。`, pvpTimeOf: n => `${n} 完賽時間`,
-    igAria: '選單', igTitle: '選單', igResume: '繼續', igSettings: '設定', igForfeit: '認輸', igBack: '返回', igMusic: '音樂', igMusicVol: '音樂音量', igSfxVol: '音效音量', igCam: '鏡頭', igLang: '語言',
+    igAria: '選單', igTitle: '選單', igResume: '繼續', igSettings: '設定', igForfeit: '認輸', igRestart: '重新開始', igLobby: '回到大廳', igLobbyAsk: '確定回到大廳？這場比賽會中止。', igLobbyYes: '是，回到大廳', igRestartAsk: '確定重新開始？這一趟的成績不會儲存。', igRestartYes: '是，重新開始', igBack: '返回', igMusic: '音樂', igMusicVol: '音樂音量', igSfxVol: '音效音量', igCam: '鏡頭', igLang: '語言',
     igOn: '開', igOff: '關', kxChime: '時速警示音', kxLetter: '車門字樣', vibe: '震動', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
     ctlLbl: '操作設定', igSteer: '轉向方式', stDrag: '拖曳', stTilt: '傾斜', stZones: '分區', igTiltSens: '傾斜靈敏度', recenter: '回正', zoneBrake: '煞車 + 手煞', tiltFail: '此環境無法使用傾斜轉向，已改回拖曳',
     transTitle: '選擇變速箱', transAT: '自排 AT', transATd: '自動換檔，專心過彎。', transMT: '手排 MT', transMTd: (u, d) => `自己換檔：${u} 升檔、${d} 降檔。換得好比自排快。`, transHint: '手機會多出 ▲ ▼ 換檔鈕。每次開賽前都會再問一次。', transKeys: 'Enter 或點一下確認，Esc 取消。',
@@ -1044,7 +1052,7 @@ const I18N = {
     pvpOppTime: "Opponent's time", pvpBackRoom: 'Back to the room', pvpLeaveEnd: 'Leave and go to title',
     nickTitle: 'Your nickname', nickLbl: 'Nickname', nickHint: '1 to 16 characters. Used for this online session only and never saved; other players can see it.', nickOk: 'Confirm', nickCancel: 'Cancel',
     pvpPlayer: 'Player', pvpYouTag: n => `${n} (you)`, pvpNickIs: n => `Your nickname: ${n}.`, pvpTimeOf: n => `${n} · finish time`,
-    igAria: 'Menu', igTitle: 'Menu', igResume: 'Resume', igSettings: 'Settings', igForfeit: 'Forfeit', igBack: 'Back', igMusic: 'Music', igMusicVol: 'Music volume', igSfxVol: 'Sound effects volume', igCam: 'Camera', igLang: 'Language',
+    igAria: 'Menu', igTitle: 'Menu', igResume: 'Resume', igSettings: 'Settings', igForfeit: 'Forfeit', igRestart: 'Restart', igLobby: 'Back to lobby', igLobbyAsk: 'Back to the lobby? This race will end.', igLobbyYes: 'Yes, back to lobby', igRestartAsk: 'Restart? This run will not be saved.', igRestartYes: 'Yes, restart', igBack: 'Back', igMusic: 'Music', igMusicVol: 'Music volume', igSfxVol: 'Sound effects volume', igCam: 'Camera', igLang: 'Language',
     igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', vibe: 'Vibration', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
     ctlLbl: 'Controls', igSteer: 'Steering', stDrag: 'Drag', stTilt: 'Tilt', stZones: 'Zones', igTiltSens: 'Tilt sensitivity', recenter: 'Re-center', zoneBrake: 'BRAKE + E-BRAKE', tiltFail: 'Tilt steering is unavailable here; switched back to drag.',
     transTitle: 'Choose a gearbox', transAT: 'Automatic AT', transATd: 'Shifts for you. Focus on the corners.', transMT: 'Manual MT', transMTd: (u, d) => `Shift yourself: ${u} = up, ${d} = down. Shift well and you beat the automatic.`, transHint: 'On a phone, ▲ ▼ shift buttons appear. You are asked again before every race.', transKeys: 'Enter or a tap confirms, Esc cancels.',
@@ -2975,6 +2983,7 @@ const rival = {};
 let state = 'title', raceT = 0, countT = 0, camOrbit = 0, shake = 0, lastGapSign = 1, finishTimer = -1;
 let playerWon = false, driftTotal = 0, driftChain = 0, driftIdle = 0, rivalFinishT = null, playerFinishT = null;
 let menuOpen = false, menuView = 'main'; // in-game menu (never pauses the race)
+let confirmFor = 'forfeit', confirmFrom = '#igForfeit'; // what the menu confirm view asks (forfeit / lobby), and the button to refocus when it closes; read by syncMenuUI at start-up
 let steerMode = 'drag', tiltSens = TILT.SENS_DEF, tiltNoteKey = '', steerTok = 0; // 'drag' | 'tilt' | 'zones'; the touch-control code is in the controls section
 let trans = store.get('yatouge-trans') === 'manual' ? 'manual' : 'auto', transOpen = false; // 'auto' | 'manual': the last choice, asked again before every race; gear / shift-cut state lives on `car`
 let pvp = null, startLat = 2.2, startS = 0, onlineUI = false; // pvp: the online match in progress (null = single player); startLat: grid slot, + right of the centreline; startS: m ahead of it (cat-and-mouse leader)
@@ -5636,7 +5645,7 @@ window.addEventListener('keyup', e => {
   const act = kbKeyAction(kb, e.code); if (KB_DRIVE.includes(act)) input[act] = false;
 });
 window.addEventListener('blur', () => { for (const k in input) input[k] = k === 'steerAxis' ? null : false; releaseTouch(); });
-function menuEsc(a) { if (a === 'open') openMenu(); else if (a === 'close') closeMenu(); else if (a === 'back') showMenuView('main', menuView === 'settings' ? '#igSettings' : '#igForfeit'); }
+function menuEsc(a) { if (a === 'open') openMenu(); else if (a === 'close') closeMenu(); else if (a === 'back') showMenuView('main', menuView === 'settings' ? '#igSettings' : confirmFrom); }
 // Manual only, countdown or race, menu closed. A refused downshift (it would over-rev) is told to the player.
 function shiftGear(dir) {
   if (trans !== 'manual' || menuOpen || transOpen || (state !== 'count' && state !== 'race')) return;
@@ -5995,8 +6004,12 @@ function syncMenuUI() {
   $('#igCam').disabled = !!sakeRun; // Sake Run: cockpit only
   // time attack / Sake Run: "forfeit" becomes "quit" (back to the title, nothing saved)
   const solo = !!(taRun || sakeRun);
-  $('#igForfeit').textContent = T(solo ? 'taQuit' : 'igForfeit'); $('#igConfQ').textContent = T(taRun ? 'taQuitAsk' : sakeRun ? 'sakeQuitAsk' : 'igConfirm'); $('#igYes').textContent = T(solo ? 'taQuitYes' : 'igYes');
+  $('#igForfeit').textContent = T(solo ? 'taQuit' : 'igForfeit');
+  const ck = confirmKeys(confirmFor, !!taRun, !!sakeRun);
+  $('#igConfQ').textContent = T(ck.q); $('#igYes').textContent = T(ck.yes);
+  const mi = menuItems(!!pvp); $('#igRestart').hidden = !mi.restart; $('#igLobby').hidden = !mi.lobby;
 }
+function askConfirm(what, from) { confirmFor = what; confirmFrom = from; syncMenuUI(); showMenuView('confirm'); }
 function showMenuView(v, focus) {
   menuView = v;
   for (const k in igViews) $(igViews[k]).hidden = k !== v;
@@ -6021,9 +6034,20 @@ $('#btnIgm').addEventListener('click', e => { e.currentTarget.blur(); if (menuOp
 $('#igResume').addEventListener('click', closeMenu);
 $('#igSettings').addEventListener('click', () => showMenuView('settings'));
 $('#igBack').addEventListener('click', () => showMenuView('main', '#igSettings'));
-$('#igForfeit').addEventListener('click', () => showMenuView('confirm'));
-$('#igNo').addEventListener('click', () => showMenuView('main', '#igForfeit'));
-$('#igYes').addEventListener('click', forfeit);
+$('#igForfeit').addEventListener('click', () => askConfirm('forfeit', '#igForfeit'));
+$('#igLobby').addEventListener('click', () => askConfirm('lobby', '#igLobby'));
+$('#igNo').addEventListener('click', () => showMenuView('main', confirmFrom));
+function restartRace() { // same car, course and mode; nothing is saved for the abandoned run
+  if (pvp) return;
+  closeMenu(); taEnd(); sakeEnd(); camOrbit = 0; _ckPrev.ok = false; $('#pop').classList.remove('show');
+  clearTimeout(forfeitT); $('#forfeitNote').hidden = true; startRace();
+}
+$('#igYes').addEventListener('click', () => {
+  if (confirmFor === 'lobby') { if (pvp) { closeMenu(); leaveToLobby(''); } else { syncMenuUI(); showMenuView('main'); } }
+  else if (confirmFor === 'restart') restartRace();
+  else forfeit();
+});
+$('#igRestart').addEventListener('click', () => { if (menuItems(!!pvp).restart) askConfirm('restart', '#igRestart'); });
 $('#igMusic').addEventListener('click', () => { setMusic(!musicOn); syncMenuUI(); });
 $('#igMusicVol').addEventListener('input', e => { setVolume('music', volFromPct(e.target.value)); syncMenuUI(); });
 $('#igSfxVol').addEventListener('input', e => { setVolume('sfx', volFromPct(e.target.value)); syncMenuUI(); });

@@ -7,7 +7,7 @@ const html = readFileSync(new URL('../yatouge.html', import.meta.url), 'utf8');
 function load() {
   const open = '/* @ingame-menu:start */', s = html.indexOf(open), e = html.indexOf('/* @ingame-menu:end */');
   assert.ok(s >= 0 && e > s, '找不到 @ingame-menu 區塊');
-  return new Function(`${html.slice(s + open.length, e)}\nreturn { MUSIC_BASE, clampVol, volPct, volFromPct, musicLevel, menuCanOpen, menuEscAction, forfeitPlan };`)();
+  return new Function(`${html.slice(s + open.length, e)}\nreturn { MUSIC_BASE, clampVol, volPct, volFromPct, musicLevel, menuCanOpen, menuEscAction, forfeitPlan, menuItems, confirmKeys };`)();
 }
 
 test('選單只在倒數與比賽中可開，標題、結果、暱稱對話框開著時不可開', () => {
@@ -67,4 +67,31 @@ test('認輸：單人回標題、連線離開對戰；都不存最佳成績', ()
   const { forfeitPlan } = load();
   assert.deepEqual(forfeitPlan(false), { action: 'title', saveBest: false });
   assert.deepEqual(forfeitPlan(true), { action: 'leave', saveBest: false });
+});
+
+test('選單按鈕：單機只顯示重新開始，連線只顯示回到大廳', () => {
+  const { menuItems } = load();
+  assert.deepEqual(menuItems(false), { restart: true, lobby: false });
+  assert.deepEqual(menuItems(true), { restart: false, lobby: true });
+});
+
+test('選單確認畫面的狀態變數必須在第一次 applyLang() 之前宣告（否則載入時 TDZ 當機）', () => {
+  const call = html.indexOf('\napplyLang();\n');
+  assert.ok(call > 0, '找不到頂層 applyLang();');
+  for (const name of ['confirmFor', 'confirmFrom']) {
+    const m = new RegExp(String.raw`\blet\b[^;\n]*\b${name}\s*=`).exec(html);
+    assert.ok(m, `找不到 ${name} 的 let 宣告`);
+    assert.ok(m.index < call, `${name} 宣告在第一次 applyLang() 之後`);
+  }
+});
+
+test('確認畫面文字：認輸依計時賽／送酒切換，回到大廳與重新開始各有自己的字串', () => {
+  const { confirmKeys } = load();
+  assert.deepEqual(confirmKeys('forfeit', false, false), { q: 'igConfirm', yes: 'igYes' });
+  assert.deepEqual(confirmKeys('forfeit', true, false), { q: 'taQuitAsk', yes: 'taQuitYes' });
+  assert.deepEqual(confirmKeys('forfeit', false, true), { q: 'sakeQuitAsk', yes: 'taQuitYes' });
+  for (const [ta, sake] of [[false, false], [true, false], [false, true]]) {
+    assert.deepEqual(confirmKeys('lobby', ta, sake), { q: 'igLobbyAsk', yes: 'igLobbyYes' });
+    assert.deepEqual(confirmKeys('restart', ta, sake), { q: 'igRestartAsk', yes: 'igRestartYes' });
+  }
 });
