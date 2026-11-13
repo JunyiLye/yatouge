@@ -747,8 +747,8 @@ const confirmKeys = (what, ta, sake) => what === 'lobby' ? { q: 'igLobbyAsk', ye
 // Player-facing release notes, newest first (at most 12 versions). Add today's version, or extend it, whenever a change the player can see goes out.
 const CHANGELOG = [
   { date: '2026-11-14',
-    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：主畫面選好賽道後可以切換「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式與線上對戰仍是下坡）。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。', '修正：主畫面按 Enter 只有在「開始」鈕上、或焦點不在任何控制項上時才會開始比賽；在其他按鈕、選單上按 Enter 會照常操作它，方向鍵也能切換下拉選單與滑桿。', '修正：可以把 Ctrl 或 Alt 綁成降檔、鏡頭、聊天，綁了之後確實會作用。', '修正：關閉 KX-2 車門字樣後，離開車內視角不會再冒出來。', '修正：計時在整分、整十秒前後不再顯示成 0:60.00 之類的錯誤格式。', '修正：點選卡片後鍵盤焦點會留在原位；再點已選的車不會重設顏色。', '修正：回到主畫面時視角會恢復正常。', '修正：在遊戲內換語言後，主畫面的線上狀態也會跟著換語言。', '修正：壞掉的語言存檔不再讓文字壞掉。'],
-    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after picking a course on the title screen you can switch between Downhill and Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run and online matches stay downhill).', 'Fix: a turn sign no longer disappears and reappears when you brake after it shows up.', 'Fix: if the car is sliding backwards when you cross the line, the auto-brake no longer sends it flying.', 'Fix: in a room with several rounds, later rounds no longer always show a win.', 'Fix: the lobby list now updates right away when someone leaves or closes a room.', 'Fix: a join that finishes after you went back from the lobby no longer pulls you into a room.', 'Fix: on the title screen Enter starts the race only from the Start button or when focus is not on any control; on other buttons and menus it works that control, and the arrow keys now change dropdowns and sliders.', 'Fix: Ctrl or Alt can be bound to downshift, camera or chat and now really work.', 'Fix: with the KX-2 door lettering turned off it no longer pops back when you leave the cockpit view.', 'Fix: timers around full minutes and ten-second marks no longer show formats like 0:60.00.', 'Fix: keyboard focus stays in place after choosing a card, and clicking the car you already picked no longer resets its colour.', 'Fix: the view returns to normal when you are back on the title screen.', 'Fix: switching language in-game also updates the title-screen online status.', 'Fix: a corrupted language save no longer breaks the text.'] },
+    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：主畫面選好賽道後可以切換「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式與線上對戰仍是下坡）。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。', '修正：主畫面按 Enter 只有在「開始」鈕上、或焦點不在任何控制項上時才會開始比賽；在其他按鈕、選單上按 Enter 會照常操作它，方向鍵也能切換下拉選單與滑桿。', '修正：可以把 Ctrl 或 Alt 綁成降檔、鏡頭、聊天，綁了之後確實會作用。', '修正：關閉 KX-2 車門字樣後，離開車內視角不會再冒出來。', '修正：計時在整分、整十秒前後不再顯示成 0:60.00 之類的錯誤格式。', '修正：點選卡片後鍵盤焦點會留在原位；再點已選的車不會重設顏色。', '修正：回到主畫面時視角會恢復正常。', '修正：在遊戲內換語言後，主畫面的線上狀態也會跟著換語言。', '修正：壞掉的語言存檔不再讓文字壞掉。', '修正：AI 衝線後不會再停在終點讓你撞上。', '修正：起跑的 GO 消失後，大型與預告彎道提示才會出現。', '修正：線上對戰中對手在比賽時換車不再造成畫面卡頓；連線較忙時大廳會請你稍候。', '修正：線上對戰衝線後，兩台車不會再互撞。'],
+    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after picking a course on the title screen you can switch between Downhill and Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run and online matches stay downhill).', 'Fix: a turn sign no longer disappears and reappears when you brake after it shows up.', 'Fix: if the car is sliding backwards when you cross the line, the auto-brake no longer sends it flying.', 'Fix: in a room with several rounds, later rounds no longer always show a win.', 'Fix: the lobby list now updates right away when someone leaves or closes a room.', 'Fix: a join that finishes after you went back from the lobby no longer pulls you into a room.', 'Fix: on the title screen Enter starts the race only from the Start button or when focus is not on any control; on other buttons and menus it works that control, and the arrow keys now change dropdowns and sliders.', 'Fix: Ctrl or Alt can be bound to downshift, camera or chat and now really work.', 'Fix: with the KX-2 door lettering turned off it no longer pops back when you leave the cockpit view.', 'Fix: timers around full minutes and ten-second marks no longer show formats like 0:60.00.', 'Fix: keyboard focus stays in place after choosing a card, and clicking the car you already picked no longer resets its colour.', 'Fix: the view returns to normal when you are back on the title screen.', 'Fix: switching language in-game also updates the title-screen online status.', 'Fix: a corrupted language save no longer breaks the text.', 'Fix: the AI no longer stops at the finish line for you to crash into.', 'Fix: the large and preview turn signs now appear only after the start GO has gone.', 'Fix: an opponent changing cars during an online race no longer makes the game stutter; the lobby asks you to wait when the connection is busy.', 'Fix: in online races the two cars no longer bump into each other after finishing.'] },
   { date: '2026-11-13',
     zh: ['彎道前會出現提示圖示，可以在設定裡關掉。', '送酒模式通關有獎勵：KX-2 的極速升級開關，以及白色碳纖維引擎蓋塗裝。', '遊戲內選單新增「重新開始」與「回到大廳」。', '比賽結束後車子不會再倒退。', 'SR-7 新增引擎蓋與尾燈細節。', '手機車內視角：後照鏡縮小，KX-2 與 GT-32 的儀表降低，視野更開闊。', '鍵盤與手把的按鍵都可以自己設定。', '線上房間可以聊天、玩貓捉老鼠，也能在房間裡選賽道和車。', '三台車的外型都依真車照片重新製作。'],
     en: ['Turn signs now appear before corners; you can switch them off in settings.', 'Sake Run rewards: a top-speed upgrade switch for the KX-2 and a white carbon-fibre hood paint.', 'The in-game menu now has Restart and Back to lobby.', 'The car no longer rolls backwards after the race ends.', 'New hood and tail-light details on the SR-7.', 'Phone cockpit view: smaller rear-view mirror, and lower dashboards on the KX-2 and GT-32 for a clearer view.', 'Keyboard and controller buttons can be rebound.', 'Online rooms now have chat and Cat and Mouse, and you can pick the course and car inside the room.', 'All three cars were rebuilt from photos of the real cars.'] },
@@ -1032,7 +1032,7 @@ const I18N = {
     driftGod: '神級甩尾', driftNice: '漂亮的甩尾', drift: '甩尾', first: '第一名衝線', second: '第二名衝線',
     gutter: '水溝過彎', gutterLow: '甩尾分數不足', gutterNeed: '水溝過彎需要 1,000 分',
     cam: '鏡頭', camAria: '切換鏡頭', kCam: '切換鏡頭（追蹤／近距離／車內）', camPop: '鏡頭：', camM_chase: '追蹤', camM_near: '近距離', camM_cockpit: '車內',
-    onConnecting: '連線中…', onNotClaude: '這裡無法使用線上對戰', onNeedPerm: '需要允許線上連線', onAllow: '允許線上',
+    trackBusy: '連線較忙，請稍候…', onConnecting: '連線中…', onNotClaude: '這裡無法使用線上對戰', onNeedPerm: '需要允許線上連線', onAllow: '允許線上',
     onDenied: '線上權限已被拒絕', onManage: '開啟權限設定', onManageFail: '無法開啟設定，請從瀏覽器的權限設定開啟', onError: c => `線上暫時無法使用 (${c})`,
     pvpOnline: '線上對戰', pvpEyebrow: '1 對 1 · 即時連線', pvpLobby: '線上對戰大廳', pvpRoomsLbl: '開著的房間',
     pvpPick: '賽道、模式與車子在房間裡選。', pvpEmpty: '目前沒有開著的房間，自己開一間吧。',
@@ -1103,7 +1103,7 @@ const I18N = {
     driftGod: 'Legendary drift', driftNice: 'Nice drift', drift: 'Drift', first: 'First across the line', second: 'Second across the line',
     gutter: 'Gutter run', gutterLow: 'Not enough drift points', gutterNeed: 'A gutter run costs 1,000 points',
     cam: 'Camera', camAria: 'Switch camera', kCam: 'Switch camera (chase / close / cockpit)', camPop: 'Camera: ', camM_chase: 'Chase', camM_near: 'Close', camM_cockpit: 'Cockpit',
-    onConnecting: 'Connecting…', onNotClaude: 'Online play is not available here', onNeedPerm: 'Online needs your permission', onAllow: 'Allow online',
+    trackBusy: 'Connection is busy, please wait…', onConnecting: 'Connecting…', onNotClaude: 'Online play is not available here', onNeedPerm: 'Online needs your permission', onAllow: 'Allow online',
     onDenied: 'Online permission was denied', onManage: 'Open permissions', onManageFail: "Couldn't open settings. Use your browser's permission settings", onError: c => `Online unavailable (${c})`,
     pvpOnline: 'Online 1v1', pvpEyebrow: '1v1 · live', pvpLobby: 'Online lobby', pvpRoomsLbl: 'Open rooms',
     pvpPick: 'You pick the course, mode and car in the room.', pvpEmpty: 'No open rooms right now. Create one.',
@@ -2169,6 +2169,18 @@ function makeLimiter(interval, fn, now = () => performance.now(), later = setTim
   return {
     poke() { if (dead || timer !== null) return; const s = throttleStep(last, now(), interval); if (s.run) fire(); else timer = later(fire, s.delay); },
     cancel() { dead = true; if (timer !== null) { cancelLater(timer); timer = null; } }
+  };
+}
+// presence track() budget (the server allows 5 per 30 s per client): take() returns 0 and records the call when one may go now, else the ms to wait (nothing is booked: a waiting call asks again when its timer fires, however late that is)
+function makeTrackBudget(limit = 5, windowMs = 30000, now = () => performance.now()) {
+  const at = [];
+  return {
+    take() {
+      const t = now(), wait = at.length >= limit ? at[0] + windowMs - t : 0;
+      if (wait > 0) return wait;
+      at.push(t); if (at.length > limit) at.shift();
+      return 0;
+    }
   };
 }
 /* @supa:end */
@@ -3436,7 +3448,7 @@ function physics(dt) {
     if (vt > 0) { c.vx -= tx * vt; c.vz -= tz * vt; }
   }
   if (pvp) pvpBump(c);
-  else if (!taRun && !sakeRun) {
+  else if (!taRun && !sakeRun && carsMayCollide(rival.s, L.s, FINISH_S, state)) {
     const rp = samplePos(rival.s, rival.lat);
     const cr = carStep(c, CAR_BOX[choice.car], { x: rp.x, z: rp.z, h: rp.h, vis: rival.vis, s: rival.s, lat: rival.lat, v: rival.v, latV: rival.latV }, CAR_BOX[rivalFor(baseId(trackId), choice.car).car], roadHW - 1, COLL);
     if (cr) {
@@ -3458,6 +3470,12 @@ function wallHit(v) {
 }
 
 /* ---------- rival AI ---------- */
+/* @finish-hit:start */
+// Past the finish line nobody races: the rival is pinned at the end of the road (pts[N-3]) and would sit in the middle of it, so no car-to-car hit once the rival, or the finished player, is past it
+function carsMayCollide(rivalS, playerS, finishS, st) { return !(rivalS > finishS || (st === 'done' && playerS > finishS)); }
+// the rival's advance along the road; held at the end of the road it stops dead (no wheelspin against the stop)
+function rivalAdvance(s, v, dt, endS) { const n = s + v * dt; return n >= endS ? { s: endS, v: 0 } : { s: n, v }; }
+/* @finish-hit:end */
 /* @rival-hill:start */
 // Uphill courses only (up = true); downhill returns ai.top / ai.acc untouched. The AI's top speed was tuned on the downhill course (average grade -AI_HILL_REF):
 // 'hill' = m/s of top speed one unit of extra grade costs that car (measured on the player physics of the same car); the slope also bleeds acceleration like vehicleAccel does.
@@ -3480,7 +3498,7 @@ function rivalUpdate(dt) {
   if (gap > 140) target *= 0.85; else if (gap > 70) target *= 0.94; else if (gap < -30) target *= 1.08;
   if (rivalFinishT !== null) target = 0;
   if (r.v < target) r.v = Math.min(target, r.v + aiHillAcc(ai, up, here.grade) * dt); else r.v = Math.max(target, r.v - 16 * dt);
-  r.s = Math.min(pts[N - 3].s, r.s + r.v * dt);
+  ({ s: r.s, v: r.v } = rivalAdvance(r.s, r.v, dt, pts[N - 3].s));
   const latT = Math.abs(here.k) > 0.008 ? -Math.sign(here.k) * 2.4 : 0;
   r.lat += clamp(latT - r.lat, -1.3 * dt, 1.3 * dt) + r.latV * dt;
   r.latV *= Math.exp(-4 * dt);
@@ -3779,7 +3797,7 @@ function showPop(big, small) { const el = $('#pop'); el.innerHTML = ''; el.appen
 function tsPopClear(pop) { pop.classList.remove('ts-below', 'ts-beside'); for (const v of ['--ts-pop', '--ts-pop-y', '--ts-pop-r', '--ts-pop-w']) pop.style.removeProperty(v); }
 function tsHide() { tsCur = ''; tsKey = ''; const el = $('#turnSign'); if (!el.classList.contains('show')) return; el.classList.remove('show', 'flash'); el.setAttribute('aria-hidden', 'true'); tsPopClear($('#pop')); } // the DOM is the truth: safe to call after tsCur was cleared elsewhere
 function turnSignFrame() {
-  const sg = tsStyle !== 'off' && state === 'race' && !sakeRun && !tsGoGated(tsStyle, performance.now() < goUntil) ? nextTwoSigns(tsList || (tsList = cornerList(pts)), car.loc.s, Math.hypot(car.vx, car.vz), tsCur === '' ? -1 : +tsCur) : null;
+  const sg = tsStyle !== 'off' && state === 'race' && !sakeRun && !tsGoGated(tsStyle, goUntil > 0) ? nextTwoSigns(tsList || (tsList = cornerList(pts)), car.loc.s, Math.hypot(car.vx, car.vz), tsCur === '' ? -1 : +tsCur) : null;
   if (!sg) { tsHide(); return; }
   const el = $('#turnSign'), k = sg.k;
   if (tsCur !== String(sg.i)) {
@@ -4838,7 +4856,8 @@ function makeMockRoom() {
 const SUPA = {
   URL: 'https://kvalgehfazubficybqhw.supabase.co', KEY: 'sb_publishable_dAQEl29T_VoG_SaKb4jzsg_AppMoOJw',
   SRC: 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js', SRI: 'sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK',
-  LOW_MS: 300, HB_MS: 1000, CAR_MS: 50, CONNECT_MS: 15000, SYNC_MS: 1500, GHOST_MS: 2500, MAX_PEERS: 256, MAX_CARS: 64
+  LOW_MS: 300, HB_MS: 1000, CAR_MS: 50, CONNECT_MS: 15000, SYNC_MS: 1500, GHOST_MS: 2500, MAX_PEERS: 256, MAX_CARS: 64,
+  TRACK_MAX: 5, TRACK_WIN_MS: 30500, TRACK_RETRY_MS: 3000 // presence track(): 5 per 30 s allowed, with a margin; one retry after a failed result
 };
 let sdkLoad = null;
 function loadSupabaseSdk() {
@@ -4854,12 +4873,28 @@ function loadSupabaseSdk() {
     document.head.append(s);
   });
 }
-function makeSupabaseRoom(load = loadSupabaseSdk) {
+function makeSupabaseRoom(load = loadSupabaseSdk, onBusy = () => {}, budget = makeTrackBudget(SUPA.TRACK_MAX, SUPA.TRACK_WIN_MS), retryMs = SUPA.TRACK_RETRY_MS) {
   const ra = new Uint8Array(15);
   if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(ra); else for (let i = 0; i < 15; i++) ra[i] = Math.random() * 256;
   const me = { peer: 'p' + Array.from(ra, b => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join(''), by: null }; // random per tab: the only id sent
   const scopes = new Set(), byName = new Map(), EMPTY = Object.freeze([]);
-  let client = null, lobby = null, startP = null;
+  let client = null, lobby = null, startP = null, delayed = 0;
+  // our roster entry, queued by the budget (never dropped); a result other than 'ok' is tried once more after retryMs. onBusy(true / false): a call is waiting for its slot
+  const unbusy = () => { if (--delayed === 0) onBusy(false); };
+  // at most one call per channel is waiting (for a slot, or for its retry): a repeated SUBSCRIBED while one waits adds nothing
+  const trackLater = (sc, ms, retry, counted) => {
+    if (counted && !sc.busyOn) { sc.busyOn = true; if (delayed++ === 0) onBusy(true); }
+    sc.tq = setTimeout(() => { sc.tq = null; sendTrack(sc, retry, true); }, ms);
+  };
+  const sendTrack = (sc, retry, queued) => {
+    if (sc.left || (sc.tq && !queued)) return;
+    const d = budget.take();
+    if (d > 0) { trackLater(sc, d, retry, true); return; }
+    if (sc.busyOn) { sc.busyOn = false; unbusy(); }
+    const again = () => { if (retry && !sc.left && !sc.tq) trackLater(sc, retryMs, false, false); };
+    let r; try { r = Promise.resolve(sc.ch.track({ v: 1 })); } catch (e) { r = Promise.reject(e); }
+    r.then(res => { if (res !== 'ok') again(); }, again);
+  };
   const canPush = sc => !sc.left && !!client && client.realtime.isConnected() && sc.ch.state === 'joined'; // the sdk's own state: it rejoins by itself and fires no event for every change
   const isConn = sc => canPush(sc) && navigator.onLine !== false;
   const flush = sc => { // deliver the net change since the last delivery (same contract as the mock: frozen peers, unchanged ones stay ===)
@@ -4888,12 +4923,12 @@ function makeSupabaseRoom(load = loadSupabaseSdk) {
   const kill = sc => {
     if (sc.left) return Promise.resolve();
     try { sc.bye(); } catch (e) { /* not joined: nobody to tell */ }
-    sc.left = true; sc.lowL.cancel(); sc.carL.cancel(); clearInterval(sc.hb); clearInterval(sc.tick); scopes.delete(sc); byName.delete(sc.name);
+    sc.left = true; if (sc.tq) { clearTimeout(sc.tq); sc.tq = null; } if (sc.busyOn) { sc.busyOn = false; unbusy(); } sc.lowL.cancel(); sc.carL.cancel(); clearInterval(sc.hb); clearInterval(sc.tick); scopes.delete(sc); byName.delete(sc.name);
     sc.subs.clear(); sc.conn.clear();
     return Promise.resolve(client && client.removeChannel(sc.ch)).catch(() => {});
   };
   const open = (name, isLobby) => new Promise((resolve, reject) => {
-    const sc = { name, status: 'none', ch: null, low: {}, clearN: 0, mine: Object.freeze({}), mineAt: Date.now(), car: null, cars: new Map(), lows: new Map(), recs: new Map(), roster: new Set(), seen: new Map(), ghosts: false, connPrev: false, hb: 0, tick: 0, bye: null, cache: new Map(), arr: EMPTY, subs: new Set(), conn: new Set(), flushT: 0, left: false, synced: false, afterSync: null };
+    const sc = { name, tq: null, busyOn: false, status: 'none', ch: null, low: {}, clearN: 0, mine: Object.freeze({}), mineAt: Date.now(), car: null, cars: new Map(), lows: new Map(), recs: new Map(), roster: new Set(), seen: new Map(), ghosts: false, connPrev: false, hb: 0, tick: 0, bye: null, cache: new Map(), arr: EMPTY, subs: new Set(), conn: new Set(), flushT: 0, left: false, synced: false, afterSync: null };
     scopes.add(sc); if (!isLobby) byName.set(name, sc);
     sc.ch = client.channel(isLobby ? 'yatouge-lobby' : 'yatouge-room-' + name, { config: { broadcast: { self: false, ack: false }, presence: { key: me.peer } } });
     const live = () => canPush(sc); // never while rejoining: the sdk would fall back to one HTTP request per send
@@ -4978,7 +5013,7 @@ function makeSupabaseRoom(load = loadSupabaseSdk) {
       setStatus(sc, status);
       if (settled && !sc.left && status !== 'SUBSCRIBED') console.warn('room:', 'sb_' + status, err && err.message); // the sdk rejoins by itself; this only leaves a trace
       if (status === 'SUBSCRIBED') {
-        Promise.resolve(sc.ch.track({ v: 1 })).catch(() => {}); // our roster entry: the only presence call (5 per 30 s allowed); also after a rejoin
+        sendTrack(sc, true); // the only presence call (5 per 30 s allowed, see makeTrackBudget); also after a rejoin
         sc.lowL.poke();
         if (sc.synced) fin(); else { sc.afterSync = () => fin(); setTimeout(fin, SUPA.SYNC_MS); }
       } else if (!settled && (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED')) {
@@ -5052,7 +5087,9 @@ function showPanel(which) {
   syncNet();
 }
 let lobbyKey = '', emptySince = null;
-const lobbyNote = k => { lobbyKey = k; $('#lobbyNote').textContent = k ? T(k) : ''; }; // k is an i18n key, so a language change can re-render it
+let trackBusyOn = false; // sticky: a queued presence call keeps its note over the blank / connecting ones that lobby code sets meanwhile
+const trackBusyNote = busy => { trackBusyOn = busy; if (busy) lobbyNote('trackBusy'); else if (lobbyKey === 'trackBusy') lobbyNote(''); }; // the transport is waiting for a presence slot
+const lobbyNote = k => { if (trackBusyOn && (!k || k === 'onConnecting')) k = 'trackBusy'; lobbyKey = k; $('#lobbyNote').textContent = k ? T(k) : ''; }; // k is an i18n key, so a language change can re-render it
 function openLobby() { showPanel('lobby'); $('#codeBox').hidden = $('#btnCreatePriv').hidden = onl.transport !== 'supabase'; /* private rooms: Supabase transport only */ lobbyNote(room ? '' : 'onConnecting'); emptySince = null; $('#codeInput').value = ''; syncCode(); renderLobby(true); clearInterval(lobbyT); lobbyT = setInterval(renderLobby, 500); $('#btnCreate').focus(); }
 function closeLobby() { lobbyGate.cancel(); clearInterval(lobbyT); showPanel(null); $('#btnOnline').focus(); }
 function renderLobby(force) {
@@ -5289,7 +5326,7 @@ function pvpToRoom() {
   state = 'title'; startS = 0; resetRace();
   for (const s of ['#hud', '#result']) $(s).hidden = true;
   $('#count').textContent = ''; goUntil = 0; $('#pop').classList.remove('show');
-  Object.assign(p, { st: 'waiting', ft: null, buf: [], pose: null, cat: null, ck: null }); rpReset(p); // the picks stay; the next round votes again
+  Object.assign(p, { st: 'waiting', ft: null, buf: [], pose: null, cat: null, ck: null, lastPres: null }); rpReset(p); // the picks stay; the next round votes again
   pvpPublish({ c: null }); advertise(p);
   showPanel('room'); renderRoom(); focusRoom();
 }
@@ -5330,8 +5367,8 @@ function ingest(pres, peers, now) {
   if (v.st === 'finished' && v.ft !== null) p.oppFt = v.ft;
   if (!p.host && catOn(p) && v.cm && v.cm.r === p.cat.r) { const had = catResult(p.cat); p.cat = v.cm; if (!had && catResult(p.cat)) catDecided(); } // the host's call on this round
   if (v.st === 'finished' && (!prev || prev.st !== 'finished') && state === 'race') showPop(T('pvpOppDone'), v.ft !== null ? fmtT(v.ft) : '');
-  const key = v.car + ':' + v.col;
-  if (key !== p.oppKey) { p.oppKey = key; scene.remove(rivalCar.g); disposeCar(rivalCar); rivalCar = makeCar(v.car, v.col); rivalCar.g.visible = false; renderer.compile(scene, camera); }
+  const key = v.car + ':' + v.col; // a car change during the countdown / race / result waits for the room (a rebuild every 300 ms would stutter)
+  if (key !== p.oppKey && (p.st === 'waiting' || p.st === 'ready')) { p.oppKey = key; scene.remove(rivalCar.g); disposeCar(rivalCar); rivalCar = makeCar(v.car, v.col); rivalCar.g.visible = false; renderer.compile(scene, camera); }
   const sig = pickSig(v), was = p.oppSig, st = cancelReady(p.st, was, sig); p.oppSig = sig;
   if (p.note !== 'rpChanged') p.note = '';
   if (st !== p.st) { p.note = 'rpChanged'; pvpSetSt(st); } // their pick changed: our ready is cancelled too
@@ -5400,6 +5437,7 @@ function pvpSend(now) {
 function pvpBump(c) {
   const p = pvp, o = p.pose;
   if (!o || o.stale || !p.opp) return;
+  if (!carsMayCollide(p.oppFt !== null ? o.s : 0, c.loc.s, FINISH_S, state)) return; // past the line after finishing: no more bumps (the rival counts once it has a finish time)
   const cr = carStep(c, CAR_BOX[choice.car], remoteAsRival(o), CAR_BOX[p.opp.car], roadHW - 1, COLL);
   if (!cr) return;
   Object.assign(c, pushOut(c, cr), { vx: cr.vx, vz: cr.vz, w: cr.w });
@@ -5899,7 +5937,7 @@ async function sbConnect() {
   const gen = onl.gen;
   onl.room = 'pending'; renderOnline();
   try {
-    const r = await (onl.sb || (onl.sb = makeSupabaseRoom())).start();
+    const r = await (onl.sb || (onl.sb = makeSupabaseRoom(undefined, trackBusyNote))).start();
     if (gen !== onl.gen) return;
     attachRoom(r);
     if (onlineUI && !pvp) { lobbyNote(''); renderLobby(true); }
@@ -5969,6 +6007,12 @@ $('#btnReady').addEventListener('click', () => {
 initOnline();
 
 /* ---------- loop ---------- */
+// The GO text and the sign gate (turnSignFrame reads goUntil > 0) end together here, in the same frame, before hud()
+function goTick(now) {
+  if (!goUntil || now < goUntil) return;
+  goUntil = 0;
+  if ($('#count').textContent === 'GO') $('#count').textContent = '';
+}
 let last = performance.now(), acc = 0;
 const FIX = 1 / 120;
 function frame(now) {
@@ -5978,9 +6022,9 @@ function frame(now) {
   if (pvp) pvpFrame();
   if (state === 'count') {
     const before = Math.ceil(countT); countT = pvp ? countdownLeft(pvp.goAt, performance.now()) : countT - dt; const after = Math.ceil(countT);
-    // goUntil is self-expiring: a missed clear can never gate longer than the GO text
-    if (after !== before) { if (after > 0) { $('#count').textContent = after; beep(440, 0.15); } else { $('#count').textContent = 'GO'; goUntil = performance.now() + 700; beep(880, 0.4); state = 'race'; if (pvp) pvpSetSt('racing'); setTimeout(() => { if ($('#count').textContent === 'GO') $('#count').textContent = ''; }, 700); } }
+    if (after !== before) { if (after > 0) { $('#count').textContent = after; beep(440, 0.15); } else { $('#count').textContent = 'GO'; goUntil = performance.now() + 700; beep(880, 0.4); state = 'race'; if (pvp) pvpSetSt('racing'); } }
   }
+  goTick(performance.now());
   if (state === 'race' || state === 'done') {
     acc += dt;
     while (acc >= FIX) { physics(FIX); if (!pvp && !taRun && !sakeRun) rivalUpdate(FIX); acc -= FIX; }

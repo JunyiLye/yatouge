@@ -314,7 +314,7 @@ test('GO 文字還在時（goUntil 之前）只有 big / preview 等它消失；
     const gated = st === 'big' || st === 'preview';
     assert.deepEqual(h.beeps, gated || st === 'off' ? [] : [1], st + ' GO 期間');
     assert.equal(h.el.className !== '', !gated && tsDraws(st), st + ' GO 期間的畫面');
-    h.set('now', 1700); h.frame(); h.frame(); h.frame(); // 700 ms later, no explicit clear needed
+    h.set('go', 0); h.frame(); h.frame(); h.frame(); // 700 ms later the main loop's goTick has cleared goUntil
     assert.deepEqual(h.beeps, st === 'off' ? [] : [1], st + ' 整段只嗶一次');
     assert.equal(h.el.className !== '', tsDraws(st), st);
   }
@@ -365,25 +365,22 @@ test('後照鏡版面在 hud() 之前算好（turnSignFrame 讀到的 tsMirrorBo
   assert.ok(html.indexOf('const mirrorOn') < html.indexOf(call));
 });
 
-test('goUntil：GO 寫入時設為 now + 700 ms，700 ms 計時器、倒數開始、結束、回標題、重置時清掉；turnSignFrame 不讀 DOM 文字', () => {
+test('goUntil：GO 寫入時設為 now + 700 ms，由主迴圈的 goTick 到期清除（不再有計時器）；倒數開始、結束、回標題、重置時清掉；turnSignFrame 不讀 DOM 文字', () => {
   assert.ok(/textContent = 'GO'; goUntil = performance\.now\(\) \+ 700;/.test(html));
-  assert.ok(/=== 'GO'\) \$\('#count'\)\.textContent = ''; \}, 700\)/.test(html), '視覺上的清除計時器不變');
+  assert.ok(html.includes('goTick(performance.now());'), '主迴圈清除 GO');
   assert.ok(/textContent = '3'; goUntil = 0;/.test(html));
   assert.ok((html.match(/textContent = ''; goUntil = 0;/g) || []).length >= 4, '重置、回標題、結束、離開線上等處');
   const m = /function turnSignFrame\(\) \{[\s\S]*?\n\}/.exec(html)[0];
   assert.equal(m.includes('#count'), false);
 });
 
-test('goUntil 自己會過期：忘了清除也最多擋 700 ms（時間走過去就顯示）', () => {
+test('turnSignFrame 只看 goUntil 是否大於 0：有值就擋 big / preview，清成 0 就顯示（過期由主迴圈的 goTick 負責，見 go-clear.test.mjs）', () => {
   for (const st of ['big', 'preview']) {
-    const h = harness(st, { goUntil: 1000 + 700, now: 1000 });
-    h.frame(); assert.equal(h.el.className, '', st + ' 700 ms 內擋住');
-    h.set('now', 1699); h.frame(); assert.equal(h.el.className, '', st + ' 699 ms 還擋');
-    h.set('now', 1700); h.frame(); assert.notEqual(h.el.className, '', st + ' 到期就顯示（沒人清除 goUntil）');
+    const h = harness(st, { goUntil: 1700, now: 1000 });
+    h.frame(); assert.equal(h.el.className, '', st + ' goUntil 有值就擋');
+    h.set('go', 0); h.frame(); assert.notEqual(h.el.className, '', st + ' goUntil 清掉就顯示');
     assert.deepEqual(h.beeps, [1]);
   }
-  const old = harness('big', { goUntil: 5, now: 1e9 }); old.frame();
-  assert.notEqual(old.el.className, '', '很久以前留下的值不擋');
 });
 
 test('tsPopPlace：桌機放在提示下方；手機橫向車內（下方會超過 62% 高度）改放提示左側', () => {
