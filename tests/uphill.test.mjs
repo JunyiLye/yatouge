@@ -296,10 +296,10 @@ function simRival(id, carKey, useLegacy) {
   const rival = { s: c.pts[24].s, v: 0, lat: -2.2, latV: 0, i: 0, vis: 0 }, car = { loc: { s: 0 } };
   const rivalFor = () => ({ car: carKey, color: 0 }), choice = { car: 'hatch' };
   const mk = new Function('rival', 'car', 'CARS', 'rivalFor', 'trackId', 'choice', 'pts', 'N', 'roadHW', 'clamp', 'lerpAngle', 'FINISH_S', 'isUp', 'baseId', 'aiHillTop', 'aiHillAcc', 'rivalAdvance',
-    `let rivalFinishT = null, raceT = 0;
+    `let rivalFinishT = null, rivalCrossN = null, stepN = 0, raceT = 0; // 第 5 批：rivalUpdate 只記過線的步數，時間戳由主迴圈蓋；這裡照舊用跨越當幀的 raceT 當基準
 ${fn('samplePos')}
 ${fn('rivalUpdate')}
-return { samplePos, rivalUpdate, setT(t) { raceT = t; }, get fin() { return rivalFinishT; } };`);
+return { samplePos, rivalUpdate, setT(t) { if (rivalCrossN !== null && rivalFinishT === null) rivalFinishT = raceT; raceT = t; stepN++; }, get fin() { return rivalFinishT; } };`);
   const g = mk(rival, car, CARS, rivalFor, id, choice, c.pts, c.N, c.hw, clamp, lerpAngle, c.FINISH_S, isUp, baseId, aiHillTop, aiHillAcc, rivalAdvance);
   const env = { rival, car, CARS, rivalFor, trackId: id, choice, samplePos: g.samplePos, pts: c.pts, N: c.N, roadHW: c.hw, clamp, FINISH_S: c.FINISH_S, raceT: 0, rivalFinishT: null };
   const dt = 1 / 60, trace = [];

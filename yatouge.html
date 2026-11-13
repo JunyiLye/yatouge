@@ -491,6 +491,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <button id="btnOwnClear" type="button" data-i18n="ownClear" hidden>移除</button>
       <input id="ownFile" type="file" accept="audio/*" hidden tabindex="-1" aria-hidden="true">
     </div>
+    <p id="ownMsg" class="kbnote" role="status"></p>
     <div id="tKx" class="tctl" hidden>
       <div class="igrow"><span id="tKxChimeL" data-i18n="kxChime">時速警示音</span><button id="tKxChime" type="button" role="switch" aria-labelledby="tKxChimeL" aria-checked="true"></button></div>
       <div class="igrow"><span id="tKxLetterL" data-i18n="kxLetter">車門字樣</span><button id="tKxLetter" type="button" role="switch" aria-labelledby="tKxLetterL" aria-checked="true"></button></div>
@@ -645,6 +646,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div class="kbtabs" role="group" data-i18n-aria="kbTitle" aria-label="按鍵設定"><button type="button" data-p="keys" aria-pressed="true" data-i18n="kbKeys">鍵盤</button><button type="button" data-p="pad" aria-pressed="false" data-i18n="kbPad">控制器</button></div>
     <div id="kbList" class="kblist"></div>
     <p id="kbInfo" class="kbinfo"></p>
+    <p id="kbWarn" class="kbnote" role="note" hidden></p>
     <p id="kbNote" class="kbnote" role="status"></p>
     <div class="kbacts"><button class="ghost" id="kbReset" type="button" data-i18n="kbReset">恢復預設</button><button class="go" id="kbBack" type="button" data-i18n="igBack">返回</button></div>
   </div>
@@ -747,8 +749,8 @@ const confirmKeys = (what, ta, sake) => what === 'lobby' ? { q: 'igLobbyAsk', ye
 // Player-facing release notes, newest first (at most 12 versions). Add today's version, or extend it, whenever a change the player can see goes out.
 const CHANGELOG = [
   { date: '2026-11-14',
-    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：主畫面選好賽道後可以切換「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式與線上對戰仍是下坡）。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。', '修正：主畫面按 Enter 只有在「開始」鈕上、或焦點不在任何控制項上時才會開始比賽；在其他按鈕、選單上按 Enter 會照常操作它，方向鍵也能切換下拉選單與滑桿。', '修正：可以把 Ctrl 或 Alt 綁成降檔、鏡頭、聊天，綁了之後確實會作用。', '修正：關閉 KX-2 車門字樣後，離開車內視角不會再冒出來。', '修正：計時在整分、整十秒前後不再顯示成 0:60.00 之類的錯誤格式。', '修正：點選卡片後鍵盤焦點會留在原位；再點已選的車不會重設顏色。', '修正：回到主畫面時視角會恢復正常。', '修正：在遊戲內換語言後，主畫面的線上狀態也會跟著換語言。', '修正：壞掉的語言存檔不再讓文字壞掉。', '修正：AI 衝線後不會再停在終點讓你撞上。', '修正：起跑的 GO 消失後，大型與預告彎道提示才會出現。', '修正：線上對戰中對手在比賽時換車不再造成畫面卡頓；連線較忙時大廳會請你稍候。', '修正：線上對戰衝線後，兩台車不會再互撞。', '修正：線上對戰中，房間裡的其他人無法再冒用你的身分；舊版頁面需重新整理後才能進房。'],
-    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after picking a course on the title screen you can switch between Downhill and Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run and online matches stay downhill).', 'Fix: a turn sign no longer disappears and reappears when you brake after it shows up.', 'Fix: if the car is sliding backwards when you cross the line, the auto-brake no longer sends it flying.', 'Fix: in a room with several rounds, later rounds no longer always show a win.', 'Fix: the lobby list now updates right away when someone leaves or closes a room.', 'Fix: a join that finishes after you went back from the lobby no longer pulls you into a room.', 'Fix: on the title screen Enter starts the race only from the Start button or when focus is not on any control; on other buttons and menus it works that control, and the arrow keys now change dropdowns and sliders.', 'Fix: Ctrl or Alt can be bound to downshift, camera or chat and now really work.', 'Fix: with the KX-2 door lettering turned off it no longer pops back when you leave the cockpit view.', 'Fix: timers around full minutes and ten-second marks no longer show formats like 0:60.00.', 'Fix: keyboard focus stays in place after choosing a card, and clicking the car you already picked no longer resets its colour.', 'Fix: the view returns to normal when you are back on the title screen.', 'Fix: switching language in-game also updates the title-screen online status.', 'Fix: a corrupted language save no longer breaks the text.', 'Fix: the AI no longer stops at the finish line for you to crash into.', 'Fix: the large and preview turn signs now appear only after the start GO has gone.', 'Fix: an opponent changing cars during an online race no longer makes the game stutter; the lobby asks you to wait when the connection is busy.', 'Fix: in online races the two cars no longer bump into each other after finishing.', 'Fix: other people in an online room can no longer pretend to be you; older pages need a refresh to join a room.'] },
+    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：主畫面選好賽道後可以切換「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式與線上對戰仍是下坡）。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。', '修正：主畫面按 Enter 只有在「開始」鈕上、或焦點不在任何控制項上時才會開始比賽；在其他按鈕、選單上按 Enter 會照常操作它，方向鍵也能切換下拉選單與滑桿。', '修正：可以把 Ctrl 或 Alt 綁成降檔、鏡頭、聊天，綁了之後確實會作用。', '修正：關閉 KX-2 車門字樣後，離開車內視角不會再冒出來。', '修正：計時在整分、整十秒前後不再顯示成 0:60.00 之類的錯誤格式。', '修正：點選卡片後鍵盤焦點會留在原位；再點已選的車不會重設顏色。', '修正：回到主畫面時視角會恢復正常。', '修正：在遊戲內換語言後，主畫面的線上狀態也會跟著換語言。', '修正：壞掉的語言存檔不再讓文字壞掉。', '修正：AI 衝線後不會再停在終點讓你撞上。', '修正：起跑的 GO 消失後，大型與預告彎道提示才會出現。', '修正：線上對戰中對手在比賽時換車不再造成畫面卡頓；連線較忙時大廳會請你稍候。', '修正：線上對戰衝線後，兩台車不會再互撞。', '修正：線上對戰中，房間裡的其他人無法再冒用你的身分；舊版頁面需重新整理後才能進房。', '修正：計時賽中途才打開幽靈車，幽靈車不會再浮在路面上方。', '修正：和 AI 幾乎同時衝線時，勝負改用同一個時鐘判斷，不再固定偏向 AI。', '修正：在主畫面選了不能用的自選音樂檔，現在會在音樂按鈕下方顯示提示，不會留到比賽倒數才出現。', '修正：按鍵設定把 Ctrl 綁定後，如果 W、T 或 N 也有綁按鍵，會提醒瀏覽器可能因此關閉或開新分頁。', '修正：使用右 Alt（AltGr）鍵盤配置時，綁在右 Alt 的降檔、鏡頭、聊天可以正常使用。', '修正：視窗失去焦點時按住的手把扳機，回來後不會失效。', '修正：重新開始後，倒數時引擎聲不會延續上一場的油門聲。', '修正：車內視角時，在設定裡開關車門字樣不會讓字樣單獨浮在車外。', '修正：結果畫面按「同一台再跑」再取消變速箱選擇，鍵盤焦點會回到該按鈕。'],
+    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after picking a course on the title screen you can switch between Downhill and Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run and online matches stay downhill).', 'Fix: a turn sign no longer disappears and reappears when you brake after it shows up.', 'Fix: if the car is sliding backwards when you cross the line, the auto-brake no longer sends it flying.', 'Fix: in a room with several rounds, later rounds no longer always show a win.', 'Fix: the lobby list now updates right away when someone leaves or closes a room.', 'Fix: a join that finishes after you went back from the lobby no longer pulls you into a room.', 'Fix: on the title screen Enter starts the race only from the Start button or when focus is not on any control; on other buttons and menus it works that control, and the arrow keys now change dropdowns and sliders.', 'Fix: Ctrl or Alt can be bound to downshift, camera or chat and now really work.', 'Fix: with the KX-2 door lettering turned off it no longer pops back when you leave the cockpit view.', 'Fix: timers around full minutes and ten-second marks no longer show formats like 0:60.00.', 'Fix: keyboard focus stays in place after choosing a card, and clicking the car you already picked no longer resets its colour.', 'Fix: the view returns to normal when you are back on the title screen.', 'Fix: switching language in-game also updates the title-screen online status.', 'Fix: a corrupted language save no longer breaks the text.', 'Fix: the AI no longer stops at the finish line for you to crash into.', 'Fix: the large and preview turn signs now appear only after the start GO has gone.', 'Fix: an opponent changing cars during an online race no longer makes the game stutter; the lobby asks you to wait when the connection is busy.', 'Fix: in online races the two cars no longer bump into each other after finishing.', 'Fix: other people in an online room can no longer pretend to be you; older pages need a refresh to join a room.', 'Fix: opening the ghost car in the middle of a time attack run no longer leaves it floating above the road.', 'Fix: when you and the AI cross the line almost together, the winner is now judged on one shared clock instead of always favouring the AI.', 'Fix: choosing an unusable own-music file on the title screen now shows a message under the music buttons instead of showing up during the next countdown.', 'Fix: in key settings, binding Ctrl while W, T or N is also bound now shows a warning that the browser may close or open a tab.', 'Fix: on AltGr keyboard layouts, downshift, camera and chat bound to the right Alt now work.', 'Fix: a controller trigger held while the window lost focus no longer stops working when you return.', 'Fix: after a restart the engine no longer keeps the throttle sound of the previous run during the countdown.', 'Fix: in cockpit view, toggling the door lettering in settings no longer leaves it floating outside the car.', 'Fix: cancelling the gearbox choice after pressing Run again on the result screen returns keyboard focus to that button.'] },
   { date: '2026-11-13',
     zh: ['彎道前會出現提示圖示，可以在設定裡關掉。', '送酒模式通關有獎勵：KX-2 的極速升級開關，以及白色碳纖維引擎蓋塗裝。', '遊戲內選單新增「重新開始」與「回到大廳」。', '比賽結束後車子不會再倒退。', 'SR-7 新增引擎蓋與尾燈細節。', '手機車內視角：後照鏡縮小，KX-2 與 GT-32 的儀表降低，視野更開闊。', '鍵盤與手把的按鍵都可以自己設定。', '線上房間可以聊天、玩貓捉老鼠，也能在房間裡選賽道和車。', '三台車的外型都依真車照片重新製作。'],
     en: ['Turn signs now appear before corners; you can switch them off in settings.', 'Sake Run rewards: a top-speed upgrade switch for the KX-2 and a white carbon-fibre hood paint.', 'The in-game menu now has Restart and Back to lobby.', 'The car no longer rolls backwards after the race ends.', 'New hood and tail-light details on the SR-7.', 'Phone cockpit view: smaller rear-view mirror, and lower dashboards on the KX-2 and GT-32 for a clearer view.', 'Keyboard and controller buttons can be rebound.', 'Online rooms now have chat and Cat and Mouse, and you can pick the course and car inside the room.', 'All three cars were rebuilt from photos of the real cars.'] },
@@ -784,6 +786,8 @@ const KB_DEF = Object.freeze({
     shiftUp: Object.freeze(['ShiftLeft', 'ShiftRight']), shiftDown: Object.freeze(['KeyZ']), cam: Object.freeze(['KeyC']), music: Object.freeze(['KeyM']), chat: Object.freeze(['KeyT']) }),
   pad: Object.freeze({ gas: 7, brake: 6, left: null, right: null, hb: 3, shiftUp: 5, shiftDown: 4, cam: 12, music: 8, chat: null }),
 });
+// a Ctrl binding next to W / T / N: the browser keeps Ctrl+W (close tab), Ctrl+T and Ctrl+N and a page cannot cancel them
+const kbCtrlClash = keys => { const all = Object.values(keys).flat(); return all.some(c => c === 'ControlLeft' || c === 'ControlRight') && all.some(c => c === 'KeyW' || c === 'KeyT' || c === 'KeyN'); };
 const kbIsAction = a => KB.ACTIONS.includes(a);
 const kbCodeOk = c => typeof c === 'string' && /^[A-Za-z][A-Za-z0-9]{0,31}$/.test(c) && c !== 'Unidentified';
 const kbPadOk = i => Number.isInteger(i) && i >= 0 && i < KB.PAD_N;
@@ -1068,7 +1072,7 @@ const I18N = {
     kbA_gas: '油門', kbA_brake: '煞車／倒車', kbA_left: '左轉', kbA_right: '右轉', kbA_hb: '手煞車', kbA_shiftUp: '升檔', kbA_shiftDown: '降檔', kbA_cam: '切換鏡頭', kbA_music: '音樂開關', kbA_chat: '聊天',
     kbInfoKeys: '點一下格子再按新的鍵，每個動作可設 1–2 個鍵。Esc、Enter、Tab、R 與觀戰的 1／2／3 固定不變。', kbInfoPad: '點一下格子（或用十字鍵選到後按 A）再按手把按鈕。左搖桿固定為轉向；A、B、Menu 與十字鍵的選單操作固定不變。',
     kbCapKey: '請按新的鍵，Esc 取消', kbCapPad: '請按手把按鈕，B 取消', kbSet: (a, k) => `「${a}」設為 ${k}`, kbSwap: a => `已與「${a}」互換`, kbMoved: a => `已從「${a}」移過來`,
-    kbLast: a => `「${a}」只剩這個鍵，不能移走`, kbFixed: k => `${k} 是固定按鍵，不能設定`, kbBad: '這個鍵不能使用', kbCancel: '已取消', kbCleared: '已移除', kbDone: '已恢復預設', shiftUp: '升檔', shiftDown: '降檔',
+    kbLast: a => `「${a}」只剩這個鍵，不能移走`, kbFixed: k => `${k} 是固定按鍵，不能設定`, kbBad: '這個鍵不能使用', kbCtrlWarn: '提醒：瀏覽器會保留 Ctrl+W（關閉分頁）、Ctrl+T 與 Ctrl+N，遊戲無法攔截。按住 Ctrl 的同時按 W、T、N 可能會關掉或開新分頁。',kbCancel: '已取消', kbCleared: '已移除', kbDone: '已恢復預設', shiftUp: '升檔', shiftDown: '降檔',
     modeLbl: '模式', modeRace: '比賽', modeRaceD: up => up ? '跟對手車比誰先衝到山頂。' : '跟對手車比誰先衝到山腳。', modeTa: '計時賽', modeTaD: '沒有對手，挑戰自己的最佳時間與幽靈車。',
     leadTa: name => `凌晨兩點的${name}，整條路只屬於你。沒有對手，只有碼表和上一次最快的自己。`,
     taGhost: '幽靈車', taBestIs: t => `最佳 ${t}`, taFirst: '第一次計時', taVsBest: d => `與最佳 ${d} 秒`,
@@ -1139,7 +1143,7 @@ const I18N = {
     kbA_gas: 'Gas', kbA_brake: 'Brake / reverse', kbA_left: 'Steer left', kbA_right: 'Steer right', kbA_hb: 'Handbrake', kbA_shiftUp: 'Shift up', kbA_shiftDown: 'Shift down', kbA_cam: 'Camera', kbA_music: 'Music', kbA_chat: 'Chat',
     kbInfoKeys: 'Click a slot, then press the new key. 1–2 keys per action. Esc, Enter, Tab, R and the spectator keys 1 / 2 / 3 are fixed.', kbInfoPad: 'Click a slot (or pick it with the D-pad and press A), then press a pad button. The left stick always steers; A, B, Menu and the D-pad menu controls are fixed.',
     kbCapKey: 'Press the new key. Esc cancels.', kbCapPad: 'Press a pad button. B cancels.', kbSet: (a, k) => `${a} set to ${k}`, kbSwap: a => `Swapped with ${a}`, kbMoved: a => `Moved from ${a}`,
-    kbLast: a => `${a} needs at least one key`, kbFixed: k => `${k} is fixed and can't be bound`, kbBad: "That key can't be used", kbCancel: 'Cancelled', kbCleared: 'Removed', kbDone: 'Defaults restored', shiftUp: 'Shift up', shiftDown: 'Shift down',
+    kbLast: a => `${a} needs at least one key`, kbFixed: k => `${k} is fixed and can't be bound`, kbBad: "That key can't be used", kbCtrlWarn: 'Heads-up: the browser keeps Ctrl+W (close tab), Ctrl+T and Ctrl+N and the game cannot block them. Holding Ctrl while pressing W, T or N may close the tab or open a new one.',kbCancel: 'Cancelled', kbCleared: 'Removed', kbDone: 'Defaults restored', shiftUp: 'Shift up', shiftDown: 'Shift down',
     modeLbl: 'Mode', modeRace: 'Race', modeRaceD: up => `Beat the rival car to the ${up ? 'top' : 'bottom'}.`, modeTa: 'Time attack', modeTaD: 'No rival. Chase your best time and your ghost car.',
     leadTa: name => `2 a.m. on ${name}, and the road is all yours. No rival, just the clock and the ghost of your fastest run.`,
     taGhost: 'Ghost car', taBestIs: t => `Best ${t}`, taFirst: 'First timed run', taVsBest: d => `${d} s vs best`,
@@ -1170,8 +1174,8 @@ const ENTER_OWN = 'button, select, input, textarea, a, summary, .music, #tKx, #t
 const enterStartsRace = el => !el || el.id === 'btnStart' || !el.closest(ENTER_OWN);
 // on the title screen Space and the arrow keys on a menu or slider keep their native action (they are also driving keys)
 const keepNativeKey = (state, code, el) => state === 'title' && (code === 'Space' || (/^Arrow/.test(code) && !!el && (el.tagName === 'SELECT' || el.tagName === 'INPUT')));
-// is another modifier held? A key that is itself Ctrl, Alt or Meta carries its own flag, which must not count
-const kbModHeld = (code, e) => (!!e.ctrlKey && code !== 'ControlLeft' && code !== 'ControlRight') || (!!e.altKey && code !== 'AltLeft' && code !== 'AltRight') || (!!e.metaKey && code !== 'MetaLeft' && code !== 'MetaRight');
+// is another modifier held? A key that is itself Ctrl, Alt or Meta carries its own flag, which must not count (AltRight also sets ctrlKey on Windows AltGr layouts)
+const kbModHeld = (code, e) => (!!e.ctrlKey && code !== 'ControlLeft' && code !== 'ControlRight' && code !== 'AltRight') || (!!e.altKey && code !== 'AltLeft' && code !== 'AltRight') || (!!e.metaKey && code !== 'MetaLeft' && code !== 'MetaRight');
 // a bound Alt key must not also move the focus to the browser menu
 const kbSuppressAlt = (code, act) => !!act && (code === 'AltLeft' || code === 'AltRight');
 // one FOV easing step (same easing the cameras use)
@@ -3440,7 +3444,7 @@ const tiltSensOf = v => { const n = parseFloat(v); return Number.isFinite(n) ? c
 const car = {};
 const rival = {};
 let state = 'title', raceT = 0, countT = 0, camOrbit = 0, shake = 0, lastGapSign = 1, finishTimer = -1;
-let playerWon = false, driftTotal = 0, driftChain = 0, driftIdle = 0, rivalFinishT = null, playerFinishT = null;
+let playerWon = false, driftTotal = 0, driftChain = 0, driftIdle = 0, rivalFinishT = null, playerFinishT = null, rivalCrossN = null, playerCrossN = null, stepN = 0;
 let menuOpen = false, menuView = 'main'; // in-game menu (never pauses the race)
 let confirmFor = 'forfeit', confirmFrom = '#igForfeit'; // what the menu confirm view asks (forfeit / lobby), and the button to refocus when it closes; read by syncMenuUI at start-up
 let steerMode = 'drag', tiltSens = TILT.SENS_DEF, tiltNoteKey = '', steerTok = 0; // 'drag' | 'tilt' | 'zones'; the touch-control code is in the controls section
@@ -3470,11 +3474,11 @@ function samplePos(s, lat) {
 }
 function resetRace() {
   const p = pts[8];
-  Object.assign(car, { x: p.x - Math.cos(p.h) * startLat, z: p.z + Math.sin(p.h) * startLat, h: p.h, vx: 0, vz: 0, w: 0, steer: 0, drift: false, idx: 8, rpm: 1000, gear: 1, autoGear: 1, shiftT: 0, penalty: 0, gutSide: 0, gutT: 0, gutLat: 0, gutCool: 0, gutDrop: 0, gutDropSide: 1, railAgo: Infinity, toll: { paid: [], warned: [] } });
+  Object.assign(car, { x: p.x - Math.cos(p.h) * startLat, z: p.z + Math.sin(p.h) * startLat, h: p.h, vx: 0, vz: 0, w: 0, steer: 0, drift: false, idx: 8, rpm: 1000, gear: 1, autoGear: 1, shiftT: 0, penalty: 0, gutSide: 0, gutT: 0, gutLat: 0, gutCool: 0, gutDrop: 0, gutDropSide: 1, gas: false, brakeOn: false, railAgo: Infinity, toll: { paid: [], warned: [] } });
   if (startS) { const q = samplePos(p.s + startS, startLat); Object.assign(car, { x: q.x, z: q.z, h: q.h, idx: q.i }); }
   car.loc = locate(car);
   Object.assign(rival, { s: pts[24].s, v: 0, lat: -2.2, latV: 0, i: 0, vis: 0 });
-  state = 'title'; raceT = 0; driftTotal = 0; driftChain = 0; driftIdle = 0; rivalFinishT = null; playerFinishT = null; finishTimer = -1; lastGapSign = 1; tsHide();
+  state = 'title'; raceT = 0; driftTotal = 0; driftChain = 0; driftIdle = 0; rivalFinishT = null; playerFinishT = null; rivalCrossN = null; playerCrossN = null; stepN = 0; finishTimer = -1; lastGapSign = 1; tsHide();
 }
 resetRace();
 
@@ -3618,6 +3622,10 @@ function wallHit(v) {
 }
 
 /* ---------- rival AI ---------- */
+/* @finish-clock:start */
+// who crossed first, by fixed-step number: the same step is a tie and the player wins it (the player's own time is still the frame-end raceT)
+const playerFirst = (playerStep, rivalStep) => rivalStep === null || playerStep <= rivalStep;
+/* @finish-clock:end */
 /* @finish-hit:start */
 // Past the finish line nobody races: the rival is pinned at the end of the road (pts[N-3]) and would sit in the middle of it, so no car-to-car hit once the rival, or the finished player, is past it
 function carsMayCollide(rivalS, playerS, finishS, st) { return !(rivalS > finishS || (st === 'done' && playerS > finishS)); }
@@ -3644,7 +3652,7 @@ function rivalUpdate(dt) {
   }
   const gap = r.s - car.loc.s;
   if (gap > 140) target *= 0.85; else if (gap > 70) target *= 0.94; else if (gap < -30) target *= 1.08;
-  if (rivalFinishT !== null) target = 0;
+  if (rivalCrossN !== null) target = 0;
   if (r.v < target) r.v = Math.min(target, r.v + aiHillAcc(ai, up, here.grade) * dt); else r.v = Math.max(target, r.v - 16 * dt);
   ({ s: r.s, v: r.v } = rivalAdvance(r.s, r.v, dt, pts[N - 3].s));
   const latT = Math.abs(here.k) > 0.008 ? -Math.sign(here.k) * 2.4 : 0;
@@ -3653,7 +3661,7 @@ function rivalUpdate(dt) {
   if (Math.abs(r.lat) > roadHW - 1) { r.lat = Math.sign(r.lat) * (roadHW - 1); r.latV = 0; }
   const visT = Math.abs(here.k) > 0.015 ? clamp(here.k * r.v * 0.6, -0.55, 0.55) : 0;
   r.vis += (visT - r.vis) * Math.min(1, 3 * dt);
-  if (rivalFinishT === null && r.s >= FINISH_S) rivalFinishT = raceT;
+  if (rivalCrossN === null && r.s >= FINISH_S) rivalCrossN = stepN;
 }
 
 /* ---------- audio (all synthesized) ---------- */
@@ -3813,10 +3821,16 @@ function ownClear() {
   ownBlob = null; ownName = ''; ownSetSrc(); ownIdb('readwrite', s => s.delete('bgmFile'));
   bgm = 'synth'; store.set('yatouge-bgm', 'synth'); applyBgm();
 }
+let ownNoteT = 0;
+// the title screen hides the HUD pop-up, so a refused file is told next to the music buttons
+function ownNote(msg) {
+  $('#ownMsg').textContent = msg; clearTimeout(ownNoteT);
+  if (msg) ownNoteT = setTimeout(() => ownNote(''), 5000);
+}
 function ownPicked(file) {
   const v = ownCheck(file);
-  if (v === 'ok') ownUse(file, file.name, true);
-  else showPop(T(v === 'size' ? 'ownBig' : 'ownBad'));
+  if (v === 'ok') { ownNote(''); ownUse(file, file.name, true); }
+  else { const m = T(v === 'size' ? 'ownBig' : 'ownBad'); ownNote(m); if (state !== 'title') showPop(m); } // in a race the HUD pop-up is the visible place
 }
 // 還原上次的自選檔；缺檔或資料壞掉就靜默維持原創
 if (ownMode(store.get('yatouge-bgm')) === 'own') {
@@ -4064,10 +4078,11 @@ function placeCars(dt) {
 function placeGhost(dt) {
   if (!ghostCar || !taRun) return;
   ghostCar.g.visible = ghostOn;
-  if (!ghostOn) return;
-  const r = taRun, p = taAt(r.ghost, state === 'race' || state === 'done' ? raceT : 0, r.gi);
+  const r = taRun, p = taAt(r.ghost, state === 'race' || state === 'done' ? raceT : 0, r.gi); // keeps tracking while hidden so it is on the road the moment it is switched on
   r.gi = p.i; r.gs = p.s; r.gpos.x = p.x; r.gpos.z = p.z;
-  const L = locate(r.gpos), g = ghostCar.g, moved = Math.hypot(p.x - g.position.x, p.z - g.position.z);
+  const L = locate(r.gpos);
+  if (!ghostOn) return;
+  const g = ghostCar.g, moved = Math.hypot(p.x - g.position.x, p.z - g.position.z);
   g.position.set(p.x, L.y, p.z);
   g.rotation.set(Math.atan(-L.grade * Math.cos(wrap(p.h - L.h))), p.h, 0, 'YXZ');
   if (moved < 5) for (const w of ghostCar.spin) w.rotation.x += moved / 0.34;
@@ -4559,7 +4574,7 @@ function scoring(dt) {
 function finishRace() {
   state = 'done'; playerFinishT = raceT; finishTimer = 1.6;
   if (driftChain > 0) { driftTotal += driftChain; driftChain = 0; }
-  playerWon = rivalFinishT === null || playerFinishT < rivalFinishT;
+  playerWon = rivalCrossN === null || playerFirst(playerCrossN ?? stepN, rivalCrossN);
   if (pvp) { pvpFinished(); showPop(T('pvpLine')); } else if (taRun) { taSample(true); showPop(T('pvpLine')); } else if (sakeRun) { const j = sakeCheck(true); showPop(T(j === 'win' ? 'sakeOk' : j === 'hits' ? 'sakeFailHits' : 'sakeFailTime')); } else showPop(T(playerWon ? 'first' : 'second'));
 }
 function taSample(force) { const r = taRun; if (!r.full && !taRecord(r.buf, raceT, { s: car.loc.s, x: car.x, z: car.z, h: car.h }, force)) r.full = true; }
@@ -4804,7 +4819,7 @@ function syncKxUI() {
 }
 function setKx(kind, on) {
   if (kind === 'chime') { kxChimeOn = on; store.set('yatouge-kx-chime', on ? '1' : '0'); }
-  else { kxLetterOn = on; store.set('yatouge-kx-letter', on ? '1' : '0'); for (const c of [playerCar, rivalCar, ghostCar]) if (c && c.door) c.door.visible = on; }
+  else { kxLetterOn = on; store.set('yatouge-kx-letter', on ? '1' : '0'); for (const c of [playerCar, rivalCar, ghostCar]) if (c && c.door) c.door.visible = on && !(c === playerCar && bodyCar === playerCar && bodyHidden); }
   syncKxUI();
 }
 for (const [id, kind] of [['#tKxChime', 'chime'], ['#igKxChime', 'chime'], ['#tKxLetter', 'letter'], ['#igKxLetter', 'letter']])
@@ -4874,6 +4889,7 @@ applyLang();
 function startRace() {
   document.body.classList.toggle('manual', trans === 'manual');
   if (!pvp && mode === 'sake' && (trackId !== SAKE_TRACK || choice.car !== SAKE_CAR.car || choice.color !== SAKE_CAR.color)) sakeForce(true); // defensive: online play may have moved the course
+  $('#pop').classList.remove('show'); popTimer = 0;
   initAudio(); resetRace(); taBegin(); sakeBegin(); Object.assign(P, carPhys(choice.car, kxUpActive())); camera.clearViewOffset();
   lobbyGate.cancel(); // a join still pending from the lobby must not pull the player into a room over this race
   state = 'count'; countT = 3.999;
@@ -6177,6 +6193,14 @@ function goTick(now) {
 }
 let last = performance.now(), acc = 0;
 const FIX = 1 / 120;
+// one fixed step at a time; stepN orders who crossed the line first inside a frame
+function raceSteps() {
+  while (acc >= FIX) {
+    physics(FIX); stepN++; if (!pvp && !taRun && !sakeRun) rivalUpdate(FIX);
+    if (state === 'race' && playerCrossN === null && car.loc.s >= FINISH_S) playerCrossN = stepN;
+    acc -= FIX;
+  }
+}
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   syncRotate(); controlsTick(dt); gamepadTick(now); chatFrame();
@@ -6189,8 +6213,9 @@ function frame(now) {
   goTick(performance.now());
   if (state === 'race' || state === 'done') {
     acc += dt;
-    while (acc >= FIX) { physics(FIX); if (!pvp && !taRun && !sakeRun) rivalUpdate(FIX); acc -= FIX; }
+    raceSteps();
     raceT += dt; // keeps running after the player finishes so the rival's time is real
+    if (rivalCrossN !== null && rivalFinishT === null) rivalFinishT = raceT; // same clock as the player's time (end of this frame)
     if (state === 'race' && sakeRun) sakeCheck(false); // the clock ran out
     if (state === 'race') { if (taRun) taSample(false); scoring(dt); if (car.loc.s >= FINISH_S) finishRace(); }
     if (finishTimer > 0) { finishTimer -= dt; if (finishTimer <= 0) showResult(); }
@@ -6251,7 +6276,7 @@ window.addEventListener('keyup', e => {
   if (kbOpen && kbSwallow === e.code) { kbSwallow = null; e.preventDefault(); } // the key just bound must not also press the focused slot (Space clicks on keyup)
   const act = kbKeyAction(kb, e.code); if (KB_DRIVE.includes(act)) input[act] = false;
 });
-window.addEventListener('blur', () => { for (const k in input) input[k] = k === 'steerAxis' ? null : false; releaseTouch(); });
+window.addEventListener('blur', () => { for (const k in input) input[k] = k === 'steerAxis' ? null : false; releaseTouch(); gp.last = { ...GP_IDLE }; });
 function menuEsc(a) { if (a === 'open') openMenu(); else if (a === 'close') closeMenu(); else if (a === 'back') showMenuView('main', menuView === 'settings' ? '#igSettings' : confirmFrom); }
 // Manual only, countdown or race, menu closed. A refused downshift (it would over-rev) is told to the player.
 function shiftGear(dir) {
@@ -6577,7 +6602,7 @@ function tryLandscape() {
 $('#btnStart').addEventListener('click', tryLandscape);
 $('#btnOnline').addEventListener('click', () => { if ($('#btnOnline').getAttribute('aria-disabled') !== 'true') tryLandscape(); });
 $('#btnStart').addEventListener('click', () => askTrans(startRace));
-$('#btnAgain').addEventListener('click', () => pvp ? (catOn(pvp) && pvp.ck.between ? catConfirm() : pvpBackToRoom()) : askTrans(startRace));
+$('#btnAgain').addEventListener('click', () => pvp ? (catOn(pvp) && pvp.ck.between ? catConfirm() : pvpBackToRoom()) : askTrans(startRace, '#btnAgain'));
 function returnToTitle() {
   taEnd(); sakeEnd(); resetRace(); camOrbit = 0; $('#count').textContent = ''; goUntil = 0; $('#pop').classList.remove('show');
   $('#result').hidden = true; $('#hud').hidden = true; $('#title').hidden = false; renderPicker(); $('#btnStart').focus();
@@ -6706,6 +6731,7 @@ function kbRender(focus) {
   }
   for (const b of document.querySelectorAll('.kbtabs button')) b.setAttribute('aria-pressed', String(b.dataset.p === kbSide));
   $('#kbInfo').textContent = T(kbSide === 'keys' ? 'kbInfoKeys' : 'kbInfoPad');
+  $('#kbWarn').textContent = T('kbCtrlWarn'); $('#kbWarn').hidden = !(kbSide === 'keys' && kbCtrlClash(kb.keys));
   const f = focus && $('#kbs').querySelector(focus); if (f) f.focus();
 }
 function kbNote(s) { $('#kbNote').textContent = s; }
