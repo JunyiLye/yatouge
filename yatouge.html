@@ -76,6 +76,8 @@ body.gp :is(button, input, select):focus { outline: 2px solid var(--sodium); out
 @media (max-width: 480px) and (orientation: portrait) { .tsign.big, .tsign.pre { top: max(260px, var(--ts-top, 0px)); } }
 @media (prefers-reduced-motion: reduce) { .tsign { transition: none; } .tsign.flash svg, .tsign.pre .p1.flash svg { animation: none; } }
 #pop.ts-below { top: max(26%, var(--ts-pop)); }
+#pop.ts-beside { left: auto; right: var(--ts-pop-r); top: var(--ts-pop-y); max-width: var(--ts-pop-w); text-align: right; font-size: clamp(18px, 7vh, 28px); transform: translateY(-50%) scale(.9); }
+#pop.ts-beside.show { transform: translateY(-50%) scale(1); }
 .count { position: absolute; left: 0; right: 0; top: 34%; text-align: center; font-family: var(--mono); font-style: italic; font-weight: 700; font-size: clamp(80px, 18vw, 160px); color: var(--ink); text-shadow: 0 0 40px rgba(255,255,255,.35); }
 
 .tools { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); display: flex; gap: 8px; width: max-content; pointer-events: auto; }
@@ -1427,6 +1429,13 @@ const tsBeeps = st => st !== 'off';
 // big and preview sit where the "GO" text is, so they wait for it to clear; side and sound never wait
 const tsGoGated = (st, goShowing) => goShowing && (st === 'big' || st === 'preview');
 const tsPopTop = signBottom => Math.round(signBottom + 8); // the centre toast (#pop) moves below a big / preview sign
+// below the sign unless that would reach past 62% of the viewport (phone landscape in cockpit view); then beside it: left of the sign, centred on it
+const TS_POP_MAX = 0.62;
+function tsPopPlace(r, popH, viewW, viewH) {
+  const top = tsPopTop(r.bottom);
+  if (top + popH <= viewH * TS_POP_MAX) return { mode: 'below', top };
+  return { mode: 'beside', top: Math.round((r.top + r.bottom) / 2), right: Math.round(viewW - r.left + 12), maxWidth: Math.round(r.left - 24) };
+}
 const TS_COLOR = { small: '#3ddc84', mid: '#ffd23f', big: '#ff4d4d', hairpin: '#ff4d4d', s: '#4da3ff' };
 // drawn for a right turn (S: right then left); the left sign is the mirror image. h = arrow head [x, y, direction in degrees]
 const TS_SHAPE = {
@@ -3733,7 +3742,8 @@ document.addEventListener('visibilitychange', () => { if (!ac) return; if (docum
 const fmtT = t => { const m = Math.floor(t / 60), s = t - m * 60; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(2); };
 let popTimer = 0;
 function showPop(big, small) { const el = $('#pop'); el.innerHTML = ''; el.append(big); if (small) { const sm = document.createElement('small'); sm.textContent = small; el.append(sm); } el.classList.add('show'); popTimer = 1.4; }
-function tsHide() { tsCur = ''; tsKey = ''; const el = $('#turnSign'); if (!el.classList.contains('show')) return; el.classList.remove('show', 'flash'); el.setAttribute('aria-hidden', 'true'); $('#pop').classList.remove('ts-below'); } // the DOM is the truth: safe to call after tsCur was cleared elsewhere
+function tsPopClear(pop) { pop.classList.remove('ts-below', 'ts-beside'); for (const v of ['--ts-pop', '--ts-pop-y', '--ts-pop-r', '--ts-pop-w']) pop.style.removeProperty(v); }
+function tsHide() { tsCur = ''; tsKey = ''; const el = $('#turnSign'); if (!el.classList.contains('show')) return; el.classList.remove('show', 'flash'); el.setAttribute('aria-hidden', 'true'); tsPopClear($('#pop')); } // the DOM is the truth: safe to call after tsCur was cleared elsewhere
 function turnSignFrame() {
   const sg = tsStyle !== 'off' && state === 'race' && !sakeRun && !tsGoGated(tsStyle, performance.now() < goUntil) ? nextTwoSigns(tsList || (tsList = cornerList(pts)), car.loc.s, Math.hypot(car.vx, car.vz)) : null;
   if (!sg) { tsHide(); return; }
@@ -3760,8 +3770,11 @@ function turnSignFrame() {
   const pop = $('#pop');
   if (tsStyle === 'big' || tsStyle === 'preview') {
     if (cockpit) el.style.setProperty('--ts-top', tsMirrorBottom + 'px'); else el.style.removeProperty('--ts-top'); // below the cockpit mirror; chase view uses the CSS base
-    pop.classList.add('ts-below'); pop.style.setProperty('--ts-pop', tsPopTop(el.getBoundingClientRect().bottom) + 'px'); // the toast sits below the sign
-  } else if (pop.classList.contains('ts-below')) pop.classList.remove('ts-below');
+    tsPopClear(pop); // measure the toast at its normal size, two lines tall
+    const pl = tsPopPlace(el.getBoundingClientRect(), parseFloat(getComputedStyle(pop).fontSize) * 2, window.innerWidth, window.innerHeight);
+    if (pl.mode === 'below') { pop.classList.add('ts-below'); pop.style.setProperty('--ts-pop', pl.top + 'px'); } // the toast sits below the sign
+    else { pop.classList.add('ts-beside'); pop.style.setProperty('--ts-pop-y', pl.top + 'px'); pop.style.setProperty('--ts-pop-r', pl.right + 'px'); pop.style.setProperty('--ts-pop-w', pl.maxWidth + 'px'); } // or beside it
+  } else tsPopClear(pop);
 }
 function hud(dt) {
   const spd = Math.hypot(car.vx, car.vz), vf = car.vx * Math.sin(car.h) + car.vz * Math.cos(car.h);

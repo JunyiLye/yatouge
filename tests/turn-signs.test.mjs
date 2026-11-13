@@ -195,8 +195,9 @@ test('送酒模式與觀戰不顯示；關閉時不顯示；只在 race 狀態�
 test('tsHide 以 DOM 為準：tsCur 已被清掉、圖標還顯示時，仍然要把圖標藏起來（線上離開後殘留圖標的 bug）', () => {
   const src = /function tsHide\(\) \{[^\n]*\}/.exec(html);
   assert.ok(src, '找不到 tsHide');
-  const mkEl = cls => { const s = new Set(cls); return { s, attrs: { 'aria-hidden': null }, classList: { contains: c => s.has(c), remove: (...c) => c.forEach(x => s.delete(x)) }, setAttribute(k, v) { this.attrs[k] = v; } }; };
-  const run = (el, cur) => new Function('$', `let tsCur = ${JSON.stringify(cur)}, tsKey = 'x';\n${src[0]}\ntsHide(); return tsCur;`)(() => el);
+  const clr = /function tsPopClear\(pop\) \{[^\n]*\}/.exec(html);
+  const mkEl = cls => { const s = new Set(cls); return { s, attrs: { 'aria-hidden': null }, classList: { contains: c => s.has(c), remove: (...c) => c.forEach(x => s.delete(x)) }, setAttribute(k, v) { this.attrs[k] = v; }, style: { removeProperty() {} } }; };
+  const run = (el, cur) => new Function('$', `let tsCur = ${JSON.stringify(cur)}, tsKey = 'x';\n${clr[0]}\n${src[0]}\ntsHide(); return tsCur;`)(() => el);
   const el = mkEl(['tsign', 'l', 'show', 'flash']);
   assert.equal(run(el, ''), '', 'tsCur 先被清掉（buildTrack 的舊行為）');
   assert.equal(el.s.has('show'), false); assert.equal(el.s.has('flash'), false);
