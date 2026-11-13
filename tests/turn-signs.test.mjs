@@ -181,21 +181,12 @@ test('圖標：每個等級與方向都有 svg、顏色與 aria 文字；左右�
 });
 
 /* ---------- HUD 與設定（靜態檢查）---------- */
-test('設定 key 與解析：yatouge-turn-signs，只有 "0" 算關，缺值為開', () => {
-  assert.ok(/tsOn = kxOn\(store\.get\('yatouge-turn-signs'\)\)/.test(html));
-  assert.ok(/store\.set\('yatouge-turn-signs', tsOn \? '1' : '0'\)/.test(html));
-});
-
-test('主畫面與遊戲內設定都有開關，且有中英文標籤', () => {
-  assert.ok(/id="tTurn"[^>]*role="switch"/.test(html) && /id="igTurn"[^>]*role="switch"/.test(html));
-  assert.ok(/turnSigns: '彎道提示'/.test(html) && /turnSigns: 'Turn signs'/.test(html));
-  assert.ok(/\[\['#tTurn', '#igTurn'\], tsOn\]/.test(html), 'syncKxUI 要同步兩個開關');
-});
+// 設定 key、選擇器與宣告順序改由 turn-sign-styles.test.mjs 檢查（開關已改成顯示方式選擇器）
 
 test('送酒模式與觀戰不顯示；關閉時不顯示；只在 race 狀態；重置與換賽道會清掉', () => {
   const m = /function turnSignFrame\(\) \{[\s\S]*?\n\}/.exec(html);
   assert.ok(m, '找不到 turnSignFrame');
-  assert.ok(/tsOn && state === 'race' && !sakeRun/.test(m[0]));
+  assert.ok(/tsStyle !== 'off' && state === 'race' && !sakeRun/.test(m[0]));
   assert.ok(/if \(spec\) \{[^}]*tsHide\(\)/.test(html), '觀戰分支要隱藏');
   assert.ok(/function resetRace\(\) \{[\s\S]{0,1200}?tsHide\(\)/.test(html), 'resetRace 要清掉');
   assert.ok(/tsList = null/.test(html), '換賽道要清掉快取');
@@ -205,7 +196,7 @@ test('tsHide 以 DOM 為準：tsCur 已被清掉、圖標還顯示時，仍然�
   const src = /function tsHide\(\) \{[^\n]*\}/.exec(html);
   assert.ok(src, '找不到 tsHide');
   const mkEl = cls => { const s = new Set(cls); return { s, attrs: { 'aria-hidden': null }, classList: { contains: c => s.has(c), remove: (...c) => c.forEach(x => s.delete(x)) }, setAttribute(k, v) { this.attrs[k] = v; } }; };
-  const run = (el, cur) => new Function('$', `let tsCur = ${JSON.stringify(cur)};\n${src[0]}\ntsHide(); return tsCur;`)(() => el);
+  const run = (el, cur) => new Function('$', `let tsCur = ${JSON.stringify(cur)}, tsKey = 'x';\n${src[0]}\ntsHide(); return tsCur;`)(() => el);
   const el = mkEl(['tsign', 'l', 'show', 'flash']);
   assert.equal(run(el, ''), '', 'tsCur 先被清掉（buildTrack 的舊行為）');
   assert.equal(el.s.has('show'), false); assert.equal(el.s.has('flash'), false);
@@ -223,17 +214,6 @@ test('嗶聲走音效匯流排（master），髮夾彎兩聲', () => {
   const m = /function sfxTurnSign\(double\) \{[^\n]*\}/.exec(html);
   assert.ok(m, '找不到 sfxTurnSign');
   assert.ok(m[0].includes('master') && m[0].includes('tone('));
-});
-
-test('載入順序：新的狀態變數必須在第一次頂層 buildTrack() / resetRace() / buildCars() / applyLang() 之前宣告', () => {
-  const calls = ['\nbuildTrack(trackId);\n', '\nresetRace();\n', '\nbuildCars();\n', '\napplyLang();\n'].map(c => html.indexOf(c));
-  assert.ok(calls.every(i => i > 0), '找不到頂層呼叫');
-  const first = Math.min(...calls);
-  for (const name of ['tsList', 'tsOn', 'tsCur']) {
-    const m = new RegExp(String.raw`\blet\b[^;\n]*\b${name}\b\s*(?:=|[,;])`).exec(html);
-    assert.ok(m, `找不到 ${name} 的 let 宣告`);
-    assert.ok(m.index < first, `${name} 宣告在第一次頂層呼叫之後`);
-  }
 });
 
 test('script 可以被解析；沒有 CR、沒有 __lc、沒有隱形字元', () => {

@@ -63,10 +63,19 @@ body.gp :is(button, input, select):focus { outline: 2px solid var(--sodium); out
 .tsign.l { left: calc(7% + env(safe-area-inset-left, 0px)); }
 .tsign.r { right: calc(7% + env(safe-area-inset-right, 0px)); }
 .tsign svg { display: block; width: 100%; height: 100%; }
+/* big: large, top centre (below the tools row; in cockpit view below the mirror via --ts-top); preview: the next corner plus the one after (smaller, dimmer) */
+.tsign.big, .tsign.pre { left: 50%; transform: translateX(-50%); }
+.tsign.big { top: max(clamp(64px, 10vh, 110px), var(--ts-top, 0px)); width: clamp(100px, 13vw, 150px); }
+.tsign.pre { --p1: clamp(48px, 6vw, 64px); top: max(clamp(56px, 9vh, 90px), var(--ts-top, 0px)); width: auto; aspect-ratio: auto; display: flex; align-items: center; gap: 8px; }
+.tsign.pre .p1 { width: var(--p1); aspect-ratio: 1; }
+.tsign.pre .p2 { width: calc(var(--p1) * .6); aspect-ratio: 1; opacity: .6; }
+.tsign.pre .p1.flash svg { animation: tsflash .7s ease-in-out 1; }
 .tsign.flash svg { animation: tsflash .7s ease-in-out 1; }
 @keyframes tsflash { 0%, 100% { opacity: 1; } 25%, 75% { opacity: .15; } 50% { opacity: 1; } }
-@media (orientation: landscape) and (max-height: 500px) { .tsign { top: calc(80px + env(safe-area-inset-top, 0px)); width: 60px; } }
-@media (prefers-reduced-motion: reduce) { .tsign { transition: none; } .tsign.flash svg { animation: none; } }
+@media (orientation: landscape) and (max-height: 500px) { .tsign { top: calc(80px + env(safe-area-inset-top, 0px)); width: 60px; } .tsign.big { top: max(calc(52px + env(safe-area-inset-top, 0px)), var(--ts-top, 0px)); width: 76px; } .tsign.pre { --p1: 44px; top: max(calc(50px + env(safe-area-inset-top, 0px)), var(--ts-top, 0px)); width: auto; } }
+@media (max-width: 480px) and (orientation: portrait) { .tsign.big, .tsign.pre { top: max(260px, var(--ts-top, 0px)); } }
+@media (prefers-reduced-motion: reduce) { .tsign { transition: none; } .tsign.flash svg, .tsign.pre .p1.flash svg { animation: none; } }
+#pop.ts-below { top: max(26%, var(--ts-pop)); }
 .count { position: absolute; left: 0; right: 0; top: 34%; text-align: center; font-family: var(--mono); font-style: italic; font-weight: 700; font-size: clamp(80px, 18vw, 160px); color: var(--ink); text-shadow: 0 0 40px rgba(255,255,255,.35); }
 
 .tools { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); display: flex; gap: 8px; width: max-content; pointer-events: auto; }
@@ -322,6 +331,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
   #igSet #igBack { grid-column: 1 / -1; }
   .count { top: 24%; font-size: clamp(56px, 26vh, 110px); }
   .pop { top: 20%; font-size: clamp(22px, 9vh, 40px); }
+  #pop.ts-below { top: max(20%, var(--ts-pop)); }
   .coarse .hud-tl, .coarse .hud-tr { top: calc(6px + env(safe-area-inset-top, 0px)); padding: 4px 10px; min-width: 0; }
   .coarse .hud-tl { left: calc(8px + env(safe-area-inset-left, 0px)); min-width: 118px; }
   .coarse .hud-tr { right: calc(8px + env(safe-area-inset-right, 0px)); min-width: 96px; }
@@ -484,7 +494,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     </div>
     <div class="tctl">
       <div class="igrow"><span id="tVibeL" data-i18n="vibe">震動</span><button id="tVibe" type="button" role="switch" aria-labelledby="tVibeL" aria-checked="true"></button></div>
-      <div class="igrow"><span id="tTurnL" data-i18n="turnSigns">彎道提示</span><button id="tTurn" type="button" role="switch" aria-labelledby="tTurnL" aria-checked="true"></button></div>
+      <div class="igrow"><label for="tTurn" data-i18n="turnSigns">彎道提示</label><select id="tTurn"></select></div>
       <div class="igrow"><span id="tKeysL" data-i18n="kbTitle">按鍵設定</span><button id="tKeys" type="button" aria-haspopup="dialog" aria-describedby="tKeysL" data-i18n="kbOpen">變更</button></div>
       <div class="igrow"><span id="tLogL" data-i18n="clBtn">更新內容</span><button id="tLog" type="button" aria-haspopup="dialog" aria-describedby="tLogL" data-i18n="clView">查看</button></div>
     </div>
@@ -603,7 +613,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <div class="igrow"><label for="igMusicVol" data-i18n="igMusicVol">音樂音量</label><output id="igMusicOut" for="igMusicVol"></output><input id="igMusicVol" type="range" min="0" max="100" step="5"></div>
       <div class="igrow"><label for="igSfxVol" data-i18n="igSfxVol">音效音量</label><output id="igSfxOut" for="igSfxVol"></output><input id="igSfxVol" type="range" min="0" max="100" step="5"></div>
       <div class="igrow"><span id="igVibeL" data-i18n="vibe">震動</span><button id="igVibe" type="button" role="switch" aria-labelledby="igVibeL" aria-checked="true"></button></div>
-      <div class="igrow"><span id="igTurnL" data-i18n="turnSigns">彎道提示</span><button id="igTurn" type="button" role="switch" aria-labelledby="igTurnL" aria-checked="true"></button></div>
+      <div class="igrow"><label for="igTurn" data-i18n="turnSigns">彎道提示</label><select id="igTurn"></select></div>
       <div class="igrow" id="igKxChimeRow" hidden><span id="igKxChimeL" data-i18n="kxChime">時速警示音</span><button id="igKxChime" type="button" role="switch" aria-labelledby="igKxChimeL" aria-checked="true"></button></div>
       <div class="igrow" id="igKxLetterRow" hidden><span id="igKxLetterL" data-i18n="kxLetter">車門字樣</span><button id="igKxLetter" type="button" role="switch" aria-labelledby="igKxLetterL" aria-checked="true"></button></div>
       <div class="igrow" id="igGhostRow" hidden><span id="igGhostL" data-i18n="taGhost">幽靈車</span><button id="igGhost" type="button" role="switch" aria-labelledby="igGhostL" aria-checked="true"></button></div>
@@ -733,8 +743,8 @@ const confirmKeys = (what, ta, sake) => what === 'lobby' ? { q: 'igLobbyAsk', ye
 // Player-facing release notes, newest first (at most 12 versions). Add today's version, or extend it, whenever a change the player can see goes out.
 const CHANGELOG = [
   { date: '2026-11-14',
-    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。'],
-    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.'] },
+    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。'],
+    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.'] },
   { date: '2026-11-13',
     zh: ['彎道前會出現提示圖示，可以在設定裡關掉。', '送酒模式通關有獎勵：KX-2 的極速升級開關，以及白色碳纖維引擎蓋塗裝。', '遊戲內選單新增「重新開始」與「回到大廳」。', '比賽結束後車子不會再倒退。', 'SR-7 新增引擎蓋與尾燈細節。', '手機車內視角：後照鏡縮小，KX-2 與 GT-32 的儀表降低，視野更開闊。', '鍵盤與手把的按鍵都可以自己設定。', '線上房間可以聊天、玩貓捉老鼠，也能在房間裡選賽道和車。', '三台車的外型都依真車照片重新製作。'],
     en: ['Turn signs now appear before corners; you can switch them off in settings.', 'Sake Run rewards: a top-speed upgrade switch for the KX-2 and a white carbon-fibre hood paint.', 'The in-game menu now has Restart and Back to lobby.', 'The car no longer rolls backwards after the race ends.', 'New hood and tail-light details on the SR-7.', 'Phone cockpit view: smaller rear-view mirror, and lower dashboards on the KX-2 and GT-32 for a clearer view.', 'Keyboard and controller buttons can be rebound.', 'Online rooms now have chat and Cat and Mouse, and you can pick the course and car inside the room.', 'All three cars were rebuilt from photos of the real cars.'] },
@@ -1046,7 +1056,7 @@ const I18N = {
     nickTitle: '你的暱稱', nickLbl: '暱稱', nickHint: '1 到 16 個字，只在這次線上對戰使用，不會被記住；其他玩家看得到。', nickOk: '確定', nickCancel: '取消',
     pvpPlayer: '玩家', pvpYouTag: n => `${n}（你）`, pvpNickIs: n => `你的暱稱：${n}。`, pvpTimeOf: n => `${n} 完賽時間`,
     igAria: '選單', igTitle: '選單', igResume: '繼續', igSettings: '設定', igForfeit: '認輸', igRestart: '重新開始', igLobby: '回到大廳', igLobbyAsk: '確定回到大廳？這場比賽會中止。', igLobbyYes: '是，回到大廳', igRestartAsk: '確定重新開始？這一趟的成績不會儲存。', igRestartYes: '是，重新開始', igBack: '返回', igMusic: '音樂', igMusicVol: '音樂音量', igSfxVol: '音效音量', igCam: '鏡頭', igLang: '語言',
-    igOn: '開', igOff: '關', kxChime: '時速警示音', kxLetter: '車門字樣', kxUp: '極速升級', sakeUnlock: '解鎖：KX-2 極速升級、白色碳纖維引擎蓋塗裝', vibe: '震動', turnSigns: '彎道提示', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
+    igOn: '開', igOff: '關', kxChime: '時速警示音', kxLetter: '車門字樣', kxUp: '極速升級', sakeUnlock: '解鎖：KX-2 極速升級、白色碳纖維引擎蓋塗裝', vibe: '震動', turnSigns: '彎道提示', tsM_side: '側邊', tsM_big: '大型置中', tsM_preview: '預告列', tsM_sound: '只有聲音', tsM_off: '關閉', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
     ctlLbl: '操作設定', igSteer: '轉向方式', stDrag: '拖曳', stTilt: '傾斜', stZones: '分區', igTiltSens: '傾斜靈敏度', recenter: '回正', zoneBrake: '煞車 + 手煞', tiltFail: '此環境無法使用傾斜轉向，已改回拖曳',
     transTitle: '選擇變速箱', transAT: '自排 AT', transATd: '自動換檔，專心過彎。', transMT: '手排 MT', transMTd: (u, d) => `自己換檔：${u} 升檔、${d} 降檔。換得好比自排快。`, transHint: '手機會多出 ▲ ▼ 換檔鈕。每次開賽前都會再問一次。', transKeys: 'Enter 或點一下確認，Esc 取消。',
     kShift: '手排：升檔／降檔', kPad: p => `手把：左搖桿轉向、${p.gas} 油門、${p.brake} 煞車、${p.hb} 手煞車、${p.shiftDown}／${p.shiftUp} 降／升檔、${p.cam} 鏡頭、Menu 選單`,
@@ -1117,7 +1127,7 @@ const I18N = {
     nickTitle: 'Your nickname', nickLbl: 'Nickname', nickHint: '1 to 16 characters. Used for this online session only and never saved; other players can see it.', nickOk: 'Confirm', nickCancel: 'Cancel',
     pvpPlayer: 'Player', pvpYouTag: n => `${n} (you)`, pvpNickIs: n => `Your nickname: ${n}.`, pvpTimeOf: n => `${n} · finish time`,
     igAria: 'Menu', igTitle: 'Menu', igResume: 'Resume', igSettings: 'Settings', igForfeit: 'Forfeit', igRestart: 'Restart', igLobby: 'Back to lobby', igLobbyAsk: 'Back to the lobby? This race will end.', igLobbyYes: 'Yes, back to lobby', igRestartAsk: 'Restart? This run will not be saved.', igRestartYes: 'Yes, restart', igBack: 'Back', igMusic: 'Music', igMusicVol: 'Music volume', igSfxVol: 'Sound effects volume', igCam: 'Camera', igLang: 'Language',
-    igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', kxUp: 'Top speed upgrade', sakeUnlock: 'Unlocked: KX-2 top speed upgrade and the white, carbon hood paint', vibe: 'Vibration', turnSigns: 'Turn signs', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
+    igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', kxUp: 'Top speed upgrade', sakeUnlock: 'Unlocked: KX-2 top speed upgrade and the white, carbon hood paint', vibe: 'Vibration', turnSigns: 'Turn signs', tsM_side: 'Side', tsM_big: 'Large, centred', tsM_preview: 'Preview bar', tsM_sound: 'Sound only', tsM_off: 'Off', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
     ctlLbl: 'Controls', igSteer: 'Steering', stDrag: 'Drag', stTilt: 'Tilt', stZones: 'Zones', igTiltSens: 'Tilt sensitivity', recenter: 'Re-center', zoneBrake: 'BRAKE + E-BRAKE', tiltFail: 'Tilt steering is unavailable here; switched back to drag.',
     transTitle: 'Choose a gearbox', transAT: 'Automatic AT', transATd: 'Shifts for you. Focus on the corners.', transMT: 'Manual MT', transMTd: (u, d) => `Shift yourself: ${u} = up, ${d} = down. Shift well and you beat the automatic.`, transHint: 'On a phone, ▲ ▼ shift buttons appear. You are asked again before every race.', transKeys: 'Enter or a tap confirms, Esc cancels.',
     kShift: 'Manual: shift up / down', kPad: p => `Controller: left stick steer, ${p.gas} gas, ${p.brake} brake, ${p.hb} handbrake, ${p.shiftDown} / ${p.shiftUp} shift down / up, ${p.cam} camera, Menu menu`,
@@ -1381,6 +1391,23 @@ function nextSign(list, s, speed) {
   }
   return null;
 }
+// preview: the corner after the next one rides along when it is close enough to matter (gap = its entry minus the next corner's exit)
+const TS_PREVIEW_GAP = 200;
+function nextTwoSigns(list, s, speed) {
+  const a = nextSign(list, s, speed);
+  if (!a) return null;
+  const b = list[a.i + 1];
+  return { i: a.i, k: a.k, second: b && b.s0 - a.k.s1 <= TS_PREVIEW_GAP ? { i: a.i + 1, k: b } : null };
+}
+// display styles: side (default) / big (large, centred) / preview (next two corners) / sound (beeps only) / off
+const TS_STYLES = ['side', 'big', 'preview', 'sound', 'off'];
+// the old on/off setting ('0' = off) only matters until a style has been chosen
+const tsStyleFrom = (v, legacy) => TS_STYLES.includes(v) ? v : legacy === '0' ? 'off' : 'side';
+const tsDraws = st => st === 'side' || st === 'big' || st === 'preview';
+const tsBeeps = st => st !== 'off';
+// big and preview sit where the "GO" text is, so they wait for it to clear; side and sound never wait
+const tsGoGated = (st, goShowing) => goShowing && (st === 'big' || st === 'preview');
+const tsPopTop = signBottom => Math.round(signBottom + 8); // the centre toast (#pop) moves below a big / preview sign
 const TS_COLOR = { small: '#3ddc84', mid: '#ffd23f', big: '#ff4d4d', hairpin: '#ff4d4d', s: '#4da3ff' };
 // drawn for a right turn (S: right then left); the left sign is the mirror image. h = arrow head [x, y, direction in degrees]
 const TS_SHAPE = {
@@ -1408,6 +1435,10 @@ function tsLabel(lang, kind, dir) {
   const n = (TS_NAME[zh ? 'zh' : 'en'])[kind];
   if (!n) return '';
   return zh ? (left ? '左' : '右') + n : (left ? 'Left ' : 'Right ') + n;
+}
+function tsAria(lang, kind, dir, kind2, dir2) {
+  const a = tsLabel(lang, kind, dir);
+  return kind2 ? a + (lang === 'zh' ? '，接著' : ', then ') + tsLabel(lang, kind2, dir2) : a;
 }
 /* @turn-signs:end */
 /* @gutter:start */
@@ -2143,7 +2174,7 @@ const SAKE_TRACK = 'seiran', SAKE_CAR = { car: 'hatch', color: 3 }; // Sake Run'
 let trackId = store.get('yatouge-mode') === 'sake' ? SAKE_TRACK : store.get('yatouge-track');
 if (!TRACKS[trackId]) trackId = 'kurosagi';
 let pts, N, TOTAL, FINISH_I, FINISH_S, hairpins, gutters;
-let tsList = null, tsCur = '', tsOn = kxOn(store.get('yatouge-turn-signs')); // turn signs: corner list of the current course (built lazily), index shown, setting (default on); read by resetRace / buildTrack at start-up
+let tsList = null, tsCur = '', tsKey = '', goUntil = 0, tsStyle = tsStyleFrom(store.get('yatouge-turn-style'), store.get('yatouge-turn-signs')); // turn signs: corner list of the current course (built lazily), index shown, last layout key (rect / --ts-pop recomputed only when it changes), time until which the GO text is up (set by the start countdown), display style (default side); read by resetRace / buildTrack at start-up
 
 const trackGroup = new THREE.Group(); scene.add(trackGroup); // everything that belongs to one course; rebuilt on course change
 const off = (p, o, dy) => [p.x - Math.cos(p.h) * o, p.y + dy, p.z + Math.sin(p.h) * o];
@@ -3673,19 +3704,35 @@ document.addEventListener('visibilitychange', () => { if (!ac) return; if (docum
 const fmtT = t => { const m = Math.floor(t / 60), s = t - m * 60; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(2); };
 let popTimer = 0;
 function showPop(big, small) { const el = $('#pop'); el.innerHTML = ''; el.append(big); if (small) { const sm = document.createElement('small'); sm.textContent = small; el.append(sm); } el.classList.add('show'); popTimer = 1.4; }
-function tsHide() { tsCur = ''; const el = $('#turnSign'); if (!el.classList.contains('show')) return; el.classList.remove('show', 'flash'); el.setAttribute('aria-hidden', 'true'); } // the DOM is the truth: safe to call after tsCur was cleared elsewhere
+function tsHide() { tsCur = ''; tsKey = ''; const el = $('#turnSign'); if (!el.classList.contains('show')) return; el.classList.remove('show', 'flash'); el.setAttribute('aria-hidden', 'true'); $('#pop').classList.remove('ts-below'); } // the DOM is the truth: safe to call after tsCur was cleared elsewhere
 function turnSignFrame() {
-  const sg = tsOn && state === 'race' && !sakeRun ? nextSign(tsList || (tsList = cornerList(pts)), car.loc.s, Math.hypot(car.vx, car.vz)) : null;
+  const sg = tsStyle !== 'off' && state === 'race' && !sakeRun && !tsGoGated(tsStyle, performance.now() < goUntil) ? nextTwoSigns(tsList || (tsList = cornerList(pts)), car.loc.s, Math.hypot(car.vx, car.vz)) : null;
   if (!sg) { tsHide(); return; }
   const el = $('#turnSign'), k = sg.k;
-  if (tsCur === String(sg.i)) return;
-  tsCur = String(sg.i);
-  el.dataset.k = k.kind; el.dataset.d = k.dir;
-  el.setAttribute('aria-label', tsLabel(lang, k.kind, k.dir));
-  el.className = 'tsign ' + (k.dir === 'L' ? 'l' : 'r') + ' show' + (k.kind === 'hairpin' ? ' flash' : '');
-  el.innerHTML = tsIcon(k.kind, k.dir); // static markup built from constants, no user data
-  el.removeAttribute('aria-hidden');
-  sfxTurnSign(k.kind === 'hairpin');
+  if (tsCur !== String(sg.i)) {
+    tsCur = String(sg.i);
+    if (tsDraws(tsStyle)) {
+      const k2 = sg.second && tsStyle === 'preview' ? sg.second.k : null;
+      el.dataset.k = k.kind; el.dataset.d = k.dir;
+      if (k2) { el.dataset.k2 = k2.kind; el.dataset.d2 = k2.dir; } else { delete el.dataset.k2; delete el.dataset.d2; }
+      el.setAttribute('aria-label', tsAria(lang, k.kind, k.dir, k2 && k2.kind, k2 && k2.dir));
+      const flash = k.kind === 'hairpin' ? ' flash' : '';
+      el.className = tsStyle === 'preview' ? 'tsign pre show' : tsStyle === 'big' ? 'tsign big show' + flash : 'tsign ' + (k.dir === 'L' ? 'l' : 'r') + ' show' + flash;
+      // static markup built from constants, no user data
+      el.innerHTML = tsStyle === 'preview' ? `<span class="p1${flash}">${tsIcon(k.kind, k.dir)}</span>` + (k2 ? `<span class="p2">${tsIcon(k2.kind, k2.dir)}</span>` : '') : tsIcon(k.kind, k.dir);
+      el.removeAttribute('aria-hidden');
+    }
+    if (tsBeeps(tsStyle)) sfxTurnSign(k.kind === 'hairpin');
+  }
+  // layout work only when something it depends on changed: the shown sign, style, camera, mirror bottom or window size
+  const cockpit = camNow() === 'cockpit', key = tsCur + '|' + tsStyle + '|' + cockpit + '|' + tsMirrorBottom + '|' + window.innerWidth + 'x' + window.innerHeight;
+  if (key === tsKey) return;
+  tsKey = key;
+  const pop = $('#pop');
+  if (tsStyle === 'big' || tsStyle === 'preview') {
+    if (cockpit) el.style.setProperty('--ts-top', tsMirrorBottom + 'px'); else el.style.removeProperty('--ts-top'); // below the cockpit mirror; chase view uses the CSS base
+    pop.classList.add('ts-below'); pop.style.setProperty('--ts-pop', tsPopTop(el.getBoundingClientRect().bottom) + 'px'); // the toast sits below the sign
+  } else if (pop.classList.contains('ts-below')) pop.classList.remove('ts-below');
 }
 function hud(dt) {
   const spd = Math.hypot(car.vx, car.vz), vf = car.vx * Math.sin(car.h) + car.vz * Math.cos(car.h);
@@ -3945,6 +3992,7 @@ for (let i = 0; i < mirrorUv.count; i++) mirrorUv.setX(i, 1 - mirrorUv.getX(i));
 const mirrorImg = new THREE.Mesh(mirrorGeo, overlayMat({ map: mirrorRT.texture, alphaMap: roundedTex(MIRROR.w, MIRROR.h, 12, '#000', '#fff') }));
 mirrorImg.renderOrder = 1;
 overlayScene.add(mirrorFrame, mirrorImg);
+let tsMirrorBottom = 0;
 function layoutMirror(w, h) {
   const mw = mirrorWidth(w, h), mh = mw * MIRROR.h / MIRROR.w;
   // sit below whichever HUD blocks share the mirror's horizontal span (real DOM rects, so wrapped or translated layouts are respected)
@@ -3956,6 +4004,7 @@ function layoutMirror(w, h) {
   }
   const cy = h - top - 5 - mh / 2;
   overlayCam.right = w; overlayCam.top = h; overlayCam.updateProjectionMatrix();
+  tsMirrorBottom = top + mh + 16; // where the big turn sign may start in cockpit view (frame included, + a little air)
   mirrorImg.scale.set(mw, mh, 1); mirrorImg.position.set(w / 2, cy, 0);
   mirrorFrame.scale.set(mw + 10, mh + 10, 1); mirrorFrame.position.set(w / 2, cy, 0);
 }
@@ -4502,8 +4551,9 @@ for (const id of ['#tGhost', '#igGhost']) $(id).addEventListener('click', () => 
 function syncKxUI() {
   const kx = choice.car === 'hatch';
   $('#tKx').hidden = !kx; $('#tKxUpRow').hidden = !(kx && sakeUnlocked); $('#igKxChimeRow').hidden = $('#igKxLetterRow').hidden = !kx;
-  for (const [ids, on] of [[['#tKxChime', '#igKxChime'], kxChimeOn], [['#tKxLetter', '#igKxLetter'], kxLetterOn], [['#tKxUp'], kxUpOn], [['#tVibe', '#igVibe'], vibeOn], [['#tTurn', '#igTurn'], tsOn]]) // + the top-speed upgrade (title only) and the vibration switch (any car)
+  for (const [ids, on] of [[['#tKxChime', '#igKxChime'], kxChimeOn], [['#tKxLetter', '#igKxLetter'], kxLetterOn], [['#tKxUp'], kxUpOn], [['#tVibe', '#igVibe'], vibeOn]]) // + the top-speed upgrade (title only) and the vibration switch (any car)
     for (const id of ids) { const b = $(id); b.setAttribute('aria-checked', String(on)); b.textContent = T(on ? 'igOn' : 'igOff'); }
+  for (const id of ['#tTurn', '#igTurn']) $(id).value = tsStyle; // turn-sign style selects (both places)
 }
 function setKx(kind, on) {
   if (kind === 'chime') { kxChimeOn = on; store.set('yatouge-kx-chime', on ? '1' : '0'); }
@@ -4515,7 +4565,7 @@ for (const [id, kind] of [['#tKxChime', 'chime'], ['#igKxChime', 'chime'], ['#tK
 // the upgrade is changed on the title screen only (never mid-race); renderPicker redraws the top-speed pips and calls syncKxUI
 $('#tKxUp').addEventListener('click', () => { kxUpOn = !kxUpOn; store.set('yatouge-kx-up', kxUpOn ? '1' : '0'); renderPicker(); });
 for (const id of ['#tVibe', '#igVibe']) $(id).addEventListener('click', () => { vibeOn = !vibeOn; store.set('yatouge-vibe', vibeOn ? '1' : '0'); syncKxUI(); });
-for (const id of ['#tTurn', '#igTurn']) $(id).addEventListener('click', () => { tsOn = !tsOn; store.set('yatouge-turn-signs', tsOn ? '1' : '0'); if (!tsOn) tsHide(); syncKxUI(); });
+for (const id of ['#tTurn', '#igTurn']) $(id).addEventListener('change', e => { if (!TS_STYLES.includes(e.target.value)) return; tsStyle = e.target.value; store.set('yatouge-turn-style', tsStyle); tsHide(); syncKxUI(); }); // tsHide: redraw (or re-beep) the current corner in the new style
 function renderTrackPicker() {
   const el = $('#trackPick'); el.innerHTML = '';
   for (const id in TRACKS) {
@@ -4545,7 +4595,7 @@ function applyLang() {
   kbRelabel();
   if (clOpen) clRender();
   pvpRelabel();
-  const ts = $('#turnSign'); if (ts.dataset.k) ts.setAttribute('aria-label', tsLabel(lang, ts.dataset.k, ts.dataset.d));
+  const ts = $('#turnSign'); if (ts.dataset.k) ts.setAttribute('aria-label', tsAria(lang, ts.dataset.k, ts.dataset.d, ts.dataset.k2, ts.dataset.d2));
 }
 $('#langBtn').addEventListener('click', () => { lang = lang === 'zh' ? 'en' : 'zh'; store.set('yatouge-lang', lang); applyLang(); renderOnline(); });
 applyLang();
@@ -4556,7 +4606,7 @@ function startRace() {
   state = 'count'; countT = 3.999;
   $('#title').hidden = true; $('#result').hidden = true; $('#hud').hidden = false; $('#lobby').hidden = true; $('#room').hidden = true; onlineUI = false;
   camera.position.set(car.x - Math.sin(car.h) * 7, car.loc.y + 3, car.z - Math.cos(car.h) * 7);
-  $('#count').textContent = '3'; beep(440, 0.15);
+  $('#count').textContent = '3'; goUntil = 0; beep(440, 0.15);
 }
 
 /* ---------- online 1v1: what the title-screen button shows ---------- */
@@ -5116,7 +5166,7 @@ function pvpLeave() {
   choice = p.prevChoice; // the title's car again (room picks were never saved)
   buildCars(); syncKxUI(); state = 'title'; resetRace(); camOrbit = 0;
   for (const s of ['#hud', '#result', '#resOppBox', '#btnLeave']) $(s).hidden = true;
-  $('#count').textContent = ''; $('#pop').classList.remove('show');
+  $('#count').textContent = ''; goUntil = 0; $('#pop').classList.remove('show');
   showPanel(null); applyLang(); $('#btnStart').focus();
 }
 function leaveToLobby(noteKey) { const n = nick, k = rpLast; pvpLeave(); nick = n; rpLast = k; openLobby(); lobbyNote(noteKey); } // still the same online session
@@ -5124,7 +5174,7 @@ function pvpToRoom() {
   const p = pvp;
   state = 'title'; startS = 0; resetRace();
   for (const s of ['#hud', '#result']) $(s).hidden = true;
-  $('#count').textContent = ''; $('#pop').classList.remove('show');
+  $('#count').textContent = ''; goUntil = 0; $('#pop').classList.remove('show');
   Object.assign(p, { st: 'waiting', ft: null, buf: [], pose: null, cat: null, ck: null }); rpReset(p); // the picks stay; the next round votes again
   pvpPublish({ c: null }); advertise(p);
   showPanel('room'); renderRoom(); focusRoom();
@@ -5358,7 +5408,7 @@ function catOppLeft() {
   if (p.st === 'ready') p.st = 'finished';
   pvpPublish(); advertise(p);
   showPop(T('pvpLeft'));
-  if (state === 'race' || state === 'count') { state = 'done'; finishTimer = 1.6; $('#count').textContent = ''; }
+  if (state === 'race' || state === 'count') { state = 'done'; finishTimer = 1.6; $('#count').textContent = ''; goUntil = 0; }
   else if (!$('#result').hidden) catRefocus();
 }
 // re-render the result; a button that was off (waiting for the call) takes the focus back once it is on
@@ -5814,7 +5864,8 @@ function frame(now) {
   if (pvp) pvpFrame();
   if (state === 'count') {
     const before = Math.ceil(countT); countT = pvp ? countdownLeft(pvp.goAt, performance.now()) : countT - dt; const after = Math.ceil(countT);
-    if (after !== before) { if (after > 0) { $('#count').textContent = after; beep(440, 0.15); } else { $('#count').textContent = 'GO'; beep(880, 0.4); state = 'race'; if (pvp) pvpSetSt('racing'); setTimeout(() => { if ($('#count').textContent === 'GO') $('#count').textContent = ''; }, 700); } }
+    // goUntil is self-expiring: a missed clear can never gate longer than the GO text
+    if (after !== before) { if (after > 0) { $('#count').textContent = after; beep(440, 0.15); } else { $('#count').textContent = 'GO'; goUntil = performance.now() + 700; beep(880, 0.4); state = 'race'; if (pvp) pvpSetSt('racing'); setTimeout(() => { if ($('#count').textContent === 'GO') $('#count').textContent = ''; }, 700); } }
   }
   if (state === 'race' || state === 'done') {
     acc += dt;
@@ -5824,13 +5875,13 @@ function frame(now) {
     if (state === 'race') { if (taRun) taSample(false); scoring(dt); if (car.loc.s >= FINISH_S) finishRace(); }
     if (finishTimer > 0) { finishTimer -= dt; if (finishTimer <= 0) showResult(); }
   }
+  const mirrorOn = camNow() === 'cockpit' && state !== 'title' && !hudEl.hidden;
+  if (mirrorOn) layoutMirror(window.innerWidth, window.innerHeight); // before hud(): turnSignFrame reads tsMirrorBottom
   if (spec) { specFrame(dt); tsHide(); }
   else { placeCars(dt); updateCamera(dt); if (state !== 'title') hud(dt); updateEngineAudio(dt); }
   updateSmoke(dt);
   sky.position.copy(camera.position);
-  const mirrorOn = camNow() === 'cockpit' && state !== 'title' && !hudEl.hidden;
   if (mirrorOn) {
-    layoutMirror(window.innerWidth, window.innerHeight);
     if (playerInterior) playerInterior.group.visible = false; // the cabin never shows in the mirror views (and the door mirrors never sample themselves)
     renderer.setRenderTarget(mirrorRT); renderer.render(scene, mirrorCam);
     if (playerInterior) { renderSideMirror(playerInterior); playerInterior.group.visible = true; }
@@ -6207,7 +6258,7 @@ $('#btnOnline').addEventListener('click', () => { if ($('#btnOnline').getAttribu
 $('#btnStart').addEventListener('click', () => askTrans(startRace));
 $('#btnAgain').addEventListener('click', () => pvp ? (catOn(pvp) && pvp.ck.between ? catConfirm() : pvpBackToRoom()) : askTrans(startRace));
 function returnToTitle() {
-  taEnd(); sakeEnd(); resetRace(); camOrbit = 0; $('#count').textContent = ''; $('#pop').classList.remove('show');
+  taEnd(); sakeEnd(); resetRace(); camOrbit = 0; $('#count').textContent = ''; goUntil = 0; $('#pop').classList.remove('show');
   $('#result').hidden = true; $('#hud').hidden = true; $('#title').hidden = false; renderPicker(); $('#btnStart').focus();
 }
 $('#btnMenu').addEventListener('click', () => { if (pvp) { pvpLeave(); return; } returnToTitle(); });
@@ -6229,6 +6280,7 @@ let forfeitT = 0;
 function menuRelabel() {
   const sel = $('#igCam'); sel.innerHTML = '';
   for (const m of CAM_MODES) sel.append(new Option(T('camM_' + m), m));
+  for (const id of ['#tTurn', '#igTurn']) { const ts = $(id); ts.innerHTML = ''; for (const m of TS_STYLES) ts.append(new Option(T('tsM_' + m), m)); }
   syncMenuUI();
 }
 function syncMenuUI() {
