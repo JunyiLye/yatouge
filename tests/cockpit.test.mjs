@@ -4,12 +4,15 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 
 const html = readFileSync(new URL('../yatouge.html', import.meta.url), 'utf8');
-const NAMES = 'GEARS, gearFor, gearLabel, wheelAngle, needleAngle, smoothTo, gatePos, shifterPath, shifterStep, cockpitMotion, newCockpitMotion, CK_LIM, COCKPIT_CARS, clusterY, LEAN, leanStep, newLean';
+const NAMES = 'GEARS, gearFor, gearLabel, wheelAngle, needleAngle, smoothTo, gatePos, shifterPath, shifterStep, cockpitMotion, newCockpitMotion, CK_LIM, COCKPIT_CARS, clusterY, dashFront, LEAN, leanStep, newLean';
 function load() {
   const open = '/* @cockpit:start */', s = html.indexOf(open), e = html.indexOf('/* @cockpit:end */');
   assert.ok(s >= 0 && e > s, '找不到 @cockpit 區塊');
   return new Function(`${html.slice(s + open.length, e)}\nreturn { ${NAMES} };`)();
 }
+// 外觀與車內共用的車艙數字（純資料，不依賴 THREE）
+const loadCab = () => new Function(`${html.slice(html.indexOf('/* @cabin-shape:start */'), html.indexOf('/* @cabin-shape:end */'))}
+return CAB;`)();
 const loadBox = () => new Function(`${html.slice(html.indexOf('/* @collision:start */'), html.indexOf('/* @collision:end */'))}\nreturn CAR_BOX;`)();
 const near = (a, b, eps = 1e-9) => assert.ok(Math.abs(a - b) < eps, `${a} vs ${b}`);
 const DEG = Math.PI / 180;
@@ -148,7 +151,8 @@ test('COCKPIT_CARS：涵蓋每台車，眼睛在 CAR_BOX 內、右駕，FOV 70�
   for (const k in box) {
     const c = COCKPIT_CARS[k];
     assert.ok(Math.abs(c.eye.fwd) < box[k].hl && c.eye.right > 0.2 && c.eye.right < box[k].hw, `${k} eye`);
-    assert.ok(c.eye.up > 0.9 && c.eye.up < c.hdr.y - 0.1, `${k} 眼睛高度要在車頂前緣之下`);
+    const top = loadCab()[k]?.glass[1][1] ?? c.hdr.y; // 有 CAB 的車用外觀擋風玻璃上緣，SR-7 仍用 hdr
+    assert.ok(c.eye.up > 0.9 && c.eye.up < top - 0.1, `${k} 眼睛高度要在擋風玻璃上緣之下`);
     assert.ok(c.fov >= 70 && c.fov <= 80, `${k} fov`);
     assert.ok(c.wheel.spokes.length >= 3 && c.wheel.r > 0.15 && c.wheel.r < 0.22, `${k} wheel`);
     assert.ok(c.mirrorX > c.eye.right && c.mirrorX < box[k].hw, `${k} 側鏡在車寬內`);
@@ -157,18 +161,31 @@ test('COCKPIT_CARS：涵蓋每台車，眼睛在 CAR_BOX 內、右駕，FOV 70�
   assert.equal(new Set(Object.values(COCKPIT_CARS).map(c => c.layout + c.gauges)).size, 3, '三台車的內裝風格各不相同');
 });
 
-// 從眼睛看向引擎蓋後緣的視線：儀表板頂面不能高過它；SR-7 的大轉速表群也不能高過它（容許 2 cm），否則會擋住前方路面
-test('COCKPIT_CARS：儀表板頂面低於眼睛到引擎蓋後緣的視線；SR-7 的儀表群也是', () => {
-  const { COCKPIT_CARS, clusterY } = load();
-  const sight = (c, z) => c.eye.up + (c.hood[0] - c.eye.up) / (c.dashZ - c.eye.fwd) * (z - c.eye.fwd);
-  for (const k in COCKPIT_CARS) {
-    const c = COCKPIT_CARS[k];
-    assert.ok(c.dashTop <= sight(c, c.dashZ) + 0.01, `${k} 儀表板頂 ${c.dashTop} vs 視線 ${sight(c, c.dashZ).toFixed(3)}`);
-    assert.ok(Math.abs(c.hood[0] - c.dashTop) < 0.03, `${k} 引擎蓋後緣要貼齊儀表板頂，不留縫`);
+// 從眼睛看出去的視線：儀表板頂面前緣不能高過眼睛到擋風玻璃下緣的視線（KX-2、GT-32 的下緣取自外觀 CAB），否則會蓋住從玻璃看出去的引擎蓋；
+// SR-7 還沒有 CAB，沿用原本的引擎蓋後緣規則。SR-7 的大轉速表群也不能高過視線（容許 2 cm）
+test('COCKPIT_CARS：儀表板頂面前緣在擋風玻璃下緣的視線上或之下；SR-7 的儀表群也低於視線', () => {
+  const { COCKPIT_CARS, clusterY, dashFront } = load(), CAB = loadCab();
+  for (const k of ['hatch', 'gtr']) {
+    const c = COCKPIT_CARS[k], base = CAB[k].glass[0], fz = dashFront(c, base);
+    const sightY = c.eye.up + (base[1] - c.eye.up) * (fz - c.eye.fwd) / (base[0] - c.eye.fwd);
+    assert.ok(c.dashTop <= sightY + 1e-9, `${k} 儀表板前緣 ${c.dashTop} vs 視線 ${sightY.toFixed(3)}`);
+    assert.ok(fz <= c.dashZ && fz > 0.74 + 0.03, `${k} 儀表板前緣 z ${fz.toFixed(3)} 在面板之前、不超過 dashZ`);
   }
-  const c = COCKPIT_CARS.coupe, top = clusterY(c) + 0.1; // 大轉速表半徑 0.1，儀表罩頂與錶頂同高
+  const sight = (c, z) => c.eye.up + (c.hood[0] - c.eye.up) / (c.dashZ - c.eye.fwd) * (z - c.eye.fwd);
+  const c = COCKPIT_CARS.coupe;
+  assert.ok(c.dashTop <= sight(c, c.dashZ) + 0.01, `coupe 儀表板頂 ${c.dashTop} vs 視線 ${sight(c, c.dashZ).toFixed(3)}`);
+  assert.ok(Math.abs(c.hood[0] - c.dashTop) < 0.03, 'coupe 引擎蓋後緣要貼齊儀表板頂，不留縫');
+  const top = clusterY(c) + 0.1; // 大轉速表半徑 0.1，儀表罩頂與錶頂同高
   assert.ok(top <= sight(c, 0.86) + 0.02, `coupe 儀表群頂 ${top} vs 視線 ${sight(c, 0.86).toFixed(3)}`);
   assert.ok(clusterY(COCKPIT_CARS.hatch) > COCKPIT_CARS.hatch.dashTop, '預設儀表群在儀表板頂面上方');
+});
+
+// 視線不被儀表板擋住時，從玻璃下緣看出去要看得到 KX-2 的引擎蓋（它的引擎蓋高過視線），GT-32 則幾乎被車頭擋線吃掉
+test('KX-2：從擋風玻璃下緣看出去，引擎蓋從 z 0.9 附近起就在視線之上', () => {
+  const { COCKPIT_CARS } = load(), CAB = loadCab(), c = COCKPIT_CARS.hatch, [b, n] = CAB.hatch.hood, base = CAB.hatch.glass[0];
+  const hoodY = z => b[1] + (n[1] - b[1]) * (z - b[0]) / (n[0] - b[0]);
+  const ray = z => c.eye.up + (base[1] - c.eye.up) * (z - c.eye.fwd) / (base[0] - c.eye.fwd);
+  assert.ok(hoodY(0.95) > ray(0.95) && hoodY(2.05) > ray(2.05), 'KX-2 引擎蓋大部分可見');
 });
 
 // ---- @lean：車內慣性前傾（彈簧阻尼）----

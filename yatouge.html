@@ -2267,9 +2267,11 @@ function loftCaps(pos, idx, st, R) {
 // hex = paint colour; wells = [[zc, radius]] wheel arches: a round opening about (zc, ARCH_Y) is cut out of the shell outboard of |x| = ARCH_X
 // (fragments discarded, so the edge is a true circle at any station spacing) and lined by a dark tunnel whose outer rim follows the side wall
 const ARCH_Y = 0.32, ARCH_X = 0.6;
+// one station's +x half outline, bottom centre to top centre; rows 6..9 are the top surface the driver sees over the hood
+const loftHalf = ([, w, y0, yf, yc]) => { const h = yf - y0; return [[0, y0], [w * 0.78, y0], [w * 0.96, y0 + 0.03], [w, y0 + 0.25 * h], [w, y0 + 0.55 * h], [w * 0.985, y0 + 0.8 * h], [w * 0.9, yf - 0.015], [w * 0.64, yf], [w * 0.3, yc + (yf - yc) * 0.35], [0, yc]]; };
 function loftBody(keys, hex, parent, wells = []) {
   const st = loftStations(keys), pos = [], idx = [];
-  const halfOf = ([, w, y0, yf, yc]) => { const h = yf - y0; return [[0, y0], [w * 0.78, y0], [w * 0.96, y0 + 0.03], [w, y0 + 0.25 * h], [w, y0 + 0.55 * h], [w * 0.985, y0 + 0.8 * h], [w * 0.9, yf - 0.015], [w * 0.64, yf], [w * 0.3, yc + (yf - yc) * 0.35], [0, yc]]; };
+  const halfOf = loftHalf;
   for (const s of st) { const half = halfOf(s); for (const p of half.concat(half.slice(1, -1).reverse().map(p => [-p[0], p[1]]))) pos.push(p[0], p[1], s[0]); }
   const R = 18;
   for (let s = 0; s < st.length - 1; s++) for (let j = 0; j < R; j++) {
@@ -2443,6 +2445,48 @@ function gtBadgeTex() {
     g.fillStyle = '#e0202c'; g.fillText('32', 68, h / 2 + 2);
   }));
 }
+/* @cabin-shape:start */
+// greenhouse and hood numbers shared by the body (makeCar) and the cockpit interior (makeInterior), so the view from the seat lines up with the outside.
+// Side-profile points are [z, y]; widths are full widths before the taper S; body keys are loftBody keys. The SR-7 has no entry yet (its body is being rebuilt)
+const CAB = {
+  hatch: {
+    S: { ty0: 0.88, ty1: 1.38, tumble: 0.15, f0: 1.75, f1: 2.2, fa: 0.06, r0: 1.95, r1: 2.2, ra: 0.05 },
+    hood: [[0.75, 0.9], [2.1, 0.7]], bodyW: 1.64, // body top from the windscreen base to the nose
+    house: [[0.82, 0.89], [0.04, 1.3], ['Q', -0.03, 1.345, -0.15, 1.345], [-0.86, 1.355], [-2.0, 0.97]], houseW: 1.58, // body-colour greenhouse
+    glass: [[0.78, 0.905], [0.06, 1.285]], glassW: 1.44, // windscreen glass skin
+    side: [[[0.7, 0.95], [0.06, 1.27], [-0.25, 1.29], [-0.25, 0.96]], [[-0.47, 0.965], [-0.47, 1.29], [-0.86, 1.3], [-1.72, 1.0], [-1.72, 0.98]]], sideW: 1.6,
+  },
+  gtr: {
+    S: { ty0: 0.86, ty1: 1.3, tumble: 0.2 },
+    body: [[2.283, 0.68, 0.3, 0.42, 0.415], [2.272, 0.76, 0.24, 0.475, 0.47], [2.252, 0.805, 0.2, 0.52, 0.515], [2.218, 0.83, 0.19, 0.556, 0.551], [2.195, 0.845, 0.19, 0.628, 0.622], [2.175, 0.857, 0.196, 0.656, 0.647],
+      [2.15, 0.865, 0.2, 0.665, 0.655], [1.9, 0.88, 0.29, 0.7, 0.688], [1.4, 0.895, 0.3, 0.765, 0.753], [0.9, 0.875, 0.3, 0.825, 0.812],
+      [0.3, 0.85, 0.3, 0.87, 0.82], [-0.3, 0.85, 0.3, 0.87, 0.83], [-0.9, 0.87, 0.3, 0.89, 0.85], [-1.4, 0.87, 0.3, 0.91, 0.88], [-1.9, 0.86, 0.3, 0.93, 0.91], [-2.15, 0.84, 0.31, 0.93, 0.915], [-2.25, 0.8, 0.34, 0.9, 0.89]],
+    bulge: [1.2, 1.39, 1.58, 1.77, 1.95], bulgeW: 0.62, // raised centre panel stations on the hood
+    house: [[1.06, 0.78], [0.22, 1.27], ['Q', 0.14, 1.3, 0, 1.3], [-0.82, 1.295], ['Q', -0.93, 1.293, -0.98, 1.255], [-1.72, 0.88], [-1.72, 0.8]], houseW: 1.42,
+    frame: [[0.994, 0.83], [0.23, 1.27]], frameW: 1.38, // black frame round the windscreen
+    glass: [[0.942, 0.87], [0.261, 1.262]], glassW: 1.28,
+    sideFrame: [[0.9, 0.86], [0.207, 1.266], [-0.84, 1.268], [-1.32, 0.88], [-1.32, 0.86]], sideFrameW: 1.424, // black frames + B-pillar
+    side: [[[0.84, 0.875], [0.213, 1.245], [-0.43, 1.25], [-0.43, 0.875]], [[-0.5, 0.875], [-0.5, 1.25], [-0.83, 1.25], [-1.26, 0.9], [-1.26, 0.875]]], sideW: 1.428,
+  },
+};
+// a CAB outline ([z, y] points, or ['Q', cz, cy, z, y] curves) as part() commands
+const cabCmds = pts => pts.map((p, i) => p[0] === 'Q' ? p : [i ? 'L' : 'M', p[0], p[1]]);
+/* @cabin-shape:end */
+// hood pieces the driver sees, built the same way for the body and for the cockpit
+// KX-2 pop-up pod = the hood corner piece swung up about a rear hinge (z 1.86): a wedge, 0 high at the hinge and 0.19 above the hood at the lens face,
+// topped by a body-colour lid; its footprint stays behind as a dark recess flush with the hood (hood: y 0.9 at z 0.75 down to 0.70 at the nose)
+function kxPod(g, sx, black, dark, paint) {
+  const r = new THREE.Mesh(rrect(0.36, 0.25, 0.03, 0.004, 0.001), black); r.position.set(sx * 0.6, 0.7198, 1.972); r.rotation.x = -Math.PI / 2 + 0.147; g.add(r);
+  part(poly([[1.86, 0.735], [2.09, 0.892], [2.09, 0.68], [1.86, 0.68]]), 0.32, dark, null, g, 0.003).position.x = sx * 0.6;
+  part(poly([[1.86, 0.735], [2.09, 0.892], [2.09, 0.876], [1.86, 0.719]]), 0.34, paint, null, g, 0.003).position.x = sx * 0.6;
+}
+function kxHoodPanel(g, paint) { // slightly raised hood centre, following the hood slope
+  const m = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.014, 1.15), paint); m.position.set(0, 0.811, 1.4); m.rotation.x = 0.147; g.add(m);
+}
+// loft station field f at z, linear between stations like the mesh (1 = half-width, 4 = centreline height)
+function stationAt(st, z, f) { for (let i = 0; i < st.length - 1; i++) { const a = st[i], b = st[i + 1]; if (z <= a[0] && z >= b[0]) return b[f] + (a[f] - b[f]) * (z - b[0]) / (a[0] - b[0]); } return st[st.length - 1][f]; }
+// GT-32 raised centre panel (power bulge) following the hood line
+const gtBulge = st => { const hz = CAB.gtr.bulge; return poly(hz.map(z => [z, stationAt(st, z, 4) + 0.014]).concat(hz.slice().reverse().map(z => [z, stationAt(st, z, 4) - 0.03]))); };
 function makeCar(style, colorIdx) {
   const def = CARS[style], col = def.colors[colorIdx] || def.colors[0];
   const g = new THREE.Group();
@@ -2461,8 +2505,8 @@ function makeCar(style, colorIdx) {
   let heads, tailsPos, W, S;
 
   if (style === 'hatch') {
-    S = { ty0: 0.88, ty1: 1.38, tumble: 0.15, f0: 1.75, f1: 2.2, fa: 0.06, r0: 1.95, r1: 2.2, ra: 0.05 };
-    part([['M', -2.15, 0.31], ['L', 2.05, 0.31], ['Q', 2.15, 0.31, 2.15, 0.45], ['L', 2.135, 0.55], ['L', 2.1, 0.7], ['L', 0.75, 0.9], ['L', -1.95, 0.97], ['Q', -2.13, 0.97, -2.15, 0.88], ['L', -2.17, 0.45], ['Q', -2.17, 0.31, -2.15, 0.31]], 1.64, paint, S, g);
+    const K = CAB.hatch; S = K.S;
+    part([['M', -2.15, 0.31], ['L', 2.05, 0.31], ['Q', 2.15, 0.31, 2.15, 0.45], ['L', 2.135, 0.55], ['L', ...K.hood[1]], ['L', ...K.hood[0]], ['L', -1.95, 0.97], ['Q', -2.13, 0.97, -2.15, 0.88], ['L', -2.17, 0.45], ['Q', -2.17, 0.31, -2.15, 0.31]], K.bodyW, paint, S, g);
     part([['M', -2.16, 0.3], ['L', 2.06, 0.3], ['Q', 2.16, 0.3, 2.16, 0.45], ['L', 2.16, 0.5], ['L', 2.1, 0.58], ['L', -2.185, 0.58], ['L', -2.185, 0.45], ['Q', -2.185, 0.3, -2.16, 0.3]], 1.665, lowPaint, S, g);
     part(poly([[-1.97, 0.575], [1.97, 0.575], [1.97, 0.625], [-1.97, 0.625]]), 1.668, new THREE.MeshLambertMaterial({ color: 0x3d4047 }), S, g); // grey rub strip, visible on black lower panels, overlaps the lower panel top so no gap shows
     // black bumper bars wrapping the corners; front bar y 0.35 to 0.55 with a low black lip attached under it (no stripe across the face), rear bar y 0.3 to 0.47 under a body-colour band
@@ -2474,19 +2518,15 @@ function makeCar(style, colorIdx) {
     const sd = (sx, z, y, h, d, mat, base = 0.82, t = 0.006) => { const w = zz => base * widthK(S, y, zz); const m = add(box(t, h, d), mat, sx * (w(z) + t / 2), y, z); m.rotation.y = sx * Math.atan((w(z + 0.02) - w(z - 0.02)) / 0.04); };
     const plate = new THREE.MeshLambertMaterial({ color: 0xc9ccd2 }), silver = new THREE.MeshLambertMaterial({ color: 0x8a8d94 }), slat = new THREE.MeshLambertMaterial({ color: 0x30333a }), darkDS = new THREE.MeshLambertMaterial({ color: 0x0c0d10, side: THREE.DoubleSide }), chrome = new THREE.MeshLambertMaterial({ color: 0xa9aeb8 }), dish = new THREE.MeshBasicMaterial({ color: 0x80858f }), bulb = new THREE.MeshBasicMaterial({ color: 0xfff6d8 }), tAmber = new THREE.MeshBasicMaterial({ color: 0xc8660e }), tWhite = new THREE.MeshBasicMaterial({ color: 0xd6dbe3 }), nose = y => 2.1 + (0.7 - y) * 0.2333, redM = new THREE.MeshBasicMaterial({ color: 0x8a1018 });
     // greenhouse: body-colour pillars with glass skins over windshield, side windows and the big rear hatch
-    part([['M', 0.82, 0.89], ['L', 0.04, 1.3], ['Q', -0.03, 1.345, -0.15, 1.345], ['L', -0.86, 1.355], ['L', -2.0, 0.97], ['L', 0.82, 0.89]], 1.58, paint, S, g);
-    part(skin([[0.78, 0.905], [0.06, 1.285]], 0.018), 1.44, glass, S, g);
+    part(cabCmds([...K.house, K.house[0]]), K.houseW, paint, S, g);
+    part(skin(K.glass, 0.018), K.glassW, glass, S, g);
     part(skin([[-0.88, 1.35], [-1.99, 0.97]], 0.012), 1.5, black, S, g); // black frame around the hatch glass
     part(skin([[-0.92, 1.34], [-1.96, 0.99]], 0.018), 1.4, glass, S, g);
-    part(poly([[0.7, 0.95], [0.06, 1.27], [-0.25, 1.29], [-0.25, 0.96]]), 1.6, glass, S, g);
-    part(poly([[-0.47, 0.965], [-0.47, 1.29], [-0.86, 1.3], [-1.72, 1.0], [-1.72, 0.98]]), 1.6, glass, S, g); // large rear quarter window
+    part(poly(K.side[0]), K.sideW, glass, S, g);
+    part(poly(K.side[1]), K.sideW, glass, S, g); // large rear quarter window
     part(poly([[-0.25, 0.95], [-0.25, 1.3], [-0.47, 1.3], [-0.47, 0.95]]), 1.61, black, S, g); // thick B-pillar
     for (const sx of [-1, 1]) {
-      // front: pop-up pod = the hood corner piece swung up about a rear hinge (z 1.86): a wedge, 0 high at the hinge and 0.19 above the hood at the lens face,
-      // topped by a body-colour lid; its footprint stays behind as a dark recess flush with the hood (hood: y 0.9 at z 0.75 down to 0.70 at the nose)
-      add(rrect(0.36, 0.25, 0.03, 0.004, 0.001), black, sx * 0.6, 0.7198, 1.972).rotation.x = -Math.PI / 2 + 0.147;
-      part(poly([[1.86, 0.735], [2.09, 0.892], [2.09, 0.68], [1.86, 0.68]]), 0.32, dark, null, g, 0.003).position.x = sx * 0.6;
-      part(poly([[1.86, 0.735], [2.09, 0.892], [2.09, 0.876], [1.86, 0.719]]), 0.34, paint, null, g, 0.003).position.x = sx * 0.6;
+      kxPod(g, sx, black, dark, paint); // front: pop-up lamp pod
       add(rrect(0.28, 0.16, 0.035, 0.012, 0.003), chrome, sx * 0.6, 0.8, 2.096);
       add(rrect(0.24, 0.13, 0.03, 0.012, 0.003), headMat, sx * 0.6, 0.8, 2.102);
       for (const dy of [-0.025, 0.025]) add(box(0.22, 0.004, 0.003), tWhite, sx * 0.6, 0.8 + dy, 2.1065);
@@ -2516,7 +2556,7 @@ function makeCar(style, colorIdx) {
     const trimMat = new THREE.MeshBasicMaterial({ map: trimBadgeTex(doorInkLight(col.top)), transparent: true, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
     add(new THREE.PlaneGeometry(0.39, 0.058), trimMat, 0.46, 0.878, -2.158).rotation.y = Math.PI; // above the left (+x) tail cluster
     add(new THREE.PlaneGeometry(0.3, 0.047), nameMat, 0, 0.585, nose(0.585) + 0.03).rotation.x = -0.229; // grille band, below the slats, centred
-    const hood = add(box(0.5, 0.014, 1.15), paint, 0, 0.811, 1.4); hood.rotation.x = 0.147; // slightly raised hood centre, following the hood slope
+    kxHoodPanel(g, paint);
     add(box(1.5, 0.24, 0.02), black, 0, 0.72, -2.18); // full-width black tail panel
     add(box(0.34, 0.11, 0.01), plate, 0, 0.72, -2.19); // blank plate
     const sp = add(box(1.5, 0.03, 0.15), paint, 0, 0.99, -2.02); sp.rotation.x = 0.15; // small spoiler lip at the hatch base
@@ -2618,9 +2658,7 @@ function makeCar(style, colorIdx) {
     // the stations from z 0.3 back are the original ones, so the rear end is unchanged; the front well stations mirror the rear ones (wider at 1.4 for the flare).
     // Nose in side view: the hood edge rolls down (2.175) into the lamp band, which leans back (2.195 to 2.218); the bumper rolls forward under it to a flat face (2.283), then tucks under to the lip.
     // The front stations also narrow, so the corners are round in plan
-    const bodyKeys = [[2.283, 0.68, 0.3, 0.42, 0.415], [2.272, 0.76, 0.24, 0.475, 0.47], [2.252, 0.805, 0.2, 0.52, 0.515], [2.218, 0.83, 0.19, 0.556, 0.551], [2.195, 0.845, 0.19, 0.628, 0.622], [2.175, 0.857, 0.196, 0.656, 0.647],
-      [2.15, 0.865, 0.2, 0.665, 0.655], [1.9, 0.88, 0.29, 0.7, 0.688], [1.4, 0.895, 0.3, 0.765, 0.753], [0.9, 0.875, 0.3, 0.825, 0.812],
-      [0.3, 0.85, 0.3, 0.87, 0.82], [-0.3, 0.85, 0.3, 0.87, 0.83], [-0.9, 0.87, 0.3, 0.89, 0.85], [-1.4, 0.87, 0.3, 0.91, 0.88], [-1.9, 0.86, 0.3, 0.93, 0.91], [-2.15, 0.84, 0.31, 0.93, 0.915], [-2.25, 0.8, 0.34, 0.9, 0.89]];
+    const K = CAB.gtr, bodyKeys = K.body;
     const body = loftBody(bodyKeys, col.top, g, [[1.3, 0.38], [-1.3, 0.38]]);
     // front parts are set onto the nose by casting rays at the shell, so they follow its lean and its rounded corners
     body.updateMatrixWorld();
@@ -2632,21 +2670,19 @@ function makeCar(style, colorIdx) {
       const m = add(geo, mat, 0, 0, 0); m.position.copy(p).addScaledVector(n, off); m.rotation.set(-Math.asin(n.y), Math.atan2(n.x, n.z), 0, 'YXZ'); return m;
     };
     const bodySt = loftStations(bodyKeys); // station field f at z (linear between stations, like the mesh): 1 = half-width, 4 = centreline height
-    const at = (z, f) => { for (let i = 0; i < bodySt.length - 1; i++) { const a = bodySt[i], b = bodySt[i + 1]; if (z <= a[0] && z >= b[0]) return b[f] + (a[f] - b[f]) * (z - b[0]) / (a[0] - b[0]); } return bodySt[bodySt.length - 1][f]; };
+    const at = (z, f) => stationAt(bodySt, z, f);
     const sideDecal = (sx, z, y, h, d, mat) => { const m = add(box(0.006, h, d), mat, sx * (at(z, 1) + 0.003), y, z); m.rotation.y = sx * Math.atan((at(z + 0.02, 1) - at(z - 0.02, 1)) / 0.04); };
-    // raised centre panel (power bulge) following the hood line
-    const hz = [1.2, 1.39, 1.58, 1.77, 1.95];
-    part(poly(hz.map(z => [z, at(z, 4) + 0.014]).concat(hz.slice().reverse().map(z => [z, at(z, 4) - 0.03]))), 0.62, paint, null, g, 0.006);
+    part(gtBulge(bodySt), K.bulgeW, paint, null, g, 0.006); // raised centre panel (power bulge)
     // greenhouse: body-colour shell (steep windscreen, flat roof, sloped rear glass) leaning in toward the roof, black-framed glass skins and side windows
-    S = { ty0: 0.86, ty1: 1.3, tumble: 0.2 };
-    part([['M', 1.06, 0.78], ['L', 0.22, 1.27], ['Q', 0.14, 1.3, 0, 1.3], ['L', -0.82, 1.295], ['Q', -0.93, 1.293, -0.98, 1.255], ['L', -1.72, 0.88], ['L', -1.72, 0.8]], 1.42, paint, S, g);
-    part(skin([[0.994, 0.83], [0.23, 1.27]], 0.012), 1.38, black, S, g);
-    part(skin([[0.942, 0.87], [0.261, 1.262]], 0.018), 1.28, glass, S, g);
+    S = K.S;
+    part(cabCmds(K.house), K.houseW, paint, S, g);
+    part(skin(K.frame, 0.012), K.frameW, black, S, g);
+    part(skin(K.glass, 0.018), K.glassW, glass, S, g);
     part(skin([[-0.97, 1.262], [-1.7, 0.893]], 0.012), 1.32, black, S, g);
     part(skin([[-1.0, 1.257], [-1.66, 0.923]], 0.018), 1.2, glass, S, g);
-    part(poly([[0.9, 0.86], [0.207, 1.266], [-0.84, 1.268], [-1.32, 0.88], [-1.32, 0.86]]), 1.424, black, S, g); // black frames + B-pillar
-    part(poly([[0.84, 0.875], [0.213, 1.245], [-0.43, 1.25], [-0.43, 0.875]]), 1.428, glass, S, g);
-    part(poly([[-0.5, 0.875], [-0.5, 1.25], [-0.83, 1.25], [-1.26, 0.9], [-1.26, 0.875]]), 1.428, glass, S, g);
+    part(poly(K.sideFrame), K.sideFrameW, black, S, g); // black frames + B-pillar
+    part(poly(K.side[0]), K.sideW, glass, S, g);
+    part(poly(K.side[1]), K.sideW, glass, S, g);
     // front face: grille strip and lamp units in the leaned-back band under the hood edge, then the rounded bumper (seam, slots, intercooler, plate, ducts)
     const LY = 0.588, chromeM = new THREE.MeshPhongMaterial({ color: 0xb4bac4, specular: 0xffffff, shininess: 50, side: THREE.DoubleSide }), reflM = new THREE.MeshPhongMaterial({ color: 0x2c3138, specular: 0x3a3f48, shininess: 20 }), projM = new THREE.MeshPhongMaterial({ color: 0x1a1e26, specular: 0xffffff, shininess: 90 });
     const lensM = new THREE.MeshPhongMaterial({ color: 0xc8d2e0, specular: 0xb8c0cc, shininess: 90, transparent: true, opacity: 0.16, depthWrite: false });
@@ -3551,21 +3587,24 @@ function cockpitMotion(m, i, dt) {
   return m;
 }
 // 每台車的車內參數（車身座標：+z 車頭、-x 車右；眼睛 right 為往右的距離）
-// eye 座位眼睛；hdr 車頂前緣（橫梁位置）；dashTop/dashZ 儀表板頂面高度與前緣；layout 儀表板形狀；gauges 儀表配置；
-// wheel 方向盤；mirrorX 側鏡離中線距離；hood 引擎蓋後端到前端的高度；col 內裝配色
+// eye 座位眼睛；dashTop/dashZ 儀表板頂面高度與前緣（前緣再由 dashFront 收到擋風玻璃下緣的視線上）；layout 儀表板形狀；gauges 儀表配置；
+// wheel 方向盤；mirrorX 側鏡離中線距離；col 內裝配色。KX-2 與 GT-32 的引擎蓋、擋風玻璃框、A 柱、側窗與車頂由外觀的 CAB 數字產生；
+// SR-7 還沒有 CAB（外觀要重做），沿用 hdr 車頂前緣（橫梁位置）與 hood 引擎蓋後端到前端的高度
 const COCKPIT_CARS = {
-  hatch: { eye: { fwd: -0.1, right: 0.34, up: 1.12 }, fov: 76, hdr: { y: 1.46, z: 0.45 }, dashTop: 0.9, dashZ: 1.0, layout: 'box', gauges: 'twin',
-    wheel: { r: 0.18, tube: 0.015, y: 0.76, z: 0.5, spokes: [Math.PI, 0, -Math.PI / 2] }, mirrorX: 0.8, hood: [0.9, 0.72],
+  hatch: { eye: { fwd: -0.1, right: 0.34, up: 1.12 }, fov: 76, dashTop: 0.9, dashZ: 1.0, layout: 'box', gauges: 'twin',
+    wheel: { r: 0.18, tube: 0.015, y: 0.76, z: 0.5, spokes: [Math.PI, 0, -Math.PI / 2] }, mirrorX: 0.8,
     col: { dash: 0x2b2e34, trim: 0x44474f, roof: 0x1c1d21 } },
   coupe: { eye: { fwd: -0.2, right: 0.34, up: 1.0 }, fov: 78, hdr: { y: 1.35, z: 0.4 }, dashTop: 0.78, clusterY: 0.72, dashZ: 1.0, layout: 'wrap', gauges: 'bigTach',
     wheel: { r: 0.175, tube: 0.017, y: 0.66, z: 0.46, spokes: [Math.PI + 0.45, -0.45, -Math.PI / 2] }, mirrorX: 0.84, hood: [0.78, 0.6],
     col: { dash: 0x24262d, trim: 0x5a2a30, roof: 0x18191d } },
-  gtr: { eye: { fwd: -0.12, right: 0.34, up: 1.06 }, fov: 76, hdr: { y: 1.4, z: 0.42 }, dashTop: 0.88, dashZ: 1.0, layout: 'box', gauges: 'twinAux',
-    wheel: { r: 0.175, tube: 0.019, y: 0.72, z: 0.48, spokes: [0, Math.PI / 2, Math.PI, -Math.PI / 2] }, mirrorX: 0.82, hood: [0.88, 0.7],
+  gtr: { eye: { fwd: -0.12, right: 0.34, up: 1.06 }, fov: 76, dashTop: 0.88, dashZ: 1.0, layout: 'box', gauges: 'twinAux',
+    wheel: { r: 0.175, tube: 0.019, y: 0.72, z: 0.48, spokes: [0, Math.PI / 2, Math.PI, -Math.PI / 2] }, mirrorX: 0.82,
     col: { dash: 0x25272d, trim: 0x34373e, roof: 0x16171b } },
 };
 // 儀表群中心高度（預設在儀表板頂面上方 3 cm；clusterY 可覆寫，讓大型錶不擋住引擎蓋線以上的視野）
 const clusterY = P => P.clusterY ?? P.dashTop + 0.03;
+// 儀表板頂面的前緣：不超過 dashZ，也不能高過眼睛到擋風玻璃下緣 base [z, y] 的視線，否則會蓋住從玻璃看出去的引擎蓋
+const dashFront = (P, base) => Math.min(P.dashZ, P.eye.fwd + (P.dashTop - P.eye.up) * (base[0] - P.eye.fwd) / (base[1] - P.eye.up));
 /* @cockpit:end */
 // the gear the player is really in: chosen in manual, derived from speed in automatic (a manual car at a standstill shows its gear, not N)
 // automatic reads car.autoGear (atGear: same upshift points as gearFor, a small downshift hysteresis so the shift brake's dip can't flip it back)
@@ -3642,7 +3681,7 @@ function dialTex(kind) {
   });
 }
 function makeInterior(style, paintHex) {
-  const P = COCKPIT_CARS[style], e = P.eye, ex = -e.right, dt = P.dashTop, dz = P.dashZ, pz = 0.74, hw = CAR_BOX[style].hw, FLOOR = 0.1;
+  const P = COCKPIT_CARS[style], e = P.eye, ex = -e.right, dt = P.dashTop, pz = 0.74, hw = CAR_BOX[style].hw, FLOOR = 0.1;
   const grp = new THREE.Group(); grp.visible = false;
   const lam = c => new THREE.MeshLambertMaterial({ color: c });
   const mDash = lam(P.col.dash), mTrim = lam(P.col.trim), mRoof = lam(P.col.roof), mBlack = lam(0x0b0c0f), mFloor = lam(0x0e0f12), mSpoke = lam(0x70747e), mPaint = lam(paintHex);
@@ -3659,9 +3698,11 @@ function makeInterior(style, paintHex) {
     const m = add(box(w, w, len), mat, (a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2);
     m.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), d.normalize()); return m;
   };
-  // dashboard: driver-facing panel at z = pz, shoulder, then the top surface running out to the windscreen base
+  // dashboard: driver-facing panel at z = pz, shoulder, then the top surface running out to the windscreen base; its front edge stays on or under
+  // the sight line to the glass base, so the hood shows through the glass as it would from outside
   // (the panel runs down to the floor so the footwell is closed; the real body is hidden in cockpit view)
-  const prof = [[pz, FLOOR], [pz, dt - 0.06], [pz + 0.1, dt - 0.01], [dz, dt], [dz + 0.1, dt - 0.04], [dz + 0.1, FLOOR]];
+  const K = CAB[style], fz = K ? dashFront(P, K.glass[0]) : P.dashZ; // SR-7 (no CAB yet): dash as it was
+  const prof = [[pz, FLOOR], [pz, dt - 0.06], [Math.min(pz + 0.1, fz - 0.01), dt - 0.01], [fz, dt], [fz + 0.1, dt - 0.04], [fz + 0.1, FLOOR]];
   if (P.layout === 'wrap') {
     add(slab(prof, 0.9), mDash, 0, 0, 0);
     // the wings turn about their own centre line (z = 0.9), otherwise the yaw swings them outward and leaves a gap beside the centre panel
@@ -3704,18 +3745,67 @@ function makeInterior(style, paintHex) {
   const stick = new THREE.Group(); stick.position.set(lx, 0.65, lz); grp.add(stick);
   add(new THREE.CylinderGeometry(0.007, 0.009, 0.2, 8), mSpoke, 0, 0.1, 0, stick);
   add(new THREE.SphereGeometry(0.023, 12, 8), mBlack, 0, 0.21, 0, stick);
-  // door cards, pillars, header, headliner, sun visors
+  // door cards from the floor up to just under the side glass
+  const cardTop = K ? Math.min(0.9, Math.min(...K.side[0].map(q => q[1])) - 0.01) : 0.9;
   for (const sx of [1, -1]) {
-    add(box(0.12, 0.8, 1.7), mDash, sx * (hw - 0.09), 0.5, 0); // door card from the sill line down to the floor
-    add(box(0.13, 0.02, 1.7), mTrim, sx * (hw - 0.09), 0.905, 0);
-    bar([sx * P.mirrorX, dt - 0.03, dz - 0.02], [sx * 0.7, P.hdr.y, P.hdr.z], 0.075, mDash);
+    add(box(0.12, cardTop - FLOOR, 1.7), mDash, sx * (hw - 0.09), (cardTop + FLOOR) / 2, 0);
+    add(box(0.13, 0.02, 1.7), mTrim, sx * (hw - 0.09), cardTop + 0.005, 0);
+    if (!K) bar([sx * P.mirrorX, dt - 0.03, P.dashZ - 0.02], [sx * 0.7, P.hdr.y, P.hdr.z], 0.075, mDash); // SR-7 pillars as they were
   }
-  add(box(1.5, 0.06, 0.07), mRoof, 0, P.hdr.y - 0.03, P.hdr.z);
-  add(box(1.56, 0.025, P.hdr.z + 0.9), mRoof, 0, P.hdr.y - 0.0125, (P.hdr.z - 0.9) / 2);
-  for (const x of [ex, 0.34]) add(box(0.36, 0.012, 0.17), mRoof, x, P.hdr.y - 0.04, P.hdr.z - 0.12).rotation.x = 0.1;
-  // the real body is hidden in cockpit view, so the back of the hood is part of the interior
-  const hl = 1.3, h0 = P.hood[0], h1 = P.hood[1];
-  add(box(2 * hw - 0.06, 0.03, hl), mPaint, 0, (h0 + h1) / 2 - 0.015, dz + 0.6).rotation.x = Math.atan((h0 - h1) / hl);
+  if (!K) { // SR-7: header, headliner, sun visors and flat hood as they were, until its rebuilt body gets CAB numbers
+    add(box(1.5, 0.06, 0.07), mRoof, 0, P.hdr.y - 0.03, P.hdr.z);
+    add(box(1.56, 0.025, P.hdr.z + 0.9), mRoof, 0, P.hdr.y - 0.0125, (P.hdr.z - 0.9) / 2);
+    for (const x of [ex, 0.34]) add(box(0.36, 0.012, 0.17), mRoof, x, P.hdr.y - 0.04, P.hdr.z - 0.12).rotation.x = 0.1;
+    const hl = 1.3, h0 = P.hood[0], h1 = P.hood[1];
+    add(box(2 * hw - 0.06, 0.03, hl), mPaint, 0, (h0 + h1) / 2 - 0.015, P.dashZ + 0.6).rotation.x = Math.atan((h0 - h1) / hl);
+  } else {
+    // the real body is hidden in cockpit view, so the greenhouse and the hood are rebuilt here from the body's own numbers (CAB):
+    // windscreen frame, A-pillars, side-window openings and roof line sit exactly where they are on the outside
+    const ds = c => new THREE.MeshLambertMaterial({ color: c, side: THREE.DoubleSide });
+    const taper = (geo, S) => { if (S) { const q = geo.attributes.position; for (let i = 0; i < q.count; i++) q.setX(i, q.getX(i) * widthK(S, q.getY(i), q.getZ(i))); } geo.computeVertexNormals(); return geo; };
+    // strip through side-profile points [z, y] between x0 and x1 (before the taper)
+    const ribbon = (pts, x0, x1, mat, S) => {
+      const pos = [], idx = [];
+      pts.forEach(([z, y], i) => { pos.push(x0, y, z, x1, y, z); if (i) idx.push(i * 2 - 2, i * 2 - 1, i * 2, i * 2, i * 2 - 1, i * 2 + 1); });
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx);
+      return add(taper(geo, S), mat, 0, 0, 0);
+    };
+    const along = (a, b, n) => Array.from({ length: n + 1 }, (_, i) => [a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n]);
+    const hdr = K.glass[1];
+    const S = K.S, hH = K.houseW / 2, hG = K.glassW / 2, mPil = ds(style === 'gtr' ? 0x0b0c0f : P.col.dash), mHead = ds(P.col.roof);
+    // side walls: the greenhouse outline with the side windows cut out, on the body's side face
+    const wall = profile(cabCmds(K.house)); wall.holes = K.side.map(w => profile(poly(w)));
+    for (const sx of [1, -1]) {
+      const geo = new THREE.ExtrudeGeometry(wall, { depth: 0.012, bevelEnabled: false, curveSegments: 10 });
+      geo.translate(0, 0, sx > 0 ? -hH : hH - 0.012); geo.rotateY(-Math.PI / 2);
+      add(taper(geo, S), mPil, 0, 0, 0);
+    }
+    // windscreen line and roof: cowl strip full width, then only the pillars beside the glass, then header and headliner full width
+    const top = []; let last;
+    for (const q of K.house) { if (q[0] === 'Q') { top.push(...qpts(last, [q[1], q[2]], [q[3], q[4]], 6).slice(1)); last = [q[3], q[4]]; } else { top.push(q); last = q; } }
+    const onWs = z => { const [a, b] = top; return [z, a[1] + (b[1] - a[1]) * (z - a[0]) / (b[0] - a[0])]; };
+    const gb = onWs(K.glass[0][0]), gt = onWs(hdr[0]);
+    ribbon([top[0], gb], -hH, hH, mPil, S);
+    const pil = along(gb, gt, 8);
+    ribbon(pil, hG, hH, mPil, S); ribbon(pil, -hH, -hG, mPil, S);
+    ribbon([gt, top[1]], -hH, hH, mPil, S);
+    ribbon(top.slice(1), -hH, hH, mHead, S);
+    for (const x of [ex, 0.34]) add(box(0.36, 0.012, 0.17), mRoof, x, hdr[1] + 0.005, hdr[0] - 0.12).rotation.x = 0.1; // sun visors folded up under the roof, behind the glass top so they don't lower the opening
+    // hood: the body's own top surface ahead of the windscreen base, with what stands on it
+    const mPaintDS = ds(paintHex);
+    if (style === 'hatch') {
+      ribbon(along(K.hood[0], K.hood[1], 12), -K.bodyW / 2, K.bodyW / 2, mPaintDS, K.S);
+      kxHoodPanel(grp, mPaint);
+      for (const sx of [-1, 1]) kxPod(grp, sx, mBlack, lam(0x121317), mPaint);
+    } else {
+      const st = loftStations(K.body).filter(q => q[0] >= K.glass[0][0] - 0.3), pos = [], idx = [];
+      for (const q of st) { const h = loftHalf(q).slice(6); for (const v of h.concat(h.slice(0, -1).reverse().map(v => [-v[0], v[1]]))) pos.push(v[0], v[1], q[0]); } // rows 6..9 and back down the -x side
+      for (let i = 0; i < st.length - 1; i++) for (let j = 0; j < 6; j++) { const a = i * 7 + j; idx.push(a, a + 7, a + 1, a + 1, a + 7, a + 8); }
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+      add(geo, mPaintDS, 0, 0, 0);
+      part(gtBulge(loftStations(K.body)), K.bulgeW, mPaint, null, grp, 0.006);
+    }
+  }
   // door mirrors: housing + a face showing a render target; the UVs are flipped so the image is a mirror image
   const mirrors = [];
   [1, -1].forEach((sx, i) => {
