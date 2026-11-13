@@ -3197,8 +3197,6 @@ function boostStep(boost, gas, rpm, dt) {
   return boost < target ? Math.min(target, boost + dt * 1.1) : Math.max(target, boost - dt * 3);
 }
 const cooldownStep = (cd, dt) => Math.max(0, cd - dt);
-// rotary (SR-7) BOV: throttle lift with boost above 0.45, same cooldown as the GT-32
-const rotaryBov = (prevGas, gas, boost, cooldown) => prevGas && !gas && boost > 0.45 && cooldown <= 0;
 /* @turbo-sfx:end */
 function buildEngine(type) {
   const out = ac.createGain(); out.gain.value = 0; out.connect(master);
@@ -3227,7 +3225,6 @@ function buildEngine(type) {
     const lg = ac.createGain(); lg.gain.value = 0.3; lfo.connect(lg).connect(pre.gain); lfo.start(); e.lfo = lfo; e.lfoG = lg;
     const tw = ac.createOscillator(); tw.type = 'sine'; const tg = ac.createGain(); tg.gain.value = 0;
     tw.connect(tg).connect(master); tw.start(); e.tw = tw; e.twG = tg;
-    e.bovCd = 0;
   }
   return e;
 }
@@ -3444,8 +3441,7 @@ function updateEngineAudio(dt) {
       e.boost = clamp(e.boost + (gas && car.rpm > 3500 ? dt * 1.1 : -dt * 3), 0, 1);
       e.tw.frequency.setTargetAtTime(1800 + e.boost * 2800, t, 0.05);
       e.twG.gain.setTargetAtTime(e.boost * 0.022, t, 0.05);
-      e.bovCd = cooldownStep(e.bovCd, dt);
-      if (rotaryBov(e.gasWas, gas, e.boost, e.bovCd)) { noise(t, 0.4, 0.2, 'bandpass', 2400, master); e.bovCd = BOV_COOLDOWN; }
+      if (e.gasWas && !gas && e.boost > 0.45) noise(t, 0.4, 0.2, 'bandpass', 2400, master);
       e.gasWas = gas;
     }
   }

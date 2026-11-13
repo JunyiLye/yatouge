@@ -7,7 +7,7 @@ const html = readFileSync(new URL('../yatouge.html', import.meta.url), 'utf8');
 function load() {
   const open = '/* @turbo-sfx:start */', s = html.indexOf(open), e = html.indexOf('/* @turbo-sfx:end */');
   assert.ok(s >= 0 && e > s, '找不到 @turbo-sfx 區塊');
-  return new Function(`const clamp = (v, a, b) => Math.max(a, Math.min(b, v));\n${html.slice(s + open.length, e)}\nreturn { BOV_MIN_BOOST, BOV_COOLDOWN, bovTrigger, rotaryBov, shiftEvent, boostStep, cooldownStep };`)();
+  return new Function(`const clamp = (v, a, b) => Math.max(a, Math.min(b, v));\n${html.slice(s + open.length, e)}\nreturn { BOV_MIN_BOOST, BOV_COOLDOWN, bovTrigger, shiftEvent, boostStep, cooldownStep };`)();
 }
 
 test('bovTrigger：增壓足夠時，鬆油門觸發', () => {
@@ -99,32 +99,6 @@ test('冷卻整合：同一次鬆油門 0.6 秒內只觸發一次', () => {
   for (let i = 0; i < 30; i++) { // 0.5 秒，每幀都是煞車 + 高增壓
     if (bovTrigger(false, false, true, 1, cd)) { shots++; cd = BOV_COOLDOWN; }
     cd = cooldownStep(cd, 1 / 60);
-  }
-  assert.equal(shots, 1);
-});
-
-test('rotaryBov（SR-7）：鬆油門且增壓高於 0.45、冷卻為 0 時觸發', () => {
-  const { rotaryBov } = load();
-  assert.equal(rotaryBov(true, false, 0.8, 0), true);
-});
-test('rotaryBov（SR-7）：增壓 0.45 以下不觸發', () => {
-  const { rotaryBov } = load();
-  assert.equal(rotaryBov(true, false, 0.45, 0), false);
-  assert.equal(rotaryBov(true, false, 0.2, 0), false);
-});
-test('rotaryBov（SR-7）：沒有鬆油門的邊緣不觸發', () => {
-  const { rotaryBov } = load();
-  assert.equal(rotaryBov(true, true, 0.8, 0), false);
-  assert.equal(rotaryBov(false, false, 0.8, 0), false);
-});
-test('rotaryBov（SR-7）：冷卻中不觸發；快速連點油門 0.6 秒內只響一次', () => {
-  const { rotaryBov, cooldownStep, BOV_COOLDOWN } = load();
-  assert.equal(rotaryBov(true, false, 0.8, 0.3), false);
-  let cd = 0, shots = 0, prev = false;
-  for (let i = 0; i < 30; i++) { // 0.5 秒內每 5 幀一次輕點油門
-    const gas = i % 10 < 5;
-    if (rotaryBov(prev, gas, 1, cd)) { shots++; cd = BOV_COOLDOWN; }
-    prev = gas; cd = cooldownStep(cd, 1 / 60);
   }
   assert.equal(shots, 1);
 });
