@@ -57,6 +57,15 @@ body.gp :is(button, input, select):focus { outline: 2px solid var(--sodium); out
 
 .pop { position: absolute; left: 0; right: 0; top: 26%; text-align: center; font-family: var(--display); font-size: clamp(28px, 6vw, 52px); color: var(--sodium); text-shadow: 0 0 24px rgba(255,162,58,.45), 0 2px 0 #000; opacity: 0; transition: opacity .25s, transform .25s; transform: scale(.9); }
 .pop.show { opacity: 1; transform: scale(1); }
+.tsign { position: absolute; top: clamp(96px, 24vh, 170px); width: clamp(56px, 9vw, 84px); aspect-ratio: 1; opacity: 0; transition: opacity .25s; pointer-events: none; filter: drop-shadow(0 2px 6px rgba(0,0,0,.6)); }
+.tsign.show { opacity: 1; }
+.tsign.l { left: calc(7% + env(safe-area-inset-left, 0px)); }
+.tsign.r { right: calc(7% + env(safe-area-inset-right, 0px)); }
+.tsign svg { display: block; width: 100%; height: 100%; }
+.tsign.flash svg { animation: tsflash .7s ease-in-out 1; }
+@keyframes tsflash { 0%, 100% { opacity: 1; } 25%, 75% { opacity: .15; } 50% { opacity: 1; } }
+@media (orientation: landscape) and (max-height: 500px) { .tsign { top: calc(80px + env(safe-area-inset-top, 0px)); width: 60px; } }
+@media (prefers-reduced-motion: reduce) { .tsign { transition: none; } .tsign.flash svg { animation: none; } }
 .pop small { display: block; font-family: var(--mono); font-style: italic; font-size: .5em; color: var(--ink); }
 .count { position: absolute; left: 0; right: 0; top: 34%; text-align: center; font-family: var(--mono); font-style: italic; font-weight: 700; font-size: clamp(80px, 18vw, 160px); color: var(--ink); text-shadow: 0 0 40px rgba(255,255,255,.35); }
 
@@ -392,6 +401,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div class="rpm"><i id="rpm"></i></div>
   </div>
   <div id="pop" class="pop"></div>
+  <div id="turnSign" class="tsign" role="img" aria-hidden="true"></div>
   <div id="count" class="count"></div>
   <ol id="chatFeed" class="chatfeed" aria-live="polite" hidden></ol>
   <form id="chatBar" class="panel" autocomplete="off" hidden><div class="chatrow"><input id="chatBarIn" class="chatin" type="text" maxlength="80" enterkeyhint="send" autocomplete="off" spellcheck="false" data-i18n-aria="chatLbl" aria-label="聊天"><button class="chatsend" type="submit" data-i18n="chatSend">送出</button></div><p id="chatBarHint" class="chathint" role="status"></p></form>
@@ -466,6 +476,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     </div>
     <div class="tctl">
       <div class="igrow"><span id="tVibeL" data-i18n="vibe">震動</span><button id="tVibe" type="button" role="switch" aria-labelledby="tVibeL" aria-checked="true"></button></div>
+      <div class="igrow"><span id="tTurnL" data-i18n="turnSigns">彎道提示</span><button id="tTurn" type="button" role="switch" aria-labelledby="tTurnL" aria-checked="true"></button></div>
       <div class="igrow"><span id="tKeysL" data-i18n="kbTitle">按鍵設定</span><button id="tKeys" type="button" aria-haspopup="dialog" aria-describedby="tKeysL" data-i18n="kbOpen">變更</button></div>
     </div>
     <div id="tCtl" class="tctl" hidden>
@@ -583,6 +594,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <div class="igrow"><label for="igMusicVol" data-i18n="igMusicVol">音樂音量</label><output id="igMusicOut" for="igMusicVol"></output><input id="igMusicVol" type="range" min="0" max="100" step="5"></div>
       <div class="igrow"><label for="igSfxVol" data-i18n="igSfxVol">音效音量</label><output id="igSfxOut" for="igSfxVol"></output><input id="igSfxVol" type="range" min="0" max="100" step="5"></div>
       <div class="igrow"><span id="igVibeL" data-i18n="vibe">震動</span><button id="igVibe" type="button" role="switch" aria-labelledby="igVibeL" aria-checked="true"></button></div>
+      <div class="igrow"><span id="igTurnL" data-i18n="turnSigns">彎道提示</span><button id="igTurn" type="button" role="switch" aria-labelledby="igTurnL" aria-checked="true"></button></div>
       <div class="igrow" id="igKxChimeRow" hidden><span id="igKxChimeL" data-i18n="kxChime">時速警示音</span><button id="igKxChime" type="button" role="switch" aria-labelledby="igKxChimeL" aria-checked="true"></button></div>
       <div class="igrow" id="igKxLetterRow" hidden><span id="igKxLetterL" data-i18n="kxLetter">車門字樣</span><button id="igKxLetter" type="button" role="switch" aria-labelledby="igKxLetterL" aria-checked="true"></button></div>
       <div class="igrow" id="igGhostRow" hidden><span id="igGhostL" data-i18n="taGhost">幽靈車</span><button id="igGhost" type="button" role="switch" aria-labelledby="igGhostL" aria-checked="true"></button></div>
@@ -989,7 +1001,7 @@ const I18N = {
     nickTitle: '你的暱稱', nickLbl: '暱稱', nickHint: '1 到 16 個字，只在這次線上對戰使用，不會被記住；其他玩家看得到。', nickOk: '確定', nickCancel: '取消',
     pvpPlayer: '玩家', pvpYouTag: n => `${n}（你）`, pvpNickIs: n => `你的暱稱：${n}。`, pvpTimeOf: n => `${n} 完賽時間`,
     igAria: '選單', igTitle: '選單', igResume: '繼續', igSettings: '設定', igForfeit: '認輸', igRestart: '重新開始', igLobby: '回到大廳', igLobbyAsk: '確定回到大廳？這場比賽會中止。', igLobbyYes: '是，回到大廳', igRestartAsk: '確定重新開始？這一趟的成績不會儲存。', igRestartYes: '是，重新開始', igBack: '返回', igMusic: '音樂', igMusicVol: '音樂音量', igSfxVol: '音效音量', igCam: '鏡頭', igLang: '語言',
-    igOn: '開', igOff: '關', kxChime: '時速警示音', kxLetter: '車門字樣', kxUp: '極速升級', sakeUnlock: '解鎖：KX-2 極速升級、白色碳纖維引擎蓋塗裝', vibe: '震動', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
+    igOn: '開', igOff: '關', kxChime: '時速警示音', kxLetter: '車門字樣', kxUp: '極速升級', sakeUnlock: '解鎖：KX-2 極速升級、白色碳纖維引擎蓋塗裝', vibe: '震動', turnSigns: '彎道提示', igConfirm: '確定認輸？', igYes: '是，認輸', igNo: '否', igForfeited: '已認輸',
     ctlLbl: '操作設定', igSteer: '轉向方式', stDrag: '拖曳', stTilt: '傾斜', stZones: '分區', igTiltSens: '傾斜靈敏度', recenter: '回正', zoneBrake: '煞車 + 手煞', tiltFail: '此環境無法使用傾斜轉向，已改回拖曳',
     transTitle: '選擇變速箱', transAT: '自排 AT', transATd: '自動換檔，專心過彎。', transMT: '手排 MT', transMTd: (u, d) => `自己換檔：${u} 升檔、${d} 降檔。換得好比自排快。`, transHint: '手機會多出 ▲ ▼ 換檔鈕。每次開賽前都會再問一次。', transKeys: 'Enter 或點一下確認，Esc 取消。',
     kShift: '手排：升檔／降檔', kPad: p => `手把：左搖桿轉向、${p.gas} 油門、${p.brake} 煞車、${p.hb} 手煞車、${p.shiftDown}／${p.shiftUp} 降／升檔、${p.cam} 鏡頭、Menu 選單`,
@@ -1059,7 +1071,7 @@ const I18N = {
     nickTitle: 'Your nickname', nickLbl: 'Nickname', nickHint: '1 to 16 characters. Used for this online session only and never saved; other players can see it.', nickOk: 'Confirm', nickCancel: 'Cancel',
     pvpPlayer: 'Player', pvpYouTag: n => `${n} (you)`, pvpNickIs: n => `Your nickname: ${n}.`, pvpTimeOf: n => `${n} · finish time`,
     igAria: 'Menu', igTitle: 'Menu', igResume: 'Resume', igSettings: 'Settings', igForfeit: 'Forfeit', igRestart: 'Restart', igLobby: 'Back to lobby', igLobbyAsk: 'Back to the lobby? This race will end.', igLobbyYes: 'Yes, back to lobby', igRestartAsk: 'Restart? This run will not be saved.', igRestartYes: 'Yes, restart', igBack: 'Back', igMusic: 'Music', igMusicVol: 'Music volume', igSfxVol: 'Sound effects volume', igCam: 'Camera', igLang: 'Language',
-    igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', kxUp: 'Top speed upgrade', sakeUnlock: 'Unlocked: KX-2 top speed upgrade and the white, carbon hood paint', vibe: 'Vibration', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
+    igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', kxUp: 'Top speed upgrade', sakeUnlock: 'Unlocked: KX-2 top speed upgrade and the white, carbon hood paint', vibe: 'Vibration', turnSigns: 'Turn signs', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
     ctlLbl: 'Controls', igSteer: 'Steering', stDrag: 'Drag', stTilt: 'Tilt', stZones: 'Zones', igTiltSens: 'Tilt sensitivity', recenter: 'Re-center', zoneBrake: 'BRAKE + E-BRAKE', tiltFail: 'Tilt steering is unavailable here; switched back to drag.',
     transTitle: 'Choose a gearbox', transAT: 'Automatic AT', transATd: 'Shifts for you. Focus on the corners.', transMT: 'Manual MT', transMTd: (u, d) => `Shift yourself: ${u} = up, ${d} = down. Shift well and you beat the automatic.`, transHint: 'On a phone, ▲ ▼ shift buttons appear. You are asked again before every race.', transKeys: 'Enter or a tap confirms, Esc cancels.',
     kShift: 'Manual: shift up / down', kPad: p => `Controller: left stick steer, ${p.gas} gas, ${p.brake} brake, ${p.hb} handbrake, ${p.shiftDown} / ${p.shiftUp} shift down / up, ${p.cam} camera, Menu menu`,
@@ -1277,6 +1289,81 @@ const ridgeDistance = (radius, coneR, r01) => radius + coneR + 100 + r01 * 250;
 // Mt. Kurosagi keeps the original key so existing personal bests survive
 const bestKey = id => id === 'kurosagi' ? 'yatouge-best' : 'yatouge-best-' + id;
 /* @course-geometry:end */
+/* @turn-signs:start */
+/* Corner warning signs (pure part): finds the corners of a course from its smoothed curvature ks, grades them and says which one to show.
+   ks > 0 = left, ks < 0 = right (see Kurosagi's plan: + deg = right = h decreasing). Thresholds were tuned on the three courses. */
+const TS = { ON: 0.004, SKIP_ANGLE: 25, SKIP_R: 100, MID_ANGLE: 45, MID_R: 45, BIG_ANGLE: 90, BIG_R: 25, HAIRPIN_ANGLE: 140, HAIRPIN_R: 40, S_GAP: 40, LEAD_S: 3, LEAD_MIN: 60, HOLD: 15 };
+// null = too gentle to warn about; a long sweeping turn (large radius) is a big corner, never a hairpin
+function tsKind(angle, minR) {
+  if (angle < TS.SKIP_ANGLE && minR >= TS.SKIP_R) return null;
+  if (angle >= TS.HAIRPIN_ANGLE && minR <= TS.HAIRPIN_R) return 'hairpin';
+  if (angle >= TS.BIG_ANGLE || minR < TS.BIG_R) return 'big';
+  if (angle >= TS.MID_ANGLE || minR < TS.MID_R) return 'mid';
+  return 'small';
+}
+const TS_FLICK = new Set(['small', 'mid']); // only these merge into an S-bend; a big corner or hairpin always keeps its own sign
+// opposite-direction neighbours closer than S_GAP merge into one S-bend (direction of the first); each corner is used once
+function tsMerge(list) {
+  const out = [];
+  for (let i = 0; i < list.length; i++) {
+    const a = list[i], b = list[i + 1];
+    if (b && TS_FLICK.has(a.kind) && TS_FLICK.has(b.kind) && a.dir !== b.dir && b.s0 - a.s1 < TS.S_GAP) {
+      out.push({ s0: a.s0, s1: b.s1, i0: a.i0, i1: b.i1, dir: a.dir, kind: 's', angle: a.angle + b.angle, minR: Math.min(a.minR, b.minR), parts: [a, b] }); i++;
+    } else out.push(a);
+  }
+  return out;
+}
+function cornerList(pts) {
+  const runs = [], N = pts.length;
+  for (let i = 0; i < N;) {
+    const sg = Math.abs(pts[i].ks) > TS.ON ? Math.sign(pts[i].ks) : 0;
+    if (!sg) { i++; continue; }
+    let j = i, mx = 0, ang = 0;
+    for (; j < N && Math.sign(pts[j].ks) === sg && Math.abs(pts[j].ks) > TS.ON; j++) { mx = Math.max(mx, Math.abs(pts[j].ks)); if (j) ang += pts[j].k * (pts[j].s - pts[j - 1].s); }
+    const angle = Math.abs(ang) * 180 / Math.PI, minR = 1 / mx;
+    runs.push({ i0: i, i1: j - 1, s0: pts[i].s, s1: pts[j - 1].s, dir: sg > 0 ? 'L' : 'R', angle, minR, kind: tsKind(angle, minR) });
+    i = j;
+  }
+  return tsMerge(runs.filter(r => r.kind));
+}
+// the sign to show at course position s: the first corner not yet passed (HOLD m after its entry) once it is within max(LEAD_MIN, LEAD_S seconds of travel)
+function nextSign(list, s, speed) {
+  const lead = Math.max(TS.LEAD_MIN, (speed > 0 ? speed : 0) * TS.LEAD_S);
+  for (let i = 0; i < list.length; i++) {
+    if (s > list[i].s0 + TS.HOLD) continue;
+    return list[i].s0 - s <= lead ? { i, k: list[i] } : null;
+  }
+  return null;
+}
+const TS_COLOR = { small: '#3ddc84', mid: '#ffd23f', big: '#ff4d4d', hairpin: '#ff4d4d', s: '#4da3ff' };
+// drawn for a right turn (S: right then left); the left sign is the mirror image. h = arrow head [x, y, direction in degrees]
+const TS_SHAPE = {
+  small: { d: 'M28 54V42Q28 32 36 24', h: [36, 24, -45] },
+  mid: { d: 'M26 54V40Q26 26 40 26', h: [40, 26, 0] },
+  big: { d: 'M22 54V34Q22 22 34 22Q42 22 46 31', h: [46, 31, 63] },
+  hairpin: { d: 'M20 54V30Q20 14 32 14Q44 14 44 30V38', h: [44, 38, 90] },
+  s: { d: 'M28 56C28 46 40 46 40 36C40 28 24 28 24 20', h: [24, 20, -90] }
+};
+function tsIcon(kind, dir) {
+  const sh = TS_SHAPE[kind], col = TS_COLOR[kind];
+  if (!sh) return '';
+  const [x, y, deg] = sh.h, a = deg * Math.PI / 180, c = Math.cos(a), s = Math.sin(a), f = n => n.toFixed(1);
+  const head = [[x + 11 * c, y + 11 * s], [x - 8 * s, y + 8 * c], [x + 8 * s, y - 8 * c]].map(p => f(p[0]) + ',' + f(p[1])).join(' ');
+  return `<svg viewBox="0 0 64 64" focusable="false" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="10" fill="#0b0f16" fill-opacity=".86" stroke="${col}" stroke-width="2.5"/>`
+    + `<g${dir === 'L' ? ' transform="translate(64 0) scale(-1 1)"' : ''}><path d="${sh.d}" fill="none" stroke="${col}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/><polygon points="${head}" fill="${col}"/></g></svg>`;
+}
+const TS_NAME = {
+  zh: { small: '小彎', mid: '中彎', big: '大彎', hairpin: '髮夾彎' },
+  en: { small: 'easy turn', mid: 'medium turn', big: 'sharp turn', hairpin: 'hairpin' }
+};
+function tsLabel(lang, kind, dir) {
+  const zh = lang === 'zh', left = dir === 'L';
+  if (kind === 's') return zh ? (left ? '先左後右 S 彎' : '先右後左 S 彎') : (left ? 'Left-right S-bend' : 'Right-left S-bend');
+  const n = (TS_NAME[zh ? 'zh' : 'en'])[kind];
+  if (!n) return '';
+  return zh ? (left ? '左' : '右') + n : (left ? 'Left ' : 'Right ') + n;
+}
+/* @turn-signs:end */
 /* @gutter:start */
 /* Gutter run: a drain channel on the inside of selected hairpins. A car whose inside wheels sit in it is guided round the bend. */
 const GUTTER = {
@@ -2010,6 +2097,7 @@ const SAKE_TRACK = 'seiran', SAKE_CAR = { car: 'hatch', color: 3 }; // Sake Run'
 let trackId = store.get('yatouge-mode') === 'sake' ? SAKE_TRACK : store.get('yatouge-track');
 if (!TRACKS[trackId]) trackId = 'kurosagi';
 let pts, N, TOTAL, FINISH_I, FINISH_S, hairpins, gutters;
+let tsList = null, tsCur = '', tsOn = kxOn(store.get('yatouge-turn-signs')); // turn signs: corner list of the current course (built lazily), index shown, setting (default on); read by resetRace / buildTrack at start-up
 
 const trackGroup = new THREE.Group(); scene.add(trackGroup); // everything that belongs to one course; rebuilt on course change
 const off = (p, o, dy) => [p.x - Math.cos(p.h) * o, p.y + dy, p.z + Math.sin(p.h) * o];
@@ -2090,7 +2178,7 @@ function disposeTrack() {
 }
 function buildTrack(id) {
   disposeTrack();
-  trackId = id; ({ pts, N, TOTAL, FINISH_I, FINISH_S, hairpins, gutters, hw: roadHW } = COURSES[id]); WALL_LAT = roadHW + 0.3;
+  trackId = id; ({ pts, N, TOTAL, FINISH_I, FINISH_S, hairpins, gutters, hw: roadHW } = COURSES[id]); WALL_LAT = roadHW + 0.3; tsList = null; tsHide();
   const rand = rng(86420); // per-course stream, so a course always gets the same trees
   // gutter depth 0..1 per point and side (index 0 = left, 1 = right); eased in/out over the first/last GUTTER.RAMP metres of each section
   const GW = 0.7, GD = 0.12, gdepth = [new Float32Array(N), new Float32Array(N)];
@@ -3064,7 +3152,7 @@ function resetRace() {
   if (startS) { const q = samplePos(p.s + startS, startLat); Object.assign(car, { x: q.x, z: q.z, h: q.h, idx: q.i }); }
   car.loc = locate(car);
   Object.assign(rival, { s: pts[24].s, v: 0, lat: -2.2, latV: 0, i: 0, vis: 0 });
-  state = 'title'; raceT = 0; driftTotal = 0; driftChain = 0; driftIdle = 0; rivalFinishT = null; playerFinishT = null; finishTimer = -1; lastGapSign = 1;
+  state = 'title'; raceT = 0; driftTotal = 0; driftChain = 0; driftIdle = 0; rivalFinishT = null; playerFinishT = null; finishTimer = -1; lastGapSign = 1; tsHide();
 }
 resetRace();
 
@@ -3421,6 +3509,7 @@ function setVolume(kind, v) {
   else { sfxVol = v; store.set('yatouge-vol-sfx', String(v)); if (master) master.gain.setTargetAtTime(v, ac.currentTime, 0.05); }
 }
 function beep(f, dur) { if (!ac) return; tone('square', f, ac.currentTime, dur, 0.18, 4000, master); }
+function sfxTurnSign(double) { if (!ac) return; const t = ac.currentTime; tone('triangle', 1175, t, 0.09, 0.14, 4000, master); if (double) tone('triangle', 1175, t + 0.15, 0.09, 0.14, 4000, master); }
 function sfxHit(v) { if (!ac) return; noise(ac.currentTime, 0.25, 0.25 + v * 0.4, 'lowpass', 900, master); }
 // the original bell: a sine plus its 2.76× partial, 4 ms attack, 0.85 s decay
 let chimeBus = null; // own gain so a stop (finish, forfeit, setting off) can cut a ringing chime at once
@@ -3515,6 +3604,19 @@ document.addEventListener('visibilitychange', () => { if (!ac) return; if (docum
 const fmtT = t => { const m = Math.floor(t / 60), s = t - m * 60; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(2); };
 let popTimer = 0;
 function showPop(big, small) { const el = $('#pop'); el.innerHTML = ''; el.append(big); if (small) { const sm = document.createElement('small'); sm.textContent = small; el.append(sm); } el.classList.add('show'); popTimer = 1.4; }
+function tsHide() { tsCur = ''; const el = $('#turnSign'); if (!el.classList.contains('show')) return; el.classList.remove('show', 'flash'); el.setAttribute('aria-hidden', 'true'); } // the DOM is the truth: safe to call after tsCur was cleared elsewhere
+function turnSignFrame() {
+  const sg = tsOn && state === 'race' && !sakeRun ? nextSign(tsList || (tsList = cornerList(pts)), car.loc.s, Math.hypot(car.vx, car.vz)) : null;
+  if (!sg) { tsHide(); return; }
+  const el = $('#turnSign'), k = sg.k;
+  el.setAttribute('aria-label', tsLabel(lang, k.kind, k.dir));
+  if (tsCur === String(sg.i)) return;
+  tsCur = String(sg.i);
+  el.className = 'tsign ' + (k.dir === 'L' ? 'l' : 'r') + ' show' + (k.kind === 'hairpin' ? ' flash' : '');
+  el.innerHTML = tsIcon(k.kind, k.dir); // static markup built from constants, no user data
+  el.removeAttribute('aria-hidden');
+  sfxTurnSign(k.kind === 'hairpin');
+}
 function hud(dt) {
   const spd = Math.hypot(car.vx, car.vz), vf = car.vx * Math.sin(car.h) + car.vz * Math.cos(car.h);
   const g = gearNow(spd);
@@ -3537,6 +3639,7 @@ function hud(dt) {
   $('#score').textContent = Math.round(driftTotal).toLocaleString('zh-TW');
   $('#chain').textContent = driftChain > 0 ? '+' + Math.round(driftChain).toLocaleString('zh-TW') : '';
   $('#progMe').style.left = clamp(car.loc.s / FINISH_S * 100, 0, 100) + '%';
+  turnSignFrame();
   if (popTimer > 0) { popTimer -= dt; if (popTimer <= 0) $('#pop').classList.remove('show'); }
   const wn = $('#watchN'), nw = pvp ? pvp.watch : 0; wn.hidden = !nw; if (nw) wn.textContent = T('specWatching', nw);
   catHud();
@@ -4328,7 +4431,7 @@ for (const id of ['#tGhost', '#igGhost']) $(id).addEventListener('click', () => 
 function syncKxUI() {
   const kx = choice.car === 'hatch';
   $('#tKx').hidden = !kx; $('#tKxUpRow').hidden = !(kx && sakeUnlocked); $('#igKxChimeRow').hidden = $('#igKxLetterRow').hidden = !kx;
-  for (const [ids, on] of [[['#tKxChime', '#igKxChime'], kxChimeOn], [['#tKxLetter', '#igKxLetter'], kxLetterOn], [['#tKxUp'], kxUpOn], [['#tVibe', '#igVibe'], vibeOn]]) // + the top-speed upgrade (title only) and the vibration switch (any car)
+  for (const [ids, on] of [[['#tKxChime', '#igKxChime'], kxChimeOn], [['#tKxLetter', '#igKxLetter'], kxLetterOn], [['#tKxUp'], kxUpOn], [['#tVibe', '#igVibe'], vibeOn], [['#tTurn', '#igTurn'], tsOn]]) // + the top-speed upgrade (title only) and the vibration switch (any car)
     for (const id of ids) { const b = $(id); b.setAttribute('aria-checked', String(on)); b.textContent = T(on ? 'igOn' : 'igOff'); }
 }
 function setKx(kind, on) {
@@ -4341,6 +4444,7 @@ for (const [id, kind] of [['#tKxChime', 'chime'], ['#igKxChime', 'chime'], ['#tK
 // the upgrade is changed on the title screen only (never mid-race); renderPicker redraws the top-speed pips and calls syncKxUI
 $('#tKxUp').addEventListener('click', () => { kxUpOn = !kxUpOn; store.set('yatouge-kx-up', kxUpOn ? '1' : '0'); renderPicker(); });
 for (const id of ['#tVibe', '#igVibe']) $(id).addEventListener('click', () => { vibeOn = !vibeOn; store.set('yatouge-vibe', vibeOn ? '1' : '0'); syncKxUI(); });
+for (const id of ['#tTurn', '#igTurn']) $(id).addEventListener('click', () => { tsOn = !tsOn; store.set('yatouge-turn-signs', tsOn ? '1' : '0'); if (!tsOn) tsHide(); syncKxUI(); });
 function renderTrackPicker() {
   const el = $('#trackPick'); el.innerHTML = '';
   for (const id in TRACKS) {
@@ -5646,7 +5750,7 @@ function frame(now) {
     if (state === 'race') { if (taRun) taSample(false); scoring(dt); if (car.loc.s >= FINISH_S) finishRace(); }
     if (finishTimer > 0) { finishTimer -= dt; if (finishTimer <= 0) showResult(); }
   }
-  if (spec) specFrame(dt);
+  if (spec) { specFrame(dt); tsHide(); }
   else { placeCars(dt); updateCamera(dt); if (state !== 'title') hud(dt); updateEngineAudio(dt); }
   updateSmoke(dt);
   sky.position.copy(camera.position);
