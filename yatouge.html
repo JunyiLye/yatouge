@@ -306,6 +306,39 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
   .pedals button { width: 68px; height: 68px; }
   .pedals button[data-k="hb"] { width: 64px; height: 64px; }
 }
+/* chat: the room / spectator box (list + one-line input), the race feed (fades out after ~6 s) and the T input bar */
+.chatbox { margin-top: 14px; }
+.chathead { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.chathead .igrow { font-size: 12px; color: var(--dim); }
+.chathead .chatsw { background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 4px; padding: 3px 8px; font-size: 12px; color: var(--ink); }
+.chathead .chatsw[aria-checked="true"] { border-color: var(--sodium); color: var(--sodium); }
+.chatlog { list-style: none; margin: 6px 0 0; padding: 6px 10px; min-height: 22px; max-height: 120px; overflow-y: auto; display: grid; gap: 2px; align-content: start; background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: 4px; font-size: 13px; line-height: 1.45; -webkit-user-select: text; user-select: text; }
+.chatlog li, .chatfeed li { overflow-wrap: anywhere; }
+.chatlog b, .chatfeed b { color: var(--rival); margin-right: 6px; }
+.chatlog .me b, .chatfeed .me b { color: var(--sodium); }
+.chattag { font-size: 11px; color: var(--dim); border: 1px solid var(--line); border-radius: 3px; padding: 0 4px; margin-right: 6px; white-space: nowrap; }
+.chatrow { display: flex; gap: 6px; margin-top: 6px; }
+.chatin { flex: 1 1 auto; min-width: 0; box-sizing: border-box; padding: 8px 10px; font: inherit; font-size: 14px; color: var(--ink); background: rgba(255,255,255,.05); border: 1px solid var(--line); border-radius: 4px; }
+.chatin:focus-visible { outline: 2px solid var(--sodium); outline-offset: 2px; }
+.chatsend { flex: none; min-height: 36px; padding: 6px 12px; font-size: 13px; background: transparent; border: 1px solid var(--line); border-radius: 4px; }
+.chatsend:hover { border-color: var(--sodium); }
+.chathint { margin: 4px 0 0; font-size: 12px; color: var(--sodium); }
+.chathint:empty { display: none; }
+.chatfeed { position: absolute; left: calc(12px + env(safe-area-inset-left, 0px)); top: calc(190px + env(safe-area-inset-top, 0px)); width: min(340px, 55vw); margin: 0; padding: 0; list-style: none; display: grid; gap: 4px; pointer-events: none; }
+.chatfeed li { justify-self: start; padding: 4px 8px; font-size: 13px; line-height: 1.4; background: var(--panel); border: 1px solid var(--line); border-radius: 4px; animation: chatfade 6s linear forwards; }
+@keyframes chatfade { 0%, 80% { opacity: 1; } 100% { opacity: 0; } }
+#chatBar { position: absolute; left: 50%; top: 24%; transform: translateX(-50%); width: min(440px, calc(100% - 32px)); box-sizing: border-box; padding: 4px 10px 8px; pointer-events: auto; }
+.spec-chat { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); width: min(300px, calc(100% - 24px)); box-sizing: border-box; pointer-events: auto; }
+.spec-chat .chatbox { margin-top: 0; }
+@media (orientation: landscape) and (max-height: 500px) {
+  .chatfeed { top: calc(96px + env(safe-area-inset-top, 0px)); width: min(300px, 40vw); }
+  .chatfeed li { font-size: 12px; padding: 3px 7px; }
+  #chatBar { top: calc(8px + env(safe-area-inset-top, 0px)); }
+  .chatlog { max-height: 84px; }
+  .spec-chat { width: min(260px, 40vw); padding: 6px 10px; }
+  .spec-chat .chatlog { max-height: 64px; }
+}
+@media (max-width: 640px) and (orientation: portrait) { .spec-chat { top: auto; bottom: calc(76px + env(safe-area-inset-bottom, 0px)); left: calc(12px + env(safe-area-inset-left, 0px)); width: auto; } }
 </style>
 
 <canvas id="c" data-i18n-aria="canvas" aria-label="夜峠下坡 3D 畫面"></canvas>
@@ -340,6 +373,8 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
   </div>
   <div id="pop" class="pop"></div>
   <div id="count" class="count"></div>
+  <ol id="chatFeed" class="chatfeed" aria-live="polite" hidden></ol>
+  <form id="chatBar" class="panel" autocomplete="off" hidden><div class="chatrow"><input id="chatBarIn" class="chatin" type="text" maxlength="80" enterkeyhint="send" autocomplete="off" spellcheck="false" data-i18n-aria="chatLbl" aria-label="聊天"><button class="chatsend" type="submit" data-i18n="chatSend">送出</button></div><p id="chatBarHint" class="chathint" role="status"></p></form>
   <div id="touch" hidden>
     <div id="steerZone" data-i18n-aria="steerZone" aria-label="轉向：左右拖曳"><div class="trk"><i class="knob"></i></div></div>
     <div class="pedals">
@@ -362,6 +397,14 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div class="prog"><i id="specProgB"></i><i id="specProgA"></i></div>
     <p id="specRes" class="specres" hidden></p>
     <div id="specWatch" class="watchn"></div>
+  </div>
+  <div class="spec-chat panel">
+      <div class="chatbox" id="specChat">
+        <div class="chathead"><span class="lbl" id="specChatL" data-i18n="chatLbl">聊天</span><div class="igrow"><span id="specChatOnL" data-i18n="chatMsgs">聊天訊息</span><button id="specChatOn" class="chatsw" type="button" role="switch" aria-labelledby="specChatOnL" aria-checked="true"></button></div></div>
+        <ol id="specChatLog" class="chatlog" aria-live="polite" aria-labelledby="specChatL"></ol>
+        <form id="specChatForm" class="chatrow" autocomplete="off"><input id="specChatIn" class="chatin" type="text" maxlength="80" enterkeyhint="send" autocomplete="off" spellcheck="false" aria-labelledby="specChatL"><button class="chatsend" type="submit" data-i18n="chatSend">送出</button></form>
+        <p id="specChatHint" class="chathint" role="status"></p>
+      </div>
   </div>
   <div class="spec-bar" role="group" data-i18n-aria="specViewAria" aria-label="觀戰視角">
     <button type="button" data-v="a" aria-pressed="true"><kbd class="nokb">1</kbd><span></span></button>
@@ -490,6 +533,12 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       </div>
       <div class="actions"><button class="go" id="btnReady" type="button">準備</button><button class="ghost" id="btnRoomLeave" type="button" data-i18n="pvpLeaveRoom">離開房間</button></div>
       <p id="roomNote" class="note" role="status"></p>
+      <div class="chatbox" id="roomChat">
+        <div class="chathead"><span class="lbl" id="roomChatL" data-i18n="chatLbl">聊天</span><div class="igrow"><span id="roomChatOnL" data-i18n="chatMsgs">聊天訊息</span><button id="roomChatOn" class="chatsw" type="button" role="switch" aria-labelledby="roomChatOnL" aria-checked="true"></button></div></div>
+        <ol id="roomChatLog" class="chatlog" aria-live="polite" aria-labelledby="roomChatL"></ol>
+        <form id="roomChatForm" class="chatrow" autocomplete="off"><input id="roomChatIn" class="chatin" type="text" maxlength="80" enterkeyhint="send" autocomplete="off" spellcheck="false" aria-labelledby="roomChatL"><button class="chatsend" type="submit" data-i18n="chatSend">送出</button></form>
+        <p id="roomChatHint" class="chathint" role="status"></p>
+      </div>
     </div>
   </div>
 </div>
@@ -501,6 +550,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div id="igMain" class="igview">
       <button class="go" id="igResume" type="button" data-i18n="igResume">繼續</button>
       <button class="ghost" id="igSettings" type="button" data-i18n="igSettings">設定</button>
+      <button class="ghost" id="igChat" type="button" data-i18n="chatLbl" hidden>聊天</button>
       <button class="ghost" id="igForfeit" type="button" data-i18n="igForfeit">認輸</button>
     </div>
     <div id="igSet" class="igview" hidden>
@@ -514,6 +564,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <div class="igrow" id="igSteerRow" hidden><span id="igSteerL" data-i18n="igSteer">轉向方式</span><div class="igseg" role="radiogroup" aria-labelledby="igSteerL"><button type="button" role="radio" data-m="drag" data-i18n="stDrag">拖曳</button><button type="button" role="radio" data-m="tilt" data-i18n="stTilt">傾斜</button><button type="button" role="radio" data-m="zones" data-i18n="stZones">分區</button></div></div>
       <div class="igrow" id="igTiltRow" hidden><label for="igTiltSens" data-i18n="igTiltSens">傾斜靈敏度</label><output id="igTiltOut" for="igTiltSens"></output><input id="igTiltSens" type="range" min="0" max="100" step="5"></div>
       <p class="igq" id="igTiltNote" role="status" hidden></p>
+      <div class="igrow" id="igChatRow" hidden><span id="igChatOnL" data-i18n="chatMsgs">聊天訊息</span><button id="igChatOn" type="button" role="switch" aria-labelledby="igChatOnL" aria-checked="true"></button></div>
       <div class="igrow"><label for="igCam" data-i18n="igCam">鏡頭</label><select id="igCam"></select></div>
       <div class="igrow"><label for="igLang" data-i18n="igLang">語言</label><select id="igLang"><option value="zh">中文</option><option value="en">English</option></select></div>
       <button class="ghost" id="igBack" type="button" data-i18n="igBack">返回</button>
@@ -811,6 +862,7 @@ const I18N = {
     specRow: (track, n) => `${track} · 比賽中・觀戰 · ${n} 人觀戰`, specEyebrow: '觀戰中', specOver: '全景', specLeave: '離開觀戰', specViewAria: '觀戰視角',
     specGap: n => `差距 ${n} m`, specPos: n => `第 ${n}`, specWins: n => `${n} 獲勝`, specWaitOther: '等待另一台衝線…', specBetween: '這場結束了，等待下一場…',
     specWaitHost: '等待比賽資料…', specWatching: n => `${n} 人觀戰中`, specCarLeft: '已離開',
+    chatLbl: '聊天', chatMsgs: '聊天訊息', chatSend: '送出', chatSpec: '觀戰', chatPh: '按 T 或點這裡輸入訊息', chatPhRace: 'Enter 送出，Esc 關閉', chatWait: s => `傳太快了，${s} 秒後再試`,
     modeSake: '送酒模式', modeSakeD: '開白色 KX-2 從青嵐峠送一杯酒下山。限時 3:15，碰牆第三次就失敗。',
     leadSake: name => `凌晨兩點的${name}，杯架上放著一杯要送下山的酒。3 分 15 秒內送到山腳，別讓車子擦到護欄。`,
     sakeLocked: '送酒模式固定使用白色 KX-2、青嵐峠與車內視角，不會改動你原本的選擇。',
@@ -875,6 +927,7 @@ const I18N = {
     specRow: (track, n) => `${track} · Racing · Watch · ${n} watching`, specEyebrow: 'Watching', specOver: 'Overview', specLeave: 'Stop watching', specViewAria: 'Spectator view',
     specGap: n => `Gap ${n} m`, specPos: n => `P${n}`, specWins: n => `${n} wins`, specWaitOther: 'Waiting for the other car…', specBetween: 'Race over. Waiting for the next one…',
     specWaitHost: 'Waiting for race data…', specWatching: n => `${n} watching`, specCarLeft: 'Left',
+    chatLbl: 'Chat', chatMsgs: 'Chat messages', chatSend: 'Send', chatSpec: 'Watching', chatPh: 'Press T or tap here to chat', chatPhRace: 'Enter to send, Esc to close', chatWait: s => `Too fast. Try again in ${s} s`,
     modeSake: 'Sake Run', modeSakeD: 'Carry a cup of sake down Seiran in the white KX-2. 3:15 on the clock; the third wall hit ends the run.',
     leadSake: name => `2 a.m. on ${name}, with a cup of sake in the holder. Get it to the bottom within 3:15, and keep off the rails.`,
     sakeLocked: 'Sake Run always uses the white KX-2, Seiran Pass and the cockpit view. Your own picks are left as they are.',
@@ -1749,6 +1802,59 @@ function makeLimiter(interval, fn, now = () => performance.now(), later = setTim
   };
 }
 /* @supa:end */
+/* @chat:start */
+/* Room and race chat (pure part). A message rides in the sender's room state as a small rolling field ch: the last KEEP messages as
+   [seq, text], seq counting up for the whole tab. The claude.ai room has presence only; on Supabase that state already travels by
+   broadcast (track() stays the one roster call per join). Everything received is untrusted: text is cleaned and cut again, seq
+   dedupes, a per-sender bucket drops what comes faster than GAP_MS, and the UI shows nickname and text through textContent only. */
+const CHAT = { MAX: 80, GAP_MS: 1500, KEEP: 3, LIST: 30, FADE_MS: 6000, MAX_SEQ: Number.MAX_SAFE_INTEGER, RAW: 400, MAX_PEERS: 64 };
+const CHAT_BAD = NICK_BAD; // the same control / invisible / bidi set as a nickname
+// control / invisible / bidi characters out, trimmed, at most MAX characters (code points); nothing left = null
+function cleanChat(s) {
+  if (typeof s !== 'string') return null;
+  const t = Array.from(s.replace(CHAT_BAD, '').trim()).slice(0, CHAT.MAX).join('').trim();
+  return t ? t : null;
+}
+// may we send now (lastAt: ms of our last message), else how many ms to wait
+const chatGate = (lastAt, now) => { const w = lastAt + CHAT.GAP_MS - now; return w > 0 ? { ok: false, wait: Math.ceil(w) } : { ok: true, wait: 0 }; };
+const chatOut = (ch, seq, text) => [...(Array.isArray(ch) ? ch : []), [seq, text]].slice(-CHAT.KEEP);
+// a received ch -> [{ seq, text }] in seq order; a field that is not a short array is ignored whole, a bad entry alone
+function chatField(ch) {
+  if (!Array.isArray(ch) || ch.length > CHAT.KEEP) return [];
+  const out = [];
+  for (const e of ch) {
+    if (!Array.isArray(e) || e.length !== 2 || !Number.isInteger(e[0]) || e[0] < 1 || e[0] > CHAT.MAX_SEQ || typeof e[1] !== 'string' || e[1].length > CHAT.RAW) continue;
+    const text = cleanChat(e[1]);
+    if (text !== null && !out.some(x => x.seq === e[0])) out.push({ seq: e[0], text });
+  }
+  return out.sort((a, b) => a.seq - b.seq);
+}
+// rx: Map peer -> { seq (highest seen), tok (bucket, refills 1 per GAP_MS up to KEEP: a late joiner still gets the recent few), at }
+function chatRx(rx, peer, pres, now) {
+  const none = { rx, msgs: [] };
+  if (!validPeerId(peer) || !pres || typeof pres !== 'object' || Array.isArray(pres)) return none;
+  const old = rx.get(peer), fresh = chatField(pres.ch).filter(e => e.seq > (old ? old.seq : 0));
+  if (!fresh.length || (!old && rx.size >= CHAT.MAX_PEERS)) return none;
+  let tok = old ? Math.min(CHAT.KEEP, old.tok + Math.max(0, now - old.at) / CHAT.GAP_MS) : CHAT.KEEP;
+  const nk = cleanNick(pres.nk), spec = pres.role === 'spectator', msgs = [];
+  for (const e of fresh) if (tok >= 1) { tok -= 1; msgs.push({ peer, seq: e.seq, text: e.text, nk, spec, me: false, at: now }); } // the rest is dropped for good
+  const next = new Map(rx); next.set(peer, { seq: fresh[fresh.length - 1].seq, tok, at: now });
+  return { rx: next, msgs };
+}
+const chatPush = (list, msgs) => (msgs.length ? [...list, ...msgs].slice(-CHAT.LIST) : list);
+const chatShown = (list, on) => (on ? list : list.filter(m => m.me)); // "chat messages" off: only our own
+const chatLive = (m, now) => now - m.at < CHAT.FADE_MS;
+// who may talk to us in a match room: its players (peer labels) and valid spectators, never ourselves
+const chatFrom = (peers, players) => (Array.isArray(peers) ? peers : []).filter(x => x && !x.isMe && x.kind === 'viewer' && validPeerId(x.peer) && (players.includes(x.peer) || validSpectator(x.presence)));
+// T: 'room' (focus the room's box), 'race' (open the one-line input), 'spec' (the spectator's box) or null (single player: nothing)
+function chatKey({ code, repeat, mod, online, spec, room, state }) {
+  if (code !== 'KeyT' || repeat || mod) return null;
+  if (spec) return 'spec';
+  if (!online) return null;
+  if (room) return 'room';
+  return state === 'count' || state === 'race' ? 'race' : null;
+}
+/* @chat:end */
 let roadHW = HW, WALL_LAT = roadHW + 0.3; // current course's road half-width and rail face (same plane as the rail mesh); buildTrack sets both
 const COURSES = {};
 for (const id in TRACKS) { COURSES[id] = buildCourse(id); COURSES[id].gutters = gutterSections(id, COURSES[id].pts); }
@@ -4207,7 +4313,7 @@ function startMatch(o) {
     pick: { car: pick.car, col: pick.col, vote: { ...pick.vote } }, oppSig: null, gb: 0, sd: null, match: null, asking: false, phase: 'pick',
     cat: null, ck: null // cat and mouse: the round state (see @catmouse) and this side's own part of it (catBegin)
   };
-  rpLast = p.pick;
+  rpLast = p.pick; chatReset();
   if (choice.car !== pick.car || choice.color !== pick.col) { choice = { car: pick.car, color: pick.col }; buildCars(); syncKxUI(); } // in memory only, like Sake Run's forced car
   p.unsub = p.rm.onPeers(() => pvpPoll(), roomFail);
   p.unsubConn = p.rm.onConnection(() => {}, roomFail); // only to hear that this room ended (the room-scoped error callback)
@@ -4298,7 +4404,7 @@ function rpResolve() {
 function pvpLeave() {
   const p = pvp; if (!p) return;
   if (transOpen) closeTrans();
-  pvp = null; clearInterval(p.hbT); if (p.unsub) p.unsub(); if (p.unsubConn) p.unsubConn();
+  pvp = null; clearInterval(p.hbT); if (p.unsub) p.unsub(); if (p.unsubConn) p.unsubConn(); chatReset();
   p.rm.leave().catch(() => {});
   room.presence({ lobby: null }).catch(netFail);
   startLat = 2.2; startS = 0;
@@ -4368,6 +4474,7 @@ function pvpPoll(now = performance.now()) {
   const p = pvp; if (!p) return;
   const peers = p.rm.peers();
   p.watch = watcherCount(peers, p.oppPeer ? [p.oppPeer] : []);
+  chatPoll(peers, [p.oppPeer || (p.host ? null : p.hostPeer)].filter(Boolean));
   const opp = chooseOpp({ host: p.host, hostPeer: p.hostPeer, oppPeer: p.oppPeer, st: p.st, peers, valid: pvpCheck });
   if (opp && !p.oppPeer) {
     Object.assign(p, { oppPeer: opp.peer, seen: true, oppLeft: false, missingSince: null, buf: [], lastPres: null, oppKey: '', oppSig: null });
@@ -4411,6 +4518,7 @@ function pvpFrame() {
   p.pose = interpRemote(p.buf, now);
   if ((state === 'count' || state === 'race' || state === 'done') && !(p.ck && p.ck.quiet)) pvpSend(now);
   if (catOn(p)) catFrame(now);
+  chatFeed(now);
   if (now - p.tickAt > 250) { p.tickAt = now; pvpResultTick(); }
 }
 function pvpSend(now) {
@@ -4455,6 +4563,7 @@ function pvpRelabel() {
   if (!onlineUI && !pvp) return; // nothing online is on screen (also: this runs once at start-up, before the online section has initialised)
   lobbyNote(lobbyKey); syncNet(); renderLobby(true);
   if (spec) specRender();
+  if (pvp || spec) chatRelabel();
   if (!pvp) return;
   rpBuild(); renderRoom();
   if (!$('#result').hidden && catOn(pvp)) showCatResult();
@@ -4618,7 +4727,7 @@ function catHud() {
 }
 
 /* ---------- online: watching a public race ---------- */
-/* A spectator joins the match room, publishes { v, role: 'spectator', nk } once (on Supabase that is a broadcast; the channel's
+/* A spectator joins the match room, publishes { v, role: 'spectator', nk } once (and ch when it chats, see @chat) (on Supabase that is a broadcast; the channel's
    presence track() still happens once per join, inside the transport) and never sends a car or ready / go. It draws the host (A)
    and the opponent the host names (B) from their samples, the same interpolation the players use for each other. */
 let spec = null;
@@ -4638,11 +4747,11 @@ function startSpectate(o) {
   const side = () => ({ peer: null, v: null, buf: [], pose: null, lastPres: null, ft: null, key: '', mesh: null, i: 0, y: 0, missingSince: null, gone: false });
   const s = spec = { rm: o.rm, name: o.name, hostPeer: o.hostPeer, track: o.track, prevTrack: trackId, side: { a: side(), b: side() }, view: 'a', seen: false, joinedAt: performance.now(), missingSince: null, watch: 0, uiAt: 0, camH: 0, snap: true, unsub: null, unsubConn: null };
   if (o.track !== trackId) buildTrack(o.track);
-  resetRace(); state = 'watch';
+  resetRace(); state = 'watch'; chatReset();
   playerCar.g.visible = rivalCar.g.visible = false;
   s.unsub = s.rm.onPeers(() => {}, roomFail); // peers are read every frame; this is for the room-scoped error callback
   s.unsubConn = s.rm.onConnection(() => {}, roomFail);
-  s.rm.presence({ v: NET.V, role: 'spectator', nk: nick }).catch(roomFail); // the only room presence a spectator ever sends
+  s.rm.presence({ v: NET.V, role: 'spectator', nk: nick }).catch(roomFail); // a spectator's room presence: this, plus ch once it chats
   room.presence({ lobby: { v: RP.V, watch: s.name } }).catch(netFail);
   for (const id of ['#title', '#lobby', '#room', '#result', '#hud']) $(id).hidden = true;
   onlineUI = true; syncNet(); camera.clearViewOffset();
@@ -4650,7 +4759,7 @@ function startSpectate(o) {
 }
 function specExit(dest, noteKey) {
   const s = spec; if (!s) return;
-  spec = null; if (s.unsub) s.unsub(); if (s.unsubConn) s.unsubConn();
+  spec = null; if (s.unsub) s.unsub(); if (s.unsubConn) s.unsubConn(); chatReset();
   s.rm.leave().catch(() => {});
   if (room) room.presence({ lobby: null }).catch(netFail);
   for (const k of ['a', 'b']) { const m = s.side[k].mesh; if (m) { scene.remove(m.g); disposeCar(m); } }
@@ -4690,6 +4799,7 @@ function specSetTrack(t) {
 }
 function specPoll(now) {
   const s = spec, peers = s.rm.peers(), conn = typeof s.rm.connected === 'function' ? s.rm.connected() : true;
+  chatPoll(peers, [s.hostPeer, s.side.b.peer].filter(Boolean));
   const pr = spectatePair({ hostPeer: s.hostPeer, peers, valid: specValid });
   const g = oppGrace(s.missingSince, !!pr.a, conn, now); s.missingSince = g.missingSince;
   if (pr.a) s.seen = true;
@@ -4774,6 +4884,106 @@ function specRender() {
 }
 for (const b of document.querySelectorAll('.spec-bar [data-v]')) b.addEventListener('click', () => specView(b.dataset.v));
 $('#btnSpecLeave').addEventListener('click', () => specExit('lobby'));
+/* ---------- online: chat (room, race, spectators) ---------- */
+/* Messages ride in our room state as ch (see @chat). The room and the spectator panel keep a list (the last CHAT.LIST); a race shows
+   a small feed that fades out after CHAT.FADE_MS, and T opens a one-line input (the car coasts while it is open). The "chat messages"
+   switch hides other people's messages (ours stay). Nicknames and texts are only ever set with textContent. */
+let chatOn = kxOn(store.get('yatouge-chat'));
+const chat = { list: [], rx: new Map(), seen: new Map(), ch: [], seq: 0, lastAt: -Infinity, bar: false, feedSig: '', hintT: 0 };
+const chatRm = () => (pvp ? pvp.rm : spec ? spec.rm : null);
+// a new room (or none): nothing of the old one is shown, kept or sent again; seq and the send gate stay for the whole tab
+function chatReset() { Object.assign(chat, { list: [], rx: new Map(), seen: new Map(), ch: [], feedSig: '' }); chatClose(); for (const id of ['#roomChatIn', '#specChatIn']) $(id).value = ''; chatRelabel(); }
+// peers: the room's peers; players: the peer labels of this match (spectators are taken on their own)
+function chatPoll(peers, players) {
+  let got = [];
+  for (const x of chatFrom(peers, players)) {
+    if (chat.seen.get(x.peer) === x.presence) continue; // frozen presences: an unchanged one is not looked at again
+    chat.seen.set(x.peer, x.presence);
+    const r = chatRx(chat.rx, x.peer, x.presence, performance.now()); chat.rx = r.rx; got = got.concat(r.msgs);
+  }
+  if (got.length) { chat.list = chatPush(chat.list, got); chatRender(); }
+}
+function chatHint(el, text) { el.textContent = text; clearTimeout(chat.hintT); chat.hintT = setTimeout(() => { for (const id of ['#roomChatHint', '#specChatHint', '#chatBarHint']) $(id).textContent = ''; }, 2500); }
+// -> 'sent' | 'empty' | 'wait'
+function chatSend(inp, hint) {
+  const rm = chatRm(), text = cleanChat(inp.value); if (!rm) return 'empty';
+  if (text === null) { inp.value = ''; return 'empty'; }
+  const now = performance.now(), g = chatGate(chat.lastAt, now);
+  if (!g.ok) { chatHint(hint, T('chatWait', (g.wait / 1000).toFixed(1))); return 'wait'; }
+  chat.lastAt = now; chat.seq = Math.min(CHAT.MAX_SEQ, Math.max(chat.seq + 1, Date.now())); // keeps counting up across a reload too
+  chat.ch = chatOut(chat.ch, chat.seq, text);
+  rm.presence({ ch: chat.ch }).catch(roomFail);
+  chat.list = chatPush(chat.list, [{ peer: null, seq: chat.seq, text, nk: nick, spec: !!spec, me: true, at: now }]);
+  inp.value = ''; hint.textContent = ''; chatRender();
+  return 'sent';
+}
+function chatLi(m) {
+  const li = document.createElement('li'), b = document.createElement('b'), t = document.createElement('span');
+  if (m.me) li.className = 'me';
+  b.textContent = m.me ? T('pvpYouTag', nickOf(m.nk)) : nickOf(m.nk); li.append(b);
+  if (m.spec) { const g = document.createElement('span'); g.className = 'chattag'; g.textContent = T('chatSpec'); li.append(g); }
+  t.textContent = m.text; li.append(t);
+  return li;
+}
+function chatRender() {
+  const shown = chatShown(chat.list, chatOn);
+  for (const [id, on] of [['#roomChatLog', !!pvp], ['#specChatLog', !!spec]]) {
+    const el = $(id); el.textContent = '';
+    if (!on) continue;
+    for (const m of shown) el.append(chatLi(m));
+    el.scrollTop = el.scrollHeight;
+  }
+  chat.feedSig = null; chatFeed(performance.now());
+}
+// the race feed: the messages of the last CHAT.FADE_MS (at most 5), each fading on its own clock
+function chatFeed(now) {
+  const el = $('#chatFeed'), live = pvp ? chatShown(chat.list, chatOn).filter(m => chatLive(m, now)).slice(-5) : [];
+  const sig = live.map(m => (m.me ? 'me' : m.peer) + ':' + m.seq).join(',');
+  if (sig === chat.feedSig) return;
+  chat.feedSig = sig; el.textContent = ''; el.hidden = !live.length;
+  for (const m of live) { const li = chatLi(m); li.style.animationDelay = -Math.round(now - m.at) + 'ms'; el.append(li); }
+}
+function chatSyncUI() {
+  for (const id of ['#roomChatOn', '#specChatOn', '#igChatOn']) { const b = $(id); b.setAttribute('aria-checked', String(chatOn)); b.textContent = T(chatOn ? 'igOn' : 'igOff'); }
+  $('#igChatRow').hidden = $('#igChat').hidden = !pvp;
+}
+function chatRelabel() {
+  for (const id of ['#roomChatIn', '#specChatIn']) $(id).placeholder = T('chatPh');
+  $('#chatBarIn').placeholder = T('chatPhRace');
+  chatSyncUI(); chatRender();
+}
+// the race input: online, countdown or race only; every driving input is released and held at rest while it is open
+function chatHold() { for (const k in input) input[k] = k === 'steerAxis' ? null : false; }
+function chatOpenBar() {
+  if (!pvp || chat.bar || (state !== 'count' && state !== 'race')) return;
+  chat.bar = true; chatHold(); releaseTouch();
+  $('#chatBar').hidden = false; $('#chatBarIn').focus();
+}
+function chatClose() {
+  if (!chat.bar) return;
+  chat.bar = false; $('#chatBar').hidden = true; $('#chatBarIn').value = ''; $('#chatBarHint').textContent = '';
+  if (document.activeElement === $('#chatBarIn')) $('#chatBarIn').blur();
+  gp.last = { ...GP_IDLE }; // a trigger still held on the pad drives again at once
+}
+// per frame, after the controls are read: the open input keeps the car coasting; it closes when the race (or the match) ends
+function chatFrame() {
+  const a = document.activeElement; if (a && a.classList && a.classList.contains('chatin') && a.closest('[hidden]')) a.blur(); // the room closed under its box: the keys drive again
+  if (!chat.bar) return;
+  if (!pvp || (state !== 'count' && state !== 'race' && state !== 'done')) chatClose(); else chatHold();
+}
+function chatFocus(where) { if (where === 'race') chatOpenBar(); else $(where === 'room' ? '#roomChatIn' : '#specChatIn').focus(); }
+function setChatOn(on) { chatOn = on; store.set('yatouge-chat', on ? '1' : '0'); chatSyncUI(); chatRender(); }
+for (const id of ['#roomChatOn', '#specChatOn', '#igChatOn']) $(id).addEventListener('click', () => setChatOn(!chatOn));
+for (const p of ['room', 'spec']) {
+  $('#' + p + 'ChatForm').addEventListener('submit', e => { e.preventDefault(); chatSend($('#' + p + 'ChatIn'), $('#' + p + 'ChatHint')); });
+  $('#' + p + 'ChatIn').addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); e.currentTarget.value = ''; e.currentTarget.blur(); } });
+}
+$('#chatBar').addEventListener('submit', e => { e.preventDefault(); if (chatSend($('#chatBarIn'), $('#chatBarHint')) !== 'wait') chatClose(); });
+$('#chatBarIn').addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); chatClose(); } });
+// clicking away (or the menu taking focus) closes it; the Send button keeps it open long enough to send
+$('#chatBarIn').addEventListener('blur', () => setTimeout(() => { if (chat.bar && !$('#chatBar').contains(document.activeElement)) chatClose(); }, 0));
+$('#igChat').addEventListener('click', () => { closeMenu(); chatOpenBar(); });
+for (const b of document.querySelectorAll('.chatsend')) b.addEventListener('mousedown', e => e.preventDefault()); // a click on Send leaves the focus in the input
 const safeUse = async name => { try { return await window.claude.use(name); } catch (e) { return null; } }; // 'room' and the built-in 'permissions' only: the artifact declares no `user`
 const readPerm = async () => { try { return onl.permApi ? await onl.permApi.state('room') : null; } catch (e) { return null; } };
 function renderOnline() {
@@ -4895,7 +5105,7 @@ let last = performance.now(), acc = 0;
 const FIX = 1 / 120;
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
-  syncRotate(); controlsTick(dt); gamepadTick(now);
+  syncRotate(); controlsTick(dt); gamepadTick(now); chatFrame();
   if (menuOpen && !menuCanOpen(state, nickOpen)) closeMenu(); // the race ended or the match was left under the open menu
   if (pvp) pvpFrame();
   if (state === 'count') {
@@ -4932,7 +5142,7 @@ window.addEventListener('resize', resize); resize();
 /* ---------- controls ---------- */
 const KEYMAP = { ArrowUp: 'gas', KeyW: 'gas', ArrowDown: 'brake', KeyS: 'brake', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'hb' };
 window.addEventListener('keydown', e => {
-  if (nickOpen || transOpen || e.target.id === 'codeInput') return; // typing a nickname or a room code must not drive the car, toggle music or start a race
+  if (nickOpen || transOpen || e.target.id === 'codeInput' || e.target.classList.contains('chatin')) return; // typing a nickname, a room code or a chat message must not drive the car, toggle music or start a race
   if (e.key === 'Escape') {
     if (e.repeat) return;
     const a = menuEscAction(menuOpen, menuView, state, nickOpen);
@@ -4947,6 +5157,8 @@ window.addEventListener('keydown', e => {
     } else if (e.code === 'KeyM' && !e.repeat && e.target.tagName !== 'SELECT') { setMusic(!musicOn); syncMenuUI(); }
     return;
   }
+  const ck = chatKey({ code: e.code, repeat: e.repeat, mod: e.ctrlKey || e.metaKey || e.altKey, online: !!pvp, spec: !!spec, room: !!pvp && !$('#room').hidden, state });
+  if (ck) { e.preventDefault(); chatFocus(ck); return; } // T: chat, online only (no 't' typed into the box it opens)
   if (spec) { const v = specViewKey(e.code); if (v) { e.preventDefault(); specView(v); } return; } // a spectator has no car: only the view keys
   if (!e.repeat && (e.code === 'ShiftLeft' || e.code === 'ShiftRight')) shiftGear(1);
   if (!e.repeat && e.code === 'KeyZ' && !e.ctrlKey && !e.metaKey && !e.altKey) shiftGear(-1);
@@ -5318,7 +5530,7 @@ function openMenu() {
   menuOpen = true;
   for (const k in input) input[k] = k === 'steerAxis' ? null : false; // release held keys / touch controls so the car does not keep driving
   releaseTouch();
-  syncMenuUI(); $('#igmenu').hidden = false; showMenuView('main');
+  syncMenuUI(); chatSyncUI(); $('#igmenu').hidden = false; showMenuView('main');
 }
 function closeMenu() { if (!menuOpen) return; menuOpen = false; $('#igmenu').hidden = true; if (document.activeElement) document.activeElement.blur(); }
 function forfeit() {
