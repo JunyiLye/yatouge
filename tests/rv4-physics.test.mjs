@@ -26,9 +26,9 @@ test('其他三台車的物理、AI、變速箱數值逐字不變（RV-4 不影�
   assert.deepEqual(CARS.hatch.phys, { maxV: 54, engine: 11.5, lag: 0, grip: 9, gripLimit: 20.5, drift: 1.12, slide: 0.1, hb: 3.5 });
   assert.deepEqual(CARS.coupe.phys, { maxV: 61, engine: 14, lag: 1, grip: 8, gripLimit: 19, drift: 1, slide: 0.22, hb: 7 });
   assert.deepEqual(CARS.gtr.phys, { maxV: 70, engine: 18.5, lag: 1, grip: 6.5, gripLimit: 15.5, drift: 0.72, slide: 0.5, hb: 8 });
-  assert.deepEqual(CARS.hatch.ai, { top: 44, acc: 6, lat: 11.5 });
-  assert.deepEqual(CARS.coupe.ai, { top: 50, acc: 8.5, lat: 9.5 });
-  assert.deepEqual(CARS.gtr.ai, { top: 52, acc: 9, lat: 8.5 });
+  assert.deepEqual(CARS.hatch.ai, { top: 44, acc: 6, lat: 11.5, hill: 33 });
+  assert.deepEqual(CARS.coupe.ai, { top: 50, acc: 8.5, lat: 9.5, hill: 27 });
+  assert.deepEqual(CARS.gtr.ai, { top: 52, acc: 9, lat: 8.5, hill: 23 });
   assert.deepEqual(GB.CARS.hatch, { redline: 8000, v6: 58, gain: 1.25 });
   assert.deepEqual(GB.CARS.coupe, { redline: 8000, v6: 67, gain: 0.75 });
   assert.deepEqual(GB.CARS.gtr, { redline: 7600, v6: 78, gain: 0.8 });
