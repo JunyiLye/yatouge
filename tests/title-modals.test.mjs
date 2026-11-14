@@ -232,9 +232,9 @@ test('askDir：背景 inert、預設焦點在目前方向；選了呼叫 callbac
 });
 
 /* ---------- 線上：投票與抽籤帶方向 ---------- */
-test('RP.V 升到 4；validVote 要有 d（down／up），乾淨副本', () => {
+test('RP.V 升到 5（千曲坂上線）；validVote 要有 d（down／up），乾淨副本', () => {
   const { RP, validVote } = ROOM();
-  assert.equal(RP.V, 4);
+  assert.equal(RP.V, 5);
   assert.deepEqual(validVote({ t: 'hakuro', m: 'cat', g: 80, d: 'up', evil: 1 }), { t: 'hakuro', m: 'cat', g: 80, d: 'up' });
   assert.deepEqual(validVote({ t: 'seiran', m: 'first', g: 50, d: 'down' }), { t: 'seiran', m: 'first', g: 50, d: 'down' });
   for (const bad of [{ t: 'seiran', m: 'first', g: 50 }, { t: 'seiran', m: 'first', g: 50, d: 'sideways' }, { t: 'seiran', m: 'first', g: 50, d: 'seiran_up' }, { t: 'seiran', m: 'first', g: 50, d: 1 }, { t: 'seiran_up', m: 'first', g: 50, d: 'up' }])
@@ -264,13 +264,13 @@ test('catNextGap 的內部票也帶 d，貓捉老鼠下一回合距離仍能抽'
   assert.deepEqual(c.catNextGap(60, 60, 5), { g: 60, dg: false });
   assert.notEqual(c.catNextGap(30, 100, 5), null);
 });
-test('validatePeerState：trk 可以是上坡的課程 id（seiran_up），其他寫法仍拒絕；NET.TRACKS 仍是三條下坡 id', () => {
+test('validatePeerState：trk 可以是上坡的課程 id（seiran_up），其他寫法仍拒絕；NET.TRACKS 是四條下坡 id', () => {
   const N = new Function(`${block('netcode')}\nreturn { NET, validatePeerState };`)();
   const base = { v: 1, st: 'waiting', car: 'hatch', col: 0, trk: 'seiran' };
   assert.equal(N.validatePeerState(base, null, 1).trk, 'seiran');
   assert.equal(N.validatePeerState({ ...base, trk: 'seiran_up' }, null, 1).trk, 'seiran_up');
   for (const t of ['seiran_down', 'evil_up', '_up', 'seiran_up_up', 'seiran_UP', 5, null]) assert.equal(N.validatePeerState({ ...base, trk: t }, null, 1), null, String(t));
-  assert.deepEqual(N.NET.TRACKS, ['kurosagi', 'seiran', 'hakuro']);
+  assert.deepEqual(N.NET.TRACKS, ['kurosagi', 'seiran', 'hakuro', 'chikuma']);
 });
 test('pvpCheck 與大廳廣告：邊界框用實際課程 id；大廳列表只廣告下坡的賽道 id', () => {
   assert.match(line('const pvpCheck'), /netTrack\(pres\.trk\)/);

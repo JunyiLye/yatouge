@@ -163,6 +163,7 @@ body.gp :is(button, input, select):focus { outline: 2px solid var(--sodium); out
 kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px solid var(--line); border-bottom-width: 3px; border-radius: 4px; padding: 1px 7px; background: rgba(255,255,255,.04); white-space: nowrap; }
 .pick { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
 .pick > .carcard:last-child:nth-child(odd) { grid-column: 1 / -1; }
+#trackPick { grid-template-columns: 1fr 1fr; }
 .carcard { text-align: left; background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: grid; gap: 4px; min-width: 0; }
 .carcard[aria-checked="true"] { border-color: var(--sodium); background: rgba(255,162,58,.1); }
 .carcard b { font-size: 15px; }
@@ -336,6 +337,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 @media (orientation: landscape) and (max-height: 500px) {
   .pick { grid-template-columns: repeat(3, 1fr); }
   .pick > .carcard:last-child:nth-child(odd) { grid-column: auto; }
+  #trackPick { grid-template-columns: 1fr 1fr; }
   .screen { align-items: start; padding-top: 12px; padding-bottom: 12px; }
   .screen > .sheet { margin: auto; }
   .logo { font-size: clamp(44px, 14vh, 72px); }
@@ -569,6 +571,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <div class="igrow" id="tTiltRow" hidden><label for="tTiltSens" data-i18n="igTiltSens">傾斜靈敏度</label><output id="tTiltOut" for="tTiltSens"></output><input id="tTiltSens" type="range" min="0" max="100" step="5"></div>
       <p class="igq" id="tTiltNote" role="status" hidden></p>
     </div>
+    <p class="igq" style="font-size:12px;color:var(--dim);margin-top:14px" data-i18n="osmCredit">千曲坂的路線取自 OpenStreetMap，地圖資料 © OpenStreetMap contributors（ODbL 授權）。</p>
     <button class="go tmdone" id="mGameDone" type="button" data-i18n="tmDone">完成</button>
   </div>
 </div>
@@ -811,16 +814,16 @@ const confirmKeys = (what, ta, sake) => what === 'lobby' ? { q: 'igLobbyAsk', ye
 // Player-facing release notes, newest first (at most 12 versions). Add today's version, or extend it, whenever a change the player can see goes out.
 const CHANGELOG = [
   { date: '2026-11-14',
-    zh: ['新車 RV-4 拉力四驅：90 年代雙門四驅渦輪房車，起步與出彎最猛，有自己的水平對臥引擎聲與車內視角。', '主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：按下「開始」後可以選「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式仍是下坡）。',
+    zh: ['新賽道「千曲坂」：約 6.2 公里、二十五個髮夾彎，路線參考真實的山路，一層一層折返往下，對手是 RV-4 拉力四驅。下坡、上坡、計時賽和線上對戰都可以選。', '新車 RV-4 拉力四驅：90 年代雙門四驅渦輪房車，起步與出彎最猛，有自己的水平對臥引擎聲與車內視角。', '主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：按下「開始」後可以選「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式仍是下坡）。',
     '主畫面的設定改成三個按鈕：「車輛設定」、「聲音設定」、「遊戲設定」，點開後在視窗裡選車與顏色、選背景音樂與開關音樂，以及調整震動、彎道提示、按鍵設定、查看更新內容，主畫面更簡潔。',
     '上坡或下坡改成按下「開始」後才選（接著選手排或自排）；送酒模式仍是下坡，結果畫面的「同一台再跑」沿用上一場的方向。',
     '線上對戰也可以上坡了：在房間點選賽道時選下坡或上坡，點選車子時選手排或自排，兩個都選好才能按「準備」。方向跟著賽道一起投票，兩人不同時一起抽籤，抽籤後不會再問變速箱。',
     '線上房間的聊天框移到右側，電腦上一進房間就看得到，不用再往下捲。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。', '修正：主畫面按 Enter 只有在「開始」鈕上、或焦點不在任何控制項上時才會開始比賽；在其他按鈕、選單上按 Enter 會照常操作它，方向鍵也能切換下拉選單與滑桿。', '修正：可以把 Ctrl 或 Alt 綁成降檔、鏡頭、聊天，綁了之後確實會作用。', '修正：關閉 KX-2 車門字樣後，離開車內視角不會再冒出來。', '修正：計時在整分、整十秒前後不再顯示成 0:60.00 之類的錯誤格式。', '修正：點選卡片後鍵盤焦點會留在原位；再點已選的車不會重設顏色。', '修正：回到主畫面時視角會恢復正常。', '修正：在遊戲內換語言後，主畫面的線上狀態也會跟著換語言。', '修正：壞掉的語言存檔不再讓文字壞掉。', '修正：AI 衝線後不會再停在終點讓你撞上。', '修正：起跑的 GO 消失後，大型與預告彎道提示才會出現。', '修正：線上對戰中對手在比賽時換車不再造成畫面卡頓；連線較忙時大廳會請你稍候。', '修正：線上對戰衝線後，兩台車不會再互撞。', '修正：線上對戰中，房間裡的其他人無法再冒用你的身分；舊版頁面需重新整理後才能進房。', '修正：計時賽中途才打開幽靈車，幽靈車不會再浮在路面上方。', '修正：和 AI 幾乎同時衝線時，勝負改用同一個時鐘判斷，不再固定偏向 AI。', '修正：在主畫面選了不能用的自選音樂檔，現在會在聲音設定視窗裡顯示提示，不會留到比賽倒數才出現。', '修正：按鍵設定把 Ctrl 綁定後，如果 W、T 或 N 也有綁按鍵，會提醒瀏覽器可能因此關閉或開新分頁。', '修正：使用右 Alt（AltGr）鍵盤配置時，綁在右 Alt 的降檔、鏡頭、聊天可以正常使用。', '修正：視窗失去焦點時按住的手把扳機，回來後不會失效。', '修正：重新開始後，倒數時引擎聲不會延續上一場的油門聲。', '修正：車內視角時，在設定裡開關車門字樣不會讓字樣單獨浮在車外。', '修正：結果畫面按「同一台再跑」再取消變速箱選擇，鍵盤焦點會回到該按鈕。', '修正：線上房間裡，對方離開後不會再被別人冒用他的代號而一直顯示在場；同一個分頁離開後再加入同一個房間，對方不會再看到你上一場停住的車。', '修正：對手離開後，結果畫面仍顯示對手的暱稱，不會變成「玩家」。'],
-    en: ['New car, the RV-4 Rally 4WD: a 90s two-door all-wheel-drive turbo saloon that launches and exits corners hardest, with its own flat-four engine sound and cockpit view.', 'New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after pressing Start you can choose Downhill or Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run stays downhill).',
-    'The title-screen settings are now three buttons, Car settings, Sound settings and Game settings, that open windows for the car and colour, the music and its switch, and vibration, turn signs, key settings and what\'s new. The title screen is much tidier.',
+    en: ['New course, Chikuma Slope: about 6.2 km with twenty-five hairpins, its line modelled on a real mountain road that zig-zags down in layers, and the RV-4 Rally 4WD as your rival. Pick it downhill, uphill, in time attack and in online races.', 'New car, the RV-4 Rally 4WD: a 90s two-door all-wheel-drive turbo saloon that launches and exits corners hardest, with its own flat-four engine sound and cockpit view.', 'New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Corner warnings now have styles: Side, Centre, Next two, Sound or Off. Find them in settings.', 'Uphill runs: after pressing Start you can choose Downhill or Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run stays downhill).',
+    'The title-screen settings are now three buttons, Car settings, Sound settings and Game settings, that open windows for the car and colour, the music and its switch, and vibration, corner warnings, key settings and what\'s new. The title screen is much tidier.',
     'Uphill or downhill is now chosen after you press Start (followed by manual or automatic). Sake Run stays downhill, and Run again keeps the last direction.',
     'Online races can now be uphill: click a course in the room to choose downhill or uphill and click your car to choose a gearbox; you can only press Ready once both are chosen. The direction is voted together with the course and drawn if you differ, and the gearbox is no longer asked after the draw.',
-    'The online room chat now sits on the right on a wide screen, so you can see it as soon as you enter, without scrolling.', 'Fix: a turn sign no longer disappears and reappears when you brake after it shows up.', 'Fix: if the car is sliding backwards when you cross the line, the auto-brake no longer sends it flying.', 'Fix: in a room with several rounds, later rounds no longer always show a win.', 'Fix: the lobby list now updates right away when someone leaves or closes a room.', 'Fix: a join that finishes after you went back from the lobby no longer pulls you into a room.', 'Fix: on the title screen Enter starts the race only from the Start button or when focus is not on any control; on other buttons and menus it works that control, and the arrow keys now change dropdowns and sliders.', 'Fix: Ctrl or Alt can be bound to downshift, camera or chat and now really work.', 'Fix: with the KX-2 door lettering turned off it no longer pops back when you leave the cockpit view.', 'Fix: timers around full minutes and ten-second marks no longer show formats like 0:60.00.', 'Fix: keyboard focus stays in place after choosing a card, and clicking the car you already picked no longer resets its colour.', 'Fix: the view returns to normal when you are back on the title screen.', 'Fix: switching language in-game also updates the title-screen online status.', 'Fix: a corrupted language save no longer breaks the text.', 'Fix: the AI no longer stops at the finish line for you to crash into.', 'Fix: the large and preview turn signs now appear only after the start GO has gone.', 'Fix: an opponent changing cars during an online race no longer makes the game stutter; the lobby asks you to wait when the connection is busy.', 'Fix: in online races the two cars no longer bump into each other after finishing.', 'Fix: other people in an online room can no longer pretend to be you; older pages need a refresh to join a room.', 'Fix: opening the ghost car in the middle of a time attack run no longer leaves it floating above the road.', 'Fix: when you and the AI cross the line almost together, the winner is now judged on one shared clock instead of always favouring the AI.', 'Fix: choosing an unusable own-music file on the title screen now shows a message in the sound settings window instead of showing up during the next countdown.', 'Fix: in key settings, binding Ctrl while W, T or N is also bound now shows a warning that the browser may close or open a tab.', 'Fix: on AltGr keyboard layouts, downshift, camera and chat bound to the right Alt now work.', 'Fix: a controller trigger held while the window lost focus no longer stops working when you return.', 'Fix: after a restart the engine no longer keeps the throttle sound of the previous run during the countdown.', 'Fix: in cockpit view, toggling the door lettering in settings no longer leaves it floating outside the car.', 'Fix: cancelling the gearbox choice after pressing Run again on the result screen returns keyboard focus to that button.', 'Fix: in an online room a player who left is no longer kept on the roster by someone using their id, and when you leave and rejoin the same room from one tab the other player no longer sees your car frozen where the last match left it.', 'Fix: after the opponent leaves, the result screen still shows their nickname instead of "Player".'] },
+    'The online room chat now sits on the right on a wide screen, so you can see it as soon as you enter, without scrolling.', 'Fix: a corner warning no longer disappears and reappears when you brake after it shows up.', 'Fix: if the car is sliding backwards when you cross the line, the auto-brake no longer sends it flying.', 'Fix: in a room with several rounds, later rounds no longer always show a win.', 'Fix: the lobby list now updates right away when someone leaves or closes a room.', 'Fix: a join that finishes after you went back from the lobby no longer pulls you into a room.', 'Fix: on the title screen Enter starts the race only from the Start button or when focus is not on any control; on other buttons and menus it works that control, and the arrow keys now change dropdowns and sliders.', 'Fix: Ctrl or Alt can be bound to downshift, camera or chat and now really work.', 'Fix: with the KX-2 door lettering turned off it no longer pops back when you leave the cockpit view.', 'Fix: timers around full minutes and ten-second marks no longer show formats like 0:60.00.', 'Fix: keyboard focus stays in place after choosing a card, and clicking the car you already picked no longer resets its colour.', 'Fix: the view returns to normal when you are back on the title screen.', 'Fix: switching language in-game also updates the title-screen online status.', 'Fix: a corrupted language save no longer breaks the text.', 'Fix: the AI no longer stops at the finish line for you to crash into.', 'Fix: the large and preview turn signs now appear only after the start GO has gone.', 'Fix: an opponent changing cars during an online race no longer makes the game stutter; the lobby asks you to wait when the connection is busy.', 'Fix: in online races the two cars no longer bump into each other after finishing.', 'Fix: other people in an online room can no longer pretend to be you; older pages need a refresh to join a room.', 'Fix: opening the ghost car in the middle of a time attack run no longer leaves it floating above the road.', 'Fix: when you and the AI cross the line almost together, the winner is now judged on one shared clock instead of always favouring the AI.', 'Fix: choosing an unusable own-music file on the title screen now shows a message in the sound settings window instead of showing up during the next countdown.', 'Fix: in key settings, binding Ctrl while W, T or N is also bound now shows a warning that the browser may close or open a tab.', 'Fix: on AltGr keyboard layouts, downshift, camera and chat bound to the right Alt now work.', 'Fix: a controller trigger held while the window lost focus no longer stops working when you return.', 'Fix: after a restart the engine no longer keeps the throttle sound of the previous run during the countdown.', 'Fix: in cockpit view, toggling the door lettering in settings no longer leaves it floating outside the car.', 'Fix: cancelling the gearbox choice after pressing Run again on the result screen returns keyboard focus to that button.', 'Fix: in an online room a player who left is no longer kept on the roster by someone using their id, and when you leave and rejoin the same room from one tab the other player no longer sees your car frozen where the last match left it.', 'Fix: after the opponent leaves, the result screen still shows their nickname instead of "Player".'] },
   { date: '2026-11-13',
     zh: ['彎道前會出現提示圖示，可以在設定裡關掉。', '送酒模式通關有獎勵：KX-2 的極速升級開關，以及白色碳纖維引擎蓋塗裝。', '遊戲內選單新增「重新開始」與「回到大廳」。', '比賽結束後車子不會再倒退。', 'SR-7 新增引擎蓋與尾燈細節。', '手機車內視角：後照鏡縮小，KX-2 與 GT-32 的儀表降低，視野更開闊。', '鍵盤與手把的按鍵都可以自己設定。', '線上房間可以聊天、玩貓捉老鼠，也能在房間裡選賽道和車。', '三台車的外型都依真車照片重新製作。'],
     en: ['Turn signs now appear before corners; you can switch them off in settings.', 'Sake Run rewards: a top-speed upgrade switch for the KX-2 and a white carbon-fibre hood paint.', 'The in-game menu now has Restart and Back to lobby.', 'The car no longer rolls backwards after the race ends.', 'New hood and tail-light details on the SR-7.', 'Phone cockpit view: smaller rear-view mirror, and lower dashboards on the KX-2 and GT-32 for a clearer view.', 'Keyboard and controller buttons can be rebound.', 'Online rooms now have chat and Cat and Mouse, and you can pick the course and car inside the room.', 'All three cars were rebuilt from photos of the real cars.'] },
@@ -1130,6 +1133,7 @@ const I18N = {
     rpOppVote: d => `對手投：${d}`, rpChanged: '選擇有變更，請重新準備。', rpWaitTrans: '等待對手…', rpWaitSeed: '等待房主抽籤…',
     pvpLine: '衝線！', pvpOppDone: '對手已完賽', pvpWaitOpp: '等待對手衝線…', pvpTie: '平手', pvpDnf: '對手未完賽',
     pvpOppTime: '對手完賽時間', pvpBackRoom: '回房間再來一場', pvpLeaveEnd: '離開並回主畫面',
+    osmCredit: '千曲坂的路線取自 OpenStreetMap，地圖資料 © OpenStreetMap contributors（ODbL 授權）。',
     clTitle: '更新內容', clBtn: '更新內容', clView: '查看', clOk: '知道了', clAria: '各版本的更新重點',
     nickTitle: '你的暱稱', nickLbl: '暱稱', nickHint: '1 到 16 個字，只在這次線上對戰使用，不會被記住；其他玩家看得到。', nickOk: '確定', nickCancel: '取消',
     pvpPlayer: '玩家', pvpYouTag: n => `${n}（你）`, pvpNickIs: n => `你的暱稱：${n}。`, pvpTimeOf: n => `${n} 完賽時間`,
@@ -1201,11 +1205,12 @@ const I18N = {
     rpOppVote: d => `Opponent votes: ${d}`, rpChanged: 'A pick changed. Ready up again.', rpWaitTrans: 'Waiting for your opponent…', rpWaitSeed: 'Waiting for the host to draw…',
     pvpLine: 'Across the line!', pvpOppDone: 'Opponent finished', pvpWaitOpp: 'Waiting for your opponent…', pvpTie: 'Tie', pvpDnf: 'Opponent did not finish',
     pvpOppTime: "Opponent's time", pvpBackRoom: 'Back to the room', pvpLeaveEnd: 'Leave and go to title',
+    osmCredit: 'The Chikuma Slope route is taken from OpenStreetMap. Map data © OpenStreetMap contributors (ODbL).',
     clTitle: 'What\'s new', clBtn: 'What\'s new', clView: 'View', clOk: 'Got it', clAria: 'Highlights by version',
     nickTitle: 'Your nickname', nickLbl: 'Nickname', nickHint: '1 to 16 characters. Used for this online session only and never saved; other players can see it.', nickOk: 'Confirm', nickCancel: 'Cancel',
     pvpPlayer: 'Player', pvpYouTag: n => `${n} (you)`, pvpNickIs: n => `Your nickname: ${n}.`, pvpTimeOf: n => `${n} · finish time`,
     igAria: 'Menu', igTitle: 'Menu', igResume: 'Resume', igSettings: 'Settings', igForfeit: 'Forfeit', igRestart: 'Restart', igLobby: 'Back to lobby', igLobbyAsk: 'Back to the lobby? This race will end.', igLobbyYes: 'Yes, back to lobby', igRestartAsk: 'Restart? This run will not be saved.', igRestartYes: 'Yes, restart', igBack: 'Back', igMusic: 'Music', igMusicVol: 'Music volume', igSfxVol: 'Sound effects volume', igCam: 'Camera', igLang: 'Language',
-    igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', kxUp: 'Top speed upgrade', sakeUnlock: 'Unlocked: KX-2 top speed upgrade and the white, carbon hood paint', vibe: 'Vibration', turnSigns: 'Turn signs', tsM_side: 'Side', tsM_big: 'Large, centred', tsM_preview: 'Preview bar', tsM_sound: 'Sound only', tsM_off: 'Off', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
+    igOn: 'On', igOff: 'Off', kxChime: 'Speed chime', kxLetter: 'Door lettering', kxUp: 'Top speed upgrade', sakeUnlock: 'Unlocked: KX-2 top speed upgrade and the white, carbon hood paint', vibe: 'Vibration', turnSigns: 'Corner warnings', tsM_side: 'Side', tsM_big: 'Centre', tsM_preview: 'Next two', tsM_sound: 'Sound', tsM_off: 'Off', igConfirm: 'Forfeit this race?', igYes: 'Yes, forfeit', igNo: 'No', igForfeited: 'Forfeited',
     ctlLbl: 'Controls', igSteer: 'Steering', stDrag: 'Drag', stTilt: 'Tilt', stZones: 'Zones', igTiltSens: 'Tilt sensitivity', recenter: 'Re-center', zoneBrake: 'BRAKE + E-BRAKE', tiltFail: 'Tilt steering is unavailable here; switched back to drag.',
     transTitle: 'Choose a gearbox', transAT: 'Automatic AT', transATd: 'Shifts for you. Focus on the corners.', transMT: 'Manual MT', transMTd: (u, d) => `Shift yourself: ${u} = up, ${d} = down. Shift well and you beat the automatic.`, transHint: 'On a phone, ▲ ▼ shift buttons appear. You are asked again before every race.', transKeys: 'Enter or a tap confirms, Esc cancels.',
     kShift: 'Manual: shift up / down', kPad: p => `Controller: left stick steer, ${p.gas} gas, ${p.brake} brake, ${p.hb} handbrake, ${p.shiftDown} / ${p.shiftUp} shift down / up, ${p.cam} camera, Menu menu`,
@@ -1347,6 +1352,96 @@ function kurosagiPts() {
   }
   return { pts, hairpins: plan.filter(p => p.deg && Math.abs(p.deg) >= 180).length };
 }
+/* Chikuma Slope: route data from OpenStreetMap, (c) OpenStreetMap contributors, licensed under the ODbL (https://www.openstreetmap.org/copyright).
+   Source: the one-way downhill hairpin road of a real mountain pass. Processing, kept minimal: the first ~330 m and everything after ~4800 m of the source line cropped,
+   scaled 1.5x, then only the legs that were too close (or bends tighter than ~12 m) pushed apart iteratively, with the vertex spacing kept. Metres relative to the start, x east, y south, PX 1. */
+const CHIKUMA_WP = [
+  [0,0],[4.4,-6.4],[8.7,-12.9],[14.1,-18.4],[19.6,-24],[25,-29.6],[30.4,-35.2],[34,-42],[38.1,-48.6],[42.3,-55.2],
+  [46.4,-61.8],[48.5,-69.2],[50.6,-76.7],[52.8,-84.2],[54.9,-91.7],[57,-99.1],[59.1,-106.6],[61.2,-114.1],[63.4,-121.7],[65.4,-129.2],
+  [67.5,-136.7],[71.5,-143.4],[77.2,-148.7],[84.8,-150.2],[92.1,-147.5],[96.8,-141.4],[97.5,-133.8],[94.1,-127],[90.6,-120.2],[89.2,-112.6],
+  [85.6,-105.9],[82,-99.1],[78.4,-92.4],[74.8,-85.6],[73.1,-78.2],[71.3,-70.7],[69.5,-63.3],[67.7,-55.8],[63.8,-49.2],[60,-42.6],
+  [54.5,-37.3],[49,-32],[43.4,-26.7],[37.9,-21.4],[32.3,-16.1],[28.4,-9.6],[24.5,-3],[20.6,3.5],[18.6,10.9],[16.7,18.3],
+  [14.7,25.6],[14.9,33.2],[15.1,40.7],[13.3,48.1],[11.5,55.4],[7.7,61.8],[1,65.2],[-5.5,68.7],[-12.7,70.2],[-19.9,71.6],
+  [-27.1,73.1],[-34.2,74.6],[-39,80],[-39.7,87.2],[-36,93.4],[-29.4,96.4],[-22.3,95],[-15.8,91.8],[-9.3,88.5],[-2.7,85.3],
+  [3.9,82.1],[10.5,78.8],[15.8,73.6],[21.2,68.4],[24.8,61.9],[26.4,54.5],[30.1,48],[33.8,41.4],[37.5,34.7],[41.2,28.1],
+  [45.1,21.5],[49,14.9],[52.9,8.4],[56.9,1.8],[61,-4.8],[65.1,-11.3],[70.9,-16.5],[76.7,-21.7],[82.4,-27],[88.2,-32.2],
+  [94,-37.5],[99.9,-42.7],[104,-49.4],[108.5,-55.9],[113.1,-62.3],[118.4,-68.2],[123.6,-74.2],[129.4,-79.7],[136,-84.1],[143.3,-87.4],
+  [150.7,-90.3],[158.4,-92.7],[166.1,-94.8],[173.8,-96.8],[181.6,-98.7],[189.4,-100.4],[197.2,-102.2],[205,-103.9],[212.6,-106.3],[219.7,-110],
+  [225.1,-115.8],[228.4,-123],[229.6,-130.9],[230.2,-138.8],[230.8,-146.8],[231.6,-154.7],[232.6,-162.5],[234,-170.3],[235.8,-177.9],[237.7,-185.5],
+  [240.3,-192.9],[243.6,-199.9],[246.8,-206.9],[250.1,-213.9],[255.2,-219.6],[260.3,-225.2],[265.6,-230.8],[270.8,-236.2],[277.5,-239.9],[284.9,-241.4],
+  [292.4,-242.9],[299.8,-244.4],[306.5,-247.9],[313.3,-251.3],[320.4,-254.1],[325.1,-260],[329.9,-265.8],[336.2,-270.1],[342.3,-274.4],[348.3,-278.9],
+  [355.8,-279.2],[362.3,-275.6],[365.6,-268.9],[364.7,-261.6],[359.9,-256],[353.8,-251.9],[347.6,-247.8],[340.5,-245.9],[333.3,-243.9],[326.2,-241.9],
+  [319.8,-238],[313.4,-234.3],[307,-230.7],[300.5,-227.1],[293.9,-223.6],[288.6,-218.4],[285.1,-211.9],[283.5,-204.7],[281.8,-197.6],[282.5,-190.3],
+  [280.7,-183.3],[279.1,-176.3],[277.5,-169.3],[276.1,-162.3],[274.7,-155.3],[276,-148.3],[281.4,-143.7],[288.4,-143.4],[294.2,-147.4],[296.6,-154.1],
+  [297.1,-161.2],[297.8,-168.3],[298.6,-175.4],[299.5,-182.6],[300.5,-189.8],[305.6,-195],[310.6,-200.4],[315.6,-205.7],[322,-209.5],[328.3,-213.3],
+  [333.5,-218.7],[339.9,-222.5],[346.4,-226.3],[352.8,-230.2],[359.3,-234.1],[364.4,-239.7],[369.6,-245.3],[374.6,-251.1],[380.9,-255.4],[387.1,-259.8],
+  [394.4,-262.4],[401.5,-265.1],[408.6,-267.9],[415.6,-270.8],[422.6,-273.8],[429.5,-276.8],[436.4,-279.9],[443.2,-282.9],[450,-286],[456.9,-288.9],
+  [463.7,-291.9],[470.5,-294.8],[477.2,-297.6],[484,-300.3],[489.9,-304.6],[495.8,-308.7],[501.8,-312.7],[508.7,-314.4],[515.6,-316.2],[521.4,-320.2],
+  [527.4,-323.8],[533.4,-327.3],[540.2,-328],[545.8,-323.9],[547.1,-317.2],[543.7,-311.4],[537.3,-308.9],[531.2,-305.9],[525.1,-302.8],[519.1,-299.6],
+  [513,-296.4],[506.9,-293.1],[500.2,-291.7],[493.4,-290.2],[487,-287.4],[482,-282.5],[476.8,-277.8],[470.2,-275.3],[463.8,-272.4],[457.4,-269.5],
+  [451,-266.6],[444.6,-263.7],[437.5,-262.9],[430.6,-262],[424.1,-259.1],[419.1,-254.2],[414,-249.4],[410.4,-243.5],[405.8,-238.2],[401.4,-232.8],
+  [397,-227.5],[392.6,-222.3],[388.5,-216.8],[389.4,-210.1],[394.8,-205.9],[401.5,-206.6],[406.1,-211.6],[409.3,-217.5],[412.5,-223.5],[415.9,-229.5],
+  [420.5,-234.7],[424.8,-240.3],[430.9,-243.8],[437,-247.3],[444.1,-248.7],[451.2,-249.7],[457.8,-252.5],[464.6,-255.1],[471.5,-257.6],[478.4,-260],
+  [485.3,-262.4],[492.3,-264.9],[499.3,-267.4],[506.2,-269.9],[513.2,-272.4],[520.2,-275.1],[527.2,-277.8],[534.1,-280.5],[541.1,-283.3],[548,-286.2],
+  [554.9,-289.1],[561.8,-292.1],[568.7,-295.2],[575.5,-298.4],[581.1,-303.5],[586.8,-308.5],[592.4,-313.6],[597.9,-318.8],[604.7,-322.2],[612.3,-321.7],
+  [618.5,-317.3],[621.5,-310.3],[620.3,-302.8],[615.3,-297.2],[609,-293.1],[602.7,-289],[596.4,-285],[590.1,-281],[583.8,-277],[577.6,-273.1],
+  [571.3,-269.1],[565.1,-265.1],[558.8,-261.2],[552.6,-257.2],[545.4,-255.4],[538.3,-253.5],[531.3,-251.7],[524.2,-249.9],[517.2,-247.5],[511.1,-243.4],
+  [505.8,-238.5],[500.6,-233.5],[495.4,-228.5],[489.1,-225.2],[482.9,-221.9],[476.6,-218.6],[470.5,-215.2],[468.2,-208.6],[470.6,-202.1],[476.6,-198.6],
+  [483.5,-199.6],[488.5,-204.5],[493.7,-209.2],[499,-213.9],[504.3,-218.5],[509.6,-223.2],[514.8,-228.1],[519.9,-233.1],[526.4,-236.2],[533.4,-237.9],
+  [540.4,-239.6],[547.4,-241.4],[554.4,-243.3],[561.3,-245.2],[568.6,-245],[575.5,-247.4],[582.3,-249.7],[589.6,-249.7],[596.8,-250],[604.1,-250.3],
+  [611.3,-250.8],[617.9,-253.6],[624.6,-256.2],[631.3,-258.8],[637.9,-261.6],[643.4,-266.1],[648.9,-270.7],[654.4,-275.2],[661,-277.8],[667.6,-280.3],
+  [674.7,-280.2],[680.2,-275.8],[681.8,-268.9],[678.9,-262.5],[672.7,-258.9],[666.8,-255.1],[660.8,-251.3],[653.9,-249.3],[647.1,-247.3],[640.2,-245.2],
+  [634.3,-241],[628.5,-236.8],[622.6,-232.5],[616.8,-228.1],[611.1,-223.5],[605.4,-218.9],[599.8,-214.1],[594.3,-209.2],[588.8,-204.2],[582.3,-200.8],
+  [575.8,-197.3],[569.4,-193.6],[563.2,-189.8],[557,-185.8],[550.8,-181.7],[544.8,-177.5],[538.9,-173.2],[533.1,-168.8],[527.3,-164.3],[521.7,-159.7],
+  [514.9,-157],[508.3,-154],[501.7,-151.1],[495.3,-148],[488.9,-144.8],[484,-139.6],[479.1,-134.6],[474.3,-129.4],[469.7,-124.2],[469.7,-117.2],
+  [474.2,-111.8],[481.1,-110.4],[487.3,-113.5],[492.6,-118],[498,-122.6],[503.4,-127],[510,-129.6],[516.6,-132.2],[522.1,-136.6],[527.7,-141],
+  [534.4,-143.6],[541.1,-146.1],[547.8,-148.7],[554.6,-151.4],[561.3,-154.1],[568,-156.8],[575.3,-157.4],[581.9,-160.4],[588.5,-163.4],[595.1,-166.4],
+  [601.7,-169.5],[608.2,-172.7],[614.8,-175.9],[621.3,-179.2],[627.7,-182.5],[634.1,-185.8],[639.3,-191],[644.4,-196.1],[649.6,-201.2],[655.9,-204.5],
+  [662.3,-207.9],[667.5,-212.9],[673.9,-216.1],[680.3,-219.2],[687.5,-219.8],[693.5,-216],[696.1,-209.3],[694.3,-202.3],[688.9,-197.5],[682.4,-194.3],
+  [675.9,-191],[669.5,-187.5],[663,-184.1],[656.5,-180.5],[650,-176.9],[643.5,-173.3],[638.3,-167.9],[634.9,-161.2],[631.3,-154.5],[627.7,-147.9],
+  [624.1,-141.2],[620.4,-134.5],[618.7,-127],[615,-120.3],[611.3,-113.6],[607.6,-106.8],[603.8,-100],[598.3,-94.5],[592.8,-89],[587.4,-83.5],
+  [581.9,-77.9],[575,-74.2],[568.7,-69.4],[561.8,-65.6],[554.9,-61.8],[548.1,-57.9],[541.1,-54.2],[535.3,-48.8],[529.4,-43.6],[523.5,-38.4],
+  [517.2,-33.5],[512.2,-27.3],[509.1,-20.1],[510.3,-12.3],[515.5,-6.3],[523,-3.9],[530.9,-3.4],[538.8,-3.2],[546.8,-2.4],[554.8,-2.7],
+  [562.8,-2.7],[570.7,-3.7],[578.3,-6.1],[585.2,-10.1],[591.6,-14.9],[597.1,-20.6],[602.4,-26.6],[607.2,-32.9],[611.7,-39.5],[616,-46.3],
+  [620.2,-53],[624.3,-59.9],[628.4,-66.8],[632.4,-73.7],[636.7,-80.4],[640.9,-87.2],[645.5,-93.8],[649.7,-100.4],[654.6,-106.7],[660.6,-111.9],
+  [666.2,-117.4],[672.3,-122.4],[679.6,-125.4],[686.1,-130],[692.7,-134.3],[699.9,-137.6],[706.5,-141.8],[713.1,-146],[720.6,-148.2],[728,-150.4],
+  [735.4,-152.6],[742,-156.8],[748.5,-160.9],[753.5,-166.7],[758.6,-172.5],[761.9,-179.4],[763.1,-186.9],[764.3,-194.4],[765.5,-201.9],[766.6,-209.4],
+  [767.7,-216.9],[768.7,-224.4],[771.7,-231.3],[778,-235.5],[785.4,-235.6],[791.7,-231.6],[794.8,-224.9],[793.6,-217.6],[792.5,-210.2],[791.4,-202.9],
+  [788.3,-196.2],[785.1,-189.6],[782.1,-182.8],[781,-175.5],[780.1,-168.2],[779.1,-160.9],[776.2,-154.1],[773.4,-147.2],[770.7,-140.4],[766,-134.7],
+  [760.1,-130.3],[754.3,-125.9],[748.5,-121.5],[741.9,-118.5],[735.4,-115.1],[729.2,-111.5],[723.4,-107.1],[716.9,-104.1],[710.5,-101.2],[704,-98.3],
+  [700.9,-92],[702.3,-85.2],[707.7,-81],[714.6,-81.3],[719.6,-86],[724.9,-90.4],[730.1,-94.8],[735.3,-99.1],[741.7,-101.9],[747.9,-105.1],
+  [753.9,-108.5],[759.8,-112.2],[765.8,-115.8],[771.8,-119.2],[778,-122.3],[784.8,-120.5],[789.1,-114.9],[789.3,-107.8],[785.4,-101.7],[778.9,-98.8],
+  [771.8,-97.5],[765.6,-94.1],[759.4,-90.4],[753.3,-86.7],[747.2,-82.8],[741.2,-78.9],[735.2,-74.8],[729.2,-70.7],[723.3,-66.4],[717.5,-62.1],
+  [713.4,-56],[713.5,-48.7],[717.6,-42.6],[724.4,-39.8],[731.7,-41.1],[737.1,-46.2],[741.1,-52.4],[745.1,-58.5],[750.7,-63.2],[756.4,-67.8],
+  [763.4,-70.2],[770.4,-68.3],[775.2,-62.8],[776.1,-55.4],[772.8,-48.8],[767.9,-43.3],[763,-37.8],[758.1,-32.3],[753.2,-26.7],[752.2,-19.4],
+  [748.8,-12.8],[745.5,-6.2],[742.1,0.4],[738.6,6.9],[737.2,14.2],[737.8,21.6],[738.3,28.9],[741,35.7],[747,39.9],[754.3,39.9],
+  [760.3,35.8],[762.8,29],[765.3,22.3],[765.8,15.2],[766.1,8],[766.3,0.8],[766.5,-6.3],[766.6,-13.5],[766.7,-20.6],[771,-26.3],
+  [777.8,-28.3],[784.4,-25.7],[787.9,-19.7],[786.8,-12.8],[783.9,-6.4],[781.1,0],[780.1,6.9],[779.1,13.9],[780.5,20.9],[781.5,27.9],
+  [782.4,34.9],[783.2,42],[785.9,48.5],[790.7,53.8],[795.1,59.3],[799.4,65],[801.1,71.8],[798.3,78.3],[792.1,81.8],[785,81.1],
+  [777.9,80.7],[770.7,80.3],[763.9,78],[758,73.6],[752,69.6],[744.8,67.9],[737.7,66.2],[730.5,64.7],[723.7,67.6],[719.5,74],
+  [719.3,81.6],[723.2,88.2],[729.9,92],[737.1,94.8],[744.4,97.7],[752.1,98.5],[759.9,99.2],[767.1,102.2],[774.4,105.1],[782.2,105.9],
+  [790,106.8],[797.8,107.7],[805.6,106.5],[813.4,105.3],[821.1,104],[828.9,102.8],[836.6,101.6],[844.4,102.6],[852.3,103.5],[860.1,104.1],
+  [867.5,106.8],[874.7,110.1],[882.1,112.8],[889.6,115.4],[897.1,118.2],[904.5,121],[911.9,123.9],[919.3,126.9],[926.6,129.9],[933.9,132.9],
+  [941.2,135.9],[948.5,138.8],[955.8,141.9],[962.6,146],[970,148.8],[976.3,153.4],[981.4,159.4],[986.5,165.3],[989.8,172.4],[993.1,179.5],
+  [995.7,186.9],[999.6,193.6],[1003.4,200.3],[1009,205.7],[1015.7,209.3],[1022.4,213],[1029.1,216.6],[1036.5,218.3],[1044,217.9],[1051.3,219.5],
+  [1058.8,219.1],[1065.7,216.5],[1072.6,213.9],[1080,213.6],[1086.2,217.5],[1089,224.2],[1087.3,231.3],[1081.8,236.1],[1074.6,237.1],[1067.3,236.1],
+  [1059.9,235.3],[1052.5,234.6],[1045.9,238.2],[1039.3,241.8],[1035.6,248.5],[1035.9,256.2],[1040.2,262.7],[1047.3,266.1],[1054.2,269.6],[1061.2,273.2],
+  [1069.1,273],[1076.9,273.3],[1084.5,271.4],[1092.1,269.6],[1099.7,267.8],[1106.5,264],[1113.3,260.2],[1120,256.5],[1126.8,252.8],[1133.5,249],
+  [1140.2,245.4],[1147,241.7],[1153.7,238.2],[1159.2,233],[1166,229.6],[1172.8,226.3],[1179.6,223.1],[1185.2,218.1],[1189.1,211.8],[1188.9,204.4],
+  [1184.6,198.3],[1180.3,192.3],[1176,186.4],[1171.5,180.6],[1167,174.8],[1162.3,169.2],[1159.5,162.4],[1154.5,157.2],[1149.4,151.9],[1144.3,146.8],
+  [1139,141.9],[1135.5,135.5],[1136.2,128.3],[1140.9,123],[1147.8,121.6],[1154,124.9],[1156.8,131.3],[1159.8,137.6],[1164.9,142.6],[1169.7,147.7],
+  [1174.4,152.9],[1179.3,158.1],[1185.5,161.5],[1191.8,164.9],[1198.1,168.2],[1205.3,169],[1211.6,165.4],[1214.8,158.9],[1213.9,151.6],[1209.3,145.8],
+  [1203.4,141.4],[1197.5,136.9],[1191.7,132.3],[1185.9,127.6],[1180.1,122.9],[1178,115.7],[1175.6,108.6],[1173.3,101.5],[1175.3,94.2],[1180.7,89],
+  [1187.3,85.5],[1194.7,84],[1201.6,86.7],[1206,92.8],[1210.3,98.7],[1212.8,105.7],[1215.2,112.7],[1217.6,119.6],[1219.9,126.6],[1222.2,133.6],
+  [1224.4,140.5],[1226.7,147.5],[1230.8,153.5],[1234.9,159.5],[1239,165.5],[1238.8,172.7],[1238.7,179.9],[1238.7,187.1],[1241.1,193.9],[1246.9,198],
+  [1254,197.8],[1259.6,193.4],[1261.3,186.6],[1258.7,180.1],[1256.2,173.5],[1253.8,167],[1251.4,160.4],[1249,153.9],[1246.7,147.3],[1244.4,140.7],
+  [1244.7,133.7],[1244.9,126.7],[1245.1,119.8],[1242.8,113.1],[1241,106.4],[1239.4,99.7],[1240.8,92.9],[1244.2,86.9],[1249.9,82.9],[1256.8,83.4],
+  [1262.1,88.1],[1263.6,95.1],[1263.4,102.1],[1263.4,109.3],[1263.5,116.5],[1263.8,123.7],[1264.1,131],[1264.5,138.3],[1267.1,145.2],[1269.6,152.2],
+  [1272.2,159.3],[1274.8,166.4],[1277.4,173.5],[1280,180.7],[1282.5,188],[1283,195.7],[1287.6,202.1],[1294.6,205.5],[1302.3,207],[1310.2,206.3],
+  [1318,205.7],[1325.9,205.2],[1333.7,204.7],[1341.6,204.4],[1349.5,204.5],[1357.4,205.1],[1365.3,206.1],[1373.2,207.1],[1381,208.8],[1388.8,210.2],
+  [1396.7,211.6],[1404.5,213.4],[1412.3,215.1],[1420.1,216.7],[1427.3,220.1],[1434.5,223.5],[1441.8,227],[1449,230.4],[1456.3,233.7]
+];
+const CHIKUMA_PX = 1;
 /* Seiran Pass: waypoints traced from the hand-drawn route map, image px relative to the start (x right, y down), 3 m per px */
 const SEIRAN_PX = 3;
 const SEIRAN_WP = [
@@ -1442,12 +1537,13 @@ function waypointPts(WP, PX) {
   }
   return { pts, hairpins };
 }
-const seiranPts = () => waypointPts(SEIRAN_WP, SEIRAN_PX), hakuroPts = () => waypointPts(HAKURO_WP, HAKURO_PX);
+const seiranPts = () => waypointPts(SEIRAN_WP, SEIRAN_PX), hakuroPts = () => waypointPts(HAKURO_WP, HAKURO_PX), chikumaPts = () => waypointPts(CHIKUMA_WP, CHIKUMA_PX);
 // hw = road half-width in metres (default HW); every wall / rail / road mesh / AI limit reads it from the current course
 const TRACKS = {
   kurosagi: { name: { zh: '黑鷺山', en: 'Mt. Kurosagi' }, gate: '黑鷺山 下坡起點 · START', pts: kurosagiPts },
   seiran: { name: { zh: '青嵐峠', en: 'Seiran Pass' }, gate: '青嵐峠 下坡起點 · START', pts: seiranPts, waypoints: SEIRAN_WP },
-  hakuro: { name: { zh: '白狼峠', en: 'Hakuro Pass' }, gate: '白狼峠 下坡起點 · START', pts: hakuroPts, waypoints: HAKURO_WP, hw: 6.2 }
+  hakuro: { name: { zh: '白狼峠', en: 'Hakuro Pass' }, gate: '白狼峠 下坡起點 · START', pts: hakuroPts, waypoints: HAKURO_WP, hw: 6.2 },
+  chikuma: { name: { zh: '千曲坂', en: 'Chikuma Slope' }, gate: '千曲坂 下坡起點 · START', pts: chikumaPts, waypoints: CHIKUMA_WP, hw: 4.2 }
 };
 /* uphill variant of a course: the same road driven the other way. Each course is also built as "<id>_up". */
 const UP_SUFFIX = '_up', DIRS = ['down', 'up'];
@@ -1486,6 +1582,21 @@ function courseBounds(pts) {
 const ridgeDistance = (radius, coneR, r01) => radius + coneR + 100 + r01 * 250;
 // Mt. Kurosagi keeps the original key so existing personal bests survive
 const bestKey = id => id === 'kurosagi' ? 'yatouge-best' : 'yatouge-best-' + id;
+/* Outer ground width (metres from the centreline) per point, [left, right]: normally hw+13. Where another stretch of road (more than 60 m away along the road) is close,
+   (closer than 2*hw+15) the ground strip and the 1 m cliff skirt after it stop at about half the distance, so they never hang over the neighbouring leg; never below hw+1. */
+function groundWidths(pts, hw) {
+  const N = pts.length, full = hw + 13, reach2 = (2 * full + 3) ** 2, raw = [new Float32Array(N).fill(full), new Float32Array(N).fill(full)];
+  for (let i = 0; i < N; i++) {
+    const p = pts[i], c = Math.cos(p.h), sn = Math.sin(p.h), best = [Infinity, Infinity];
+    for (let j = 0; j < N; j++) {
+      const q = pts[j]; if (Math.abs(q.s - p.s) <= 60) continue;
+      const dx = q.x - p.x, dz = q.z - p.z, d2 = dx * dx + dz * dz; if (d2 > reach2) continue;
+      const side = -dx * c + dz * sn > 0 ? 1 : 0; if (d2 < best[side] * best[side]) best[side] = Math.sqrt(d2);
+    }
+    for (let a = 0; a < 2; a++) if (best[a] < 2 * hw + 15) raw[a][i] = Math.max(hw + 1, Math.min(full, best[a] / 2 - 1.5));
+  }
+  return raw.map(r => r.map((_, i) => { let m = r[i]; for (let k = Math.max(0, i - 4); k <= Math.min(N - 1, i + 4); k++) m = Math.min(m, r[k]); return m; }));
+}
 /* @course-geometry:end */
 /* @turn-signs:start */
 /* Corner warning signs (pure part): finds the corners of a course from its smoothed curvature ks, grades them and says which one to show.
@@ -1898,7 +2009,7 @@ function carStep(c, cbox, rv, rbox, latMax, k) {
 /* @netcode:start */
 /* Online 1v1 (pure part). Everything that arrives from another player is untrusted: validate before use, never trust a type. */
 const NET = {
-  V: 1, TRACKS: ['kurosagi', 'seiran', 'hakuro'], CARS: ['hatch', 'coupe', 'gtr', 'rally'], STATES: ['waiting', 'ready', 'countdown', 'racing', 'finished'],
+  V: 1, TRACKS: ['kurosagi', 'seiran', 'hakuro', 'chikuma'], CARS: ['hatch', 'coupe', 'gtr', 'rally'], STATES: ['waiting', 'ready', 'countdown', 'racing', 'finished'],
   MAX_SPEED: 100, MAX_W: 10, MAX_COL: 7, MAX_GO: 1e6, MAX_N: 1e9, MAX_TIME: 3600, MARGIN: 60,   // MAX_SPEED m/s, MAX_W rad/s, MARGIN m outside the course
   DELAY: 100, EXTRAP: 500, BUF: 32, LOBBY_TTL: 15000, MAX_ROOMS: 30                               // ms
 };
@@ -2109,7 +2220,7 @@ const specViewKey = code => (typeof code === 'string' && Object.hasOwn(SPEC_KEYS
 /* Picking the course, mode and car inside the room (pure part). Each player votes { t: course, d: 'down' | 'up', m: mode, g: catch distance m } and
    picks a car / colour; the host draws between two different votes with a seed it publishes, so both sides get the same result.
    V: room states and lobby entries with room picks carry v 4 (the vote has d); older clients and this one never see each other's rooms. */
-const RP = { V: 4, DIRS: ['down', 'up'], MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4, rally: 4 } };
+const RP = { V: 5, DIRS: ['down', 'up'], MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4, rally: 4 } };
 const validSeed = v => Number.isInteger(v) && v >= 0 && v <= 0xffffffff;
 function validVote(x) {
   if (!x || typeof x !== 'object' || Array.isArray(x)) return null;
@@ -2593,9 +2704,10 @@ function buildTrack(id) {
     }, gutterMat);
     strip(2, (p, j, i) => [...off(p, side * (roadHW - GW * d[i] - (j ? 0 : 0.18 * d[i])), 0.04 * d[i]), 0, 0], kerbMat);
   }
+  const gw = groundWidths(pts, roadHW);
   for (const sg of [-1, 1]) {
-    strip(3, (p, j) => {
-      const o = [roadHW + 0.35, roadHW + 13, roadHW + 14][j], dy = [-0.08, -1.2, -55][j];
+    strip(3, (p, j, i) => {
+      const w = gw[sg > 0 ? 1 : 0][i], o = [roadHW + 0.35, w, w + 1][j], dy = [-0.08, -0.08 - (w - roadHW - 0.35) / 12.65 * 1.12, -55][j];
       return [...off(p, sg * o, dy), j * 3, p.s / 6];
     }, grassMat);
   }
@@ -2616,7 +2728,8 @@ function buildTrack(id) {
     const m = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), ps = new THREE.Vector3(), col = new THREE.Color();
     let n = 0;
     for (let t = 0; t < 2200 && n < 1400; t++) {
-      const p = pts[Math.floor(rand() * N)], sg = rand() < .5 ? -1 : 1, o = roadHW + 3 + rand() * 9.5;
+      const idx = Math.floor(rand() * N), p = pts[idx], side = rand() < .5 ? -1 : 1, sg = side, o = roadHW + 3 + rand() * 9.5;
+      if (o > gw[side > 0 ? 1 : 0][idx] - 0.5) continue;
       const dy = -0.08 - (o - roadHW - 0.35) / 12.65 * 1.12;
       const w = off(p, sg * o, dy);
       if (!clearOfRoad(w[0], w[2], w[1], roadHW + 3)) continue;
@@ -2720,8 +2833,7 @@ const colorOpen = (k, i, unlocked) => { const c = CARS[k] && Number.isInteger(i)
 const safeChoice = (c, unlocked) => ({ car: c.car, color: colorOpen(c.car, c.color, unlocked) ? c.color : 0 });
 const rivalOf = k => k === 'hatch' ? 'coupe' : k === 'gtr' ? 'coupe' : 'hatch';
 // the single-player rival belongs to the track, not to the player's car; a track without an entry falls back to rivalOf (colour 1)
-// a future third track gets { car: 'gtr', color: 1 } (black GT-32)
-const TRACK_RIVAL = { kurosagi: { car: 'coupe', color: 0 }, seiran: { car: 'hatch', color: 3 }, hakuro: { car: 'gtr', color: 1 } };
+const TRACK_RIVAL = { kurosagi: { car: 'coupe', color: 0 }, seiran: { car: 'hatch', color: 3 }, hakuro: { car: 'gtr', color: 1 }, chikuma: { car: 'rally', color: 1 } };
 const rivalFor = (trackId, myCar) => TRACK_RIVAL[trackId] || { car: rivalOf(myCar), color: 1 };
 /* @cars:end */
 const sstep = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };

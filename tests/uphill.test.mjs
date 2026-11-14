@@ -207,7 +207,7 @@ test('線上對戰：進房間前先換成平常的（下坡）id，抽籤後才
   assert.ok(/baseId\(trackId\)/.test(sm), 'startMatch 要用 baseId(trackId)');
   assert.ok(/prevTrack: trackId/.test(sm), '離開時要回到原本的（可能是上坡）賽道');
   assert.ok(!/NET\.TRACKS\.push|TRACKS\[[^\]]*_up/.test(html), 'NET.TRACKS 不加上坡');
-  assert.deepEqual(readNetTracks(), ['kurosagi', 'seiran', 'hakuro']);
+  assert.deepEqual(readNetTracks(), ['kurosagi', 'seiran', 'hakuro', 'chikuma']);
 });
 function readNetTracks() {
   const m = /TRACKS: (\[[^\]]*\]), CARS/.exec(html);

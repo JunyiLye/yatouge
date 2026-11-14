@@ -245,13 +245,13 @@ test('主畫面與遊戲內選單：彎道提示是 <select>（label for），�
   assert.ok(/<label for="tTurn" data-i18n="turnSigns">彎道提示<\/label><select id="tTurn"><\/select>/.test(html));
   assert.ok(/<label for="igTurn" data-i18n="turnSigns">彎道提示<\/label><select id="igTurn"><\/select>/.test(html));
   assert.equal(/id="tTurn"[^>]*role="switch"/.test(html) || /id="igTurn"[^>]*role="switch"/.test(html), false);
-  assert.ok(/turnSigns: 'Turn signs'/.test(html));
+  assert.ok(/turnSigns: 'Corner warnings'/.test(html));
 });
 
 test('選項標籤有中英文，且選項由 menuRelabel 填入、syncKxUI 兩邊同步', () => {
   for (const st of TS_STYLES) {
-    assert.ok(new RegExp(`tsM_${st}: '[^']+'`).test(html.slice(html.indexOf('turnSigns: \'彎道提示\''), html.indexOf('turnSigns: \'Turn signs\''))), `zh ${st}`);
-    assert.ok(new RegExp(`tsM_${st}: '[^']+'`).test(html.slice(html.indexOf('turnSigns: \'Turn signs\'', html.indexOf('turnSigns: \'彎道提示\'') + 10))), `en ${st}`);
+    assert.ok(new RegExp(`tsM_${st}: '[^']+'`).test(html.slice(html.indexOf('turnSigns: \'彎道提示\''), html.indexOf('turnSigns: \'Corner warnings\''))), `zh ${st}`);
+    assert.ok(new RegExp(`tsM_${st}: '[^']+'`).test(html.slice(html.indexOf('turnSigns: \'Corner warnings\'', html.indexOf('turnSigns: \'彎道提示\'') + 10))), `en ${st}`);
   }
   const mr = /function menuRelabel\(\) \{[\s\S]*?\n\}/.exec(html)[0];
   assert.ok(/for \(const id of \['#tTurn', '#igTurn'\]\)/.test(mr) && /T\('tsM_' \+ m\)/.test(mr), 'menuRelabel 填兩個選擇器');
