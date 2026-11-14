@@ -4025,7 +4025,7 @@ function hud(dt) {
     el.className = 'gap ' + (gap > 0 ? 'behind' : 'ahead');
     const sg = gap > 0 ? 1 : -1;
     if (state === 'race' && sg !== lastGapSign && Math.abs(gap) > 1) { showPop(T(sg < 0 ? 'overtake' : 'passed'), T(sg < 0 ? 'hold' : 'chase')); lastGapSign = sg; }
-  } else { el.textContent = pvp ? nickOf(pvp.opp && pvp.opp.nk) : T('rival') + Lz(CARS[rivalFor(baseId(trackId), choice.car).car].name); el.className = 'gap behind'; }
+  } else { el.textContent = pvp ? nickOf(pvp.opp ? pvp.opp.nk : pvp.oppNk) : T('rival') + Lz(CARS[rivalFor(baseId(trackId), choice.car).car].name); el.className = 'gap behind'; }
   $('#progRival').style.left = clamp((rs ?? 0) / FINISH_S * 100, 0, 100) + '%';
 }
 // time attack: the gap line shows the time against the best run at this point of the course; the second dot is the ghost
@@ -6226,7 +6226,7 @@ const FIX = 1 / 120;
 function raceSteps() {
   while (acc >= FIX) {
     physics(FIX); stepN++; if (!pvp && !taRun && !sakeRun) rivalUpdate(FIX);
-    if (state === 'race' && playerCrossN === null && car.loc.s >= FINISH_S) playerCrossN = stepN;
+    if (state === 'race') { if (car.loc.s < FINISH_S) playerCrossN = null; else if (playerCrossN === null) playerCrossN = stepN; } // slid back over the line: the next crossing counts
     acc -= FIX;
   }
 }

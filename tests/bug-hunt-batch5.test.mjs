@@ -189,3 +189,20 @@ test('更新紀錄 2026-11-14：zh／en 數量一致，新增的修正都在（�
   for (const k of ['幽靈車', '自選音樂', 'Ctrl', '手把', '引擎聲', '衝線']) assert.ok(C.zh.some(s => s.startsWith('修正：') && s.includes(k)), k);
   assert.ok(C.en.slice(-7).every(s => s.startsWith('Fix:')));
 });
+
+/* ---------- 第三次檢查：滑回終點線前要重新記過線子步；比賽中 HUD 對手名字 ---------- */
+test('R6：過線後在同一幀滑回線前，過線子步要清掉，重新過線時再記', () => {
+  const car = { loc: { s: 0 } }, path = [2.5, 3.2, 2.9, 2.95, 3.1];
+  let i = 0;
+  const vars = { acc: 5 / 120 + 0.001, FIX: 1 / 120, car, state: 'race', stepN: 0, playerCrossN: null, pvp: null, taRun: null, sakeRun: null, FINISH_S: 3, physics: () => { car.loc.s = path[i++]; }, rivalUpdate: () => {} };
+  expr(fn('raceSteps'), vars)();
+  assert.equal(vars.playerCrossN, 5, '以最後一次過線的子步為準');
+});
+test('R6：比賽中對手離開後，HUD 差距列仍顯示對手暱稱', () => {
+  const s = html.indexOf('el.textContent = pvp ? nickOf(');
+  assert.ok(s >= 0, '找不到 HUD 對手名字');
+  const src = html.slice(s + 'el.textContent = pvp ? '.length, html.indexOf(' : T(\'rival\')', s));
+  const nickOf = n => n || '玩家';
+  assert.equal(new Function('pvp', 'nickOf', `return ${src};`)({ opp: null, oppNk: 'Bravo' }, nickOf), 'Bravo');
+  assert.equal(new Function('pvp', 'nickOf', `return ${src};`)({ opp: { nk: 'Cy' }, oppNk: 'Bravo' }, nickOf), 'Cy');
+});
