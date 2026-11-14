@@ -814,12 +814,12 @@ const confirmKeys = (what, ta, sake) => what === 'lobby' ? { q: 'igLobbyAsk', ye
 // Player-facing release notes, newest first (at most 12 versions). Add today's version, or extend it, whenever a change the player can see goes out.
 const CHANGELOG = [
   { date: '2026-11-14',
-    zh: ['新賽道「千曲坂」：約 7.0 公里、二十五個髮夾彎，路線參考真實的山路，一層一層折返往下，終點前還有兩座跨河谷的水泥橋，對手是 RV-4 拉力四驅。這條路變長了，千曲坂的最佳成績和幽靈車會重新開始記錄；舊的分頁要重新整理才能在線上對戰千曲坂。下坡、上坡、計時賽和線上對戰都可以選。', '新車 RV-4 拉力四驅：90 年代雙門四驅渦輪房車，起步與出彎最猛，有自己的水平對臥引擎聲與車內視角。', '主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：按下「開始」後可以選「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式仍是下坡）。',
+    zh: ['新賽道「千曲坂」：約 6.6 公里、二十五個髮夾彎，路線參考真實的山路，一層一層折返往下，終點前還有兩座跨河谷的水泥橋，對手是 RV-4 拉力四驅。這條路變長了，千曲坂的最佳成績和幽靈車會重新開始記錄；舊的分頁要重新整理才能在線上對戰千曲坂。下坡、上坡、計時賽和線上對戰都可以選。', '新車 RV-4 拉力四驅：90 年代雙門四驅渦輪房車，起步與出彎最猛，有自己的水平對臥引擎聲與車內視角。', '主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：按下「開始」後可以選「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式仍是下坡）。',
     '主畫面的設定改成三個按鈕：「車輛設定」、「聲音設定」、「遊戲設定」，點開後在視窗裡選車與顏色、選背景音樂與開關音樂，以及調整震動、彎道提示、按鍵設定、查看更新內容，主畫面更簡潔。',
     '上坡或下坡改成按下「開始」後才選（接著選手排或自排）；送酒模式仍是下坡，結果畫面的「同一台再跑」沿用上一場的方向。',
     '線上對戰也可以上坡了：在房間點選賽道時選下坡或上坡，點選車子時選手排或自排，兩個都選好才能按「準備」。方向跟著賽道一起投票，兩人不同時一起抽籤，抽籤後不會再問變速箱。',
     '線上房間的聊天框移到右側，電腦上一進房間就看得到，不用再往下捲。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。', '修正：主畫面按 Enter 只有在「開始」鈕上、或焦點不在任何控制項上時才會開始比賽；在其他按鈕、選單上按 Enter 會照常操作它，方向鍵也能切換下拉選單與滑桿。', '修正：可以把 Ctrl 或 Alt 綁成降檔、鏡頭、聊天，綁了之後確實會作用。', '修正：關閉 KX-2 車門字樣後，離開車內視角不會再冒出來。', '修正：計時在整分、整十秒前後不再顯示成 0:60.00 之類的錯誤格式。', '修正：點選卡片後鍵盤焦點會留在原位；再點已選的車不會重設顏色。', '修正：回到主畫面時視角會恢復正常。', '修正：在遊戲內換語言後，主畫面的線上狀態也會跟著換語言。', '修正：壞掉的語言存檔不再讓文字壞掉。', '修正：AI 衝線後不會再停在終點讓你撞上。', '修正：起跑的 GO 消失後，大型與預告彎道提示才會出現。', '修正：線上對戰中對手在比賽時換車不再造成畫面卡頓；連線較忙時大廳會請你稍候。', '修正：線上對戰衝線後，兩台車不會再互撞。', '修正：線上對戰中，房間裡的其他人無法再冒用你的身分；舊版頁面需重新整理後才能進房。', '修正：計時賽中途才打開幽靈車，幽靈車不會再浮在路面上方。', '修正：和 AI 幾乎同時衝線時，勝負改用同一個時鐘判斷，不再固定偏向 AI。', '修正：在主畫面選了不能用的自選音樂檔，現在會在聲音設定視窗裡顯示提示，不會留到比賽倒數才出現。', '修正：按鍵設定把 Ctrl 綁定後，如果 W、T 或 N 也有綁按鍵，會提醒瀏覽器可能因此關閉或開新分頁。', '修正：使用右 Alt（AltGr）鍵盤配置時，綁在右 Alt 的降檔、鏡頭、聊天可以正常使用。', '修正：視窗失去焦點時按住的手把扳機，回來後不會失效。', '修正：重新開始後，倒數時引擎聲不會延續上一場的油門聲。', '修正：車內視角時，在設定裡開關車門字樣不會讓字樣單獨浮在車外。', '修正：結果畫面按「同一台再跑」再取消變速箱選擇，鍵盤焦點會回到該按鈕。', '修正：線上房間裡，對方離開後不會再被別人冒用他的代號而一直顯示在場；同一個分頁離開後再加入同一個房間，對方不會再看到你上一場停住的車。', '修正：對手離開後，結果畫面仍顯示對手的暱稱，不會變成「玩家」。', '修正：近距離視角下車尾不再前後抖動，畫面更順；重新開始後的順暢程度也會一致。', '修正：和對手車相撞不再扣分或重置連續甩尾；被夾在對手車與牆之間也不會再被推出牆外、拉回來並吃到撞牆懲罰。'],
-    en: ['New course, Chikuma Slope: about 7.0 km with twenty-five hairpins, its line modelled on a real mountain road that zig-zags down in layers, then two concrete bridges over a river valley before the finish, and the RV-4 Rally 4WD as your rival. The course got longer, so the best times and ghosts for this course start fresh, and older open pages need a refresh to race it online. Pick it downhill, uphill, in time attack and in online races.', 'New car, the RV-4 Rally 4WD: a 90s two-door all-wheel-drive turbo saloon that launches and exits corners hardest, with its own flat-four engine sound and cockpit view.', 'New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Corner warnings now have styles: Side, Centre, Next two, Sound or Off. Find them in settings.', 'Uphill runs: after pressing Start you can choose Downhill or Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run stays downhill).',
+    en: ['New course, Chikuma Slope: about 6.6 km with twenty-five hairpins, its line modelled on a real mountain road that zig-zags down in layers, then two concrete bridges over a river valley before the finish, and the RV-4 Rally 4WD as your rival. The course got longer, so the best times and ghosts for this course start fresh, and older open pages need a refresh to race it online. Pick it downhill, uphill, in time attack and in online races.', 'New car, the RV-4 Rally 4WD: a 90s two-door all-wheel-drive turbo saloon that launches and exits corners hardest, with its own flat-four engine sound and cockpit view.', 'New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Corner warnings now have styles: Side, Centre, Next two, Sound or Off. Find them in settings.', 'Uphill runs: after pressing Start you can choose Downhill or Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run stays downhill).',
     'The title-screen settings are now three buttons, Car settings, Sound settings and Game settings, that open windows for the car and colour, the music and its switch, and vibration, corner warnings, key settings and what\'s new. The title screen is much tidier.',
     'Uphill or downhill is now chosen after you press Start (followed by manual or automatic). Sake Run stays downhill, and Run again keeps the last direction.',
     'Online races can now be uphill: click a course in the room to choose downhill or uphill and click your car to choose a gearbox; you can only press Ready once both are chosen. The direction is voted together with the course and drawn if you differ, and the gearbox is no longer asked after the draw.',
@@ -1541,8 +1541,8 @@ function waypointPts(WP, PX) {
 /* Chikuma Slope extension (original, NOT OpenStreetMap data): starts at the old finish, tangent to the old road, and runs two concrete bridges to the new finish.
    deg > 0 = right turn, deg < 0 = left (same sign as the Kurosagi plan); the last straight is the 20-point run-out after the finish line. bridge: 1 / 2 marks the bridge decks. */
 const CHIKUMA_EXT = [
-  { deg: -70, r: 40 }, { deg: 12, r: 300, bridge: 1 }, { L: 120, bridge: 1 }, { deg: -15, r: 152.8 }, { L: 140, bridge: 2 },
-  { deg: 25, r: 275 }, { deg: -20, r: 229 }, { deg: 12, r: 191 }, { L: 150 }, { L: 20 * DS }
+  { deg: -70, r: 30 }, { deg: 20, r: 120, bridge: 1 }, { L: 50, bridge: 1 }, { deg: -25, r: 60 }, { L: 60, bridge: 2 },
+  { deg: 40, r: 80 }, { deg: -35, r: 60 }, { deg: 25, r: 50 }, { L: 60 }, { L: 20 * DS }
 ];
 function chikumaPts() {
   const base = waypointPts(CHIKUMA_WP, CHIKUMA_PX), F = base.pts.length - 20, pts = base.pts.slice(0, F + 1), f = pts[F];
@@ -1572,7 +1572,7 @@ const TRACKS = {
   kurosagi: { name: { zh: '黑鷺山', en: 'Mt. Kurosagi' }, gate: '黑鷺山 下坡起點 · START', pts: kurosagiPts },
   seiran: { name: { zh: '青嵐峠', en: 'Seiran Pass' }, gate: '青嵐峠 下坡起點 · START', pts: seiranPts, waypoints: SEIRAN_WP },
   hakuro: { name: { zh: '白狼峠', en: 'Hakuro Pass' }, gate: '白狼峠 下坡起點 · START', pts: hakuroPts, waypoints: HAKURO_WP, hw: 6.2 },
-  chikuma: { name: { zh: '千曲坂', en: 'Chikuma Slope' }, gate: '千曲坂 下坡起點 · START', pts: chikumaPts, waypoints: CHIKUMA_WP, hw: 4.2, rev: 2 }
+  chikuma: { name: { zh: '千曲坂', en: 'Chikuma Slope' }, gate: '千曲坂 下坡起點 · START', pts: chikumaPts, waypoints: CHIKUMA_WP, hw: 4.2, rev: 3 }
 };
 /* uphill variant of a course: the same road driven the other way. Each course is also built as "<id>_up". */
 const UP_SUFFIX = '_up', DIRS = ['down', 'up'];
@@ -2305,7 +2305,7 @@ const specViewKey = code => (typeof code === 'string' && Object.hasOwn(SPEC_KEYS
 /* Picking the course, mode and car inside the room (pure part). Each player votes { t: course, d: 'down' | 'up', m: mode, g: catch distance m } and
    picks a car / colour; the host draws between two different votes with a seed it publishes, so both sides get the same result.
    V: room states and lobby entries with room picks carry v 4 (the vote has d); older clients and this one never see each other's rooms. */
-const RP = { V: 6, DIRS: ['down', 'up'], MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4, rally: 4 } };
+const RP = { V: 7, DIRS: ['down', 'up'], MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4, rally: 4 } };
 const validSeed = v => Number.isInteger(v) && v >= 0 && v <= 0xffffffff;
 function validVote(x) {
   if (!x || typeof x !== 'object' || Array.isArray(x)) return null;
@@ -2807,10 +2807,10 @@ function buildBridges(onBridge, gw) {
     for (let i = 0; i < N; i += 2) if (vmask[i]) for (const sg of [-1, 1]) { const q = off(pts[i], sg * (hw + 0.52), H + 0.27); m.makeTranslation(q[0], q[1], q[2]); post.setMatrixAt(n++, m); }
     post.count = n; trackGroup.add(post);
   }
-  const river = new THREE.MeshPhongMaterial({ color: 0x1b3558, emissive: 0x0a1630, specular: 0xb4c8ff, shininess: 90, transparent: true, opacity: 0.92, side: THREE.DoubleSide });
+  const river = new THREE.MeshPhongMaterial({ color: 0x1b3558, emissive: 0x0a1630, specular: 0x2a3a5c, shininess: 60, transparent: true, opacity: 0.92, side: THREE.DoubleSide });
   const FR = [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.42, 0.35, 0.28, 0.22, 0.16, 0.11, 0.06], lats = [...FR.map(f => -f), 0, ...FR.slice().reverse()];
   for (const b of bridges) {
-    const len = b.s1 - b.s0, n = Math.max(2, Math.round(len / BRIDGE.PIER_GAP));
+    const len = b.s1 - b.s0, n = Math.max(3, Math.round(len / BRIDGE.PIER_GAP)); // at least two piers, even on a short bridge
     // valley ground: rows every ROW metres from the last ordinary point before the bridge to the first one after it; the end rows are the grass strip's own profile
     {
       const ia = pts.findIndex(q => q.s >= b.s0), ib = pts.findLastIndex(q => q.s <= b.s1), sA = pts[Math.max(0, ia - 1)].s, sB = pts[Math.min(N - 1, ib + 1)].s, rows = Math.ceil((sB - sA) / BRIDGE.ROW), pos = [], idx = [], C = lats.length + 2;
@@ -2842,7 +2842,7 @@ function buildBridges(onBridge, gw) {
       let Rw = 6; while (Rw < Wc && depthAt(1, Rw, Wc) >= 2) Rw += 1;
       const M = 48, pos = [], idx = [];
       for (let k = 0; k <= M; k++) {
-        const o = (k / M * 2 - 1) * Rw, mm = 6 * Math.sin(o / 9 + b.s0), half = (5 + 1.5 * Math.sin(o / 5 + 1)) * Math.sqrt(Math.sin(Math.PI * k / M));
+        const o = (k / M * 2 - 1) * Rw, mm = clamp(len / 6 - 6.5, 0, 6) * Math.sin(o / 9 + b.s0), half = (5 + 1.5 * Math.sin(o / 5 + 1)) * Math.sqrt(Math.sin(Math.PI * k / M));
         for (const sgn of [-1, 1]) { const p = ptAt(sc + mm + sgn * half), q = latPos(p, o, groundY(p, o, depthAt(1, o, Wc)) + 0.35); pos.push(q[0], q[1], q[2]); }
         if (k < M) idx.push(2 * k, 2 * k + 2, 2 * k + 1, 2 * k + 1, 2 * k + 2, 2 * k + 3);
       }

@@ -142,3 +142,9 @@ test('河面的每個頂點都在它正下方的谷面（用實際的三角形�
     assert.ok(worst > 0.05, `${id} 河面最低只高出谷面 ${worst.toFixed(3)} m`);
   }
 });
+
+test('河面材質：月光高光是柔和的藍白，不會亮成純白（高光色的每個分量 <= 0x60，且不是強反光）', () => {
+  const { made } = run('chikuma'), r = made.find(m => m.material && m.material.shininess).material;
+  for (const sh of [16, 8, 0]) assert.ok(((r.specular >> sh) & 255) <= 0x60, `specular 0x${r.specular.toString(16)}`);
+  assert.ok(r.shininess <= 60, `shininess ${r.shininess}`);
+});

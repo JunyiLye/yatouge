@@ -50,9 +50,9 @@ test('千曲坂：存在，名字與起點門牌正確，路寬較窄（hw 不�
   assert.equal(gateLabel('chikuma_up'), '千曲坂 上坡起點 · START');
 });
 
-test('千曲坂：全長 6.9–7.1 km（含延長的兩座橋），髮夾彎至少 24 個（建賽道的數法與逐點數法一致）', () => {
+test('千曲坂：全長 6.5–6.7 km（含延長的兩座橋），髮夾彎至少 24 個（建賽道的數法與逐點數法一致）', () => {
   const c = down();
-  assert.ok(c.TOTAL >= 6900 && c.TOTAL <= 7100, `全長 ${c.TOTAL}`);
+  assert.ok(c.TOTAL >= 6500 && c.TOTAL <= 6700, `全長 ${c.TOTAL}`);
   assert.ok(c.hairpins >= 24, `hairpins ${c.hairpins}`);
   const n = hairpinAts(c.pts).length;
   assert.ok(n >= 24, `由路點數到 ${n}`);
@@ -119,11 +119,11 @@ test('對手車：TRACK_RIVAL.chikuma 是 RV-4 (rally)，顏色索引存在；�
   for (const id of Object.keys(TRACKS)) assert.ok(R[id], `${id} 有固定對手`);
 });
 
-test('線上：NET.TRACKS 含 chikuma（不含 _up），RP.V 是 6，投票 chikuma 合法（下坡、上坡）', () => {
+test('線上：NET.TRACKS 含 chikuma（不含 _up），RP.V 是 7，投票 chikuma 合法（下坡、上坡）', () => {
   const N = new Function(`${block('netcode')}\nreturn { NET, validatePeerState };`)();
   assert.deepEqual(N.NET.TRACKS, ['kurosagi', 'seiran', 'hakuro', 'chikuma']);
   const R = new Function(`const NET = { TRACKS: ['kurosagi', 'seiran', 'hakuro', 'chikuma'], CARS: ['hatch', 'coupe', 'gtr', 'rally'] };\n${block('roompick')}\nreturn { RP, validVote };`)();
-  assert.equal(R.RP.V, 6);
+  assert.equal(R.RP.V, 7);
   assert.deepEqual(R.validVote({ t: 'chikuma', d: 'up', m: 'cat', g: 80 }), { t: 'chikuma', d: 'up', m: 'cat', g: 80 });
   assert.ok(R.validVote({ t: 'chikuma', d: 'down', m: 'first', g: 50 }));
   const base = { v: 1, st: 'waiting', car: 'rally', col: 0 };
@@ -173,7 +173,7 @@ test('更新紀錄：2026-11-14 有千曲坂一條（中英文位置與條數相
 test('README 與 CLAUDE.md 的賽道清單含千曲坂（4 條）', () => {
   const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8'), claude = readFileSync(new URL('../CLAUDE.md', import.meta.url), 'utf8');
   assert.ok(readme.includes('4 條賽道') && readme.includes('千曲坂'));
-  assert.ok(claude.includes('四條賽道') && claude.includes('千曲坂') && claude.includes('RP.V = 6'));
+  assert.ok(claude.includes('四條賽道') && claude.includes('千曲坂') && claude.includes('RP.V = 7'));
 });
 
 test('授權：README 與遊戲內都註明路線取自 OpenStreetMap（© OpenStreetMap contributors，ODbL）', () => {
@@ -190,7 +190,7 @@ const oldFin = () => { const b = waypointPts(CHIKUMA_WP, CHIKUMA_PX); return { s
 // 一段 s 區間的轉角（度，+ = 左）與長度，以曲率積分
 const turnOf = (pts, s0, s1) => { let a = 0; for (let i = 1; i < pts.length; i++) if (pts[i].s > s0 && pts[i].s <= s1) a += wrap(pts[i].h - pts[i - 1].h); return a * 180 / Math.PI; };
 // 規格表的各路段：[起點離舊終點的距離, 終點離舊終點的距離, 轉角（度，+ 左）]
-const SEGS = [[0, 48.9, 70], [48.9, 111.7, -12], [111.7, 231.7, 0], [231.7, 271.7, 15], [271.7, 411.7, 0], [411.7, 531.7, -25], [531.7, 611.7, 20], [611.7, 651.7, -12], [651.7, 801.7, 0]];
+const SEGS = [[0, 36.65, 70], [36.65, 78.54, -20], [78.54, 128.54, 0], [128.54, 154.72, 25], [154.72, 214.72, 0], [214.72, 270.57, -40], [270.57, 307.22, 35], [307.22, 329.04, -25], [329.04, 389.04, 0]];
 
 test('千曲坂延長：舊終點之前的路點與原本逐位元相同，延長從舊終點相切接上', () => {
   const o = oldFin(), c = down();
@@ -206,15 +206,15 @@ test('千曲坂延長：每段的轉角、方向與長度符合規格表（曲�
     const t = turnOf(c.pts, o.s + a, o.s + b);
     assert.ok(Math.abs(t - deg) <= (deg === 0 ? 2 : 3), `s+${a}..${b}：轉 ${t.toFixed(1)}°，規格 ${deg}°`);
   }
-  // 新終點在最後的直線末端：最後一段直線 150 m，之後是停車空間
-  assert.ok(Math.abs(c.FINISH_S - (o.s + 801.7)) <= 2 * DS, `FINISH_S ${c.FINISH_S}`);
-  assert.ok(Math.abs(turnOf(c.pts, c.FINISH_S - 150, c.TOTAL)) < 2, '終點前 150 m 與終點後都是直線');
+  // 新終點在最後的直線末端：最後一段直線 60 m，之後是停車空間
+  assert.ok(Math.abs(c.FINISH_S - (o.s + 389.04)) <= 2 * DS, `FINISH_S ${c.FINISH_S}`);
+  assert.ok(Math.abs(turnOf(c.pts, c.FINISH_S - 60, c.TOTAL)) < 2, '終點前 60 m 與終點後都是直線');
 });
 
 test('千曲坂延長：兩座橋（下坡 s 區間）涵蓋規格的路段，上坡版本反轉', () => {
   const o = oldFin(), d = down(), u = up();
   assert.equal(d.bridges.length, 2);
-  const want = [[48.9, 231.7], [271.7, 411.7]];
+  const want = [[36.65, 128.54], [154.72, 214.72]];
   d.bridges.forEach((b, i) => { assert.ok(Math.abs(b.s0 - (o.s + want[i][0])) < 0.5 && Math.abs(b.s1 - (o.s + want[i][1])) < 0.5, `橋 ${i}：${JSON.stringify(b)}`); });
   assert.ok(d.bridges[0].s1 < d.bridges[1].s0 && d.bridges[1].s1 < d.FINISH_S);
   assert.equal(u.bridges.length, 2);
@@ -232,12 +232,12 @@ test('千曲坂延長：新路段與全路線不重疊（沿路相距 > 60 m 的
   assert.ok(minClearance(c.pts) >= need, `最小間距 ${minClearance(c.pts)}`);
 });
 
-test('紀錄 key：只有千曲坂帶課程版本（-r2），其他賽道與 taKey 預設完全不變', () => {
-  for (const id of ['chikuma', 'chikuma_up']) assert.equal(bestKey(id), 'yatouge-best-' + id + '-r2');
-  assert.equal(taKey('chikuma', 'rally', false, '-r2'), 'yatouge-ta-best-chikuma-rally-r2');
-  assert.equal(taKey('chikuma_up', 'hatch', true, '-r2'), 'yatouge-ta-best-chikuma_up-hatch-up-r2');
+test('紀錄 key：只有千曲坂帶課程版本（-r3），其他賽道與 taKey 預設完全不變', () => {
+  for (const id of ['chikuma', 'chikuma_up']) assert.equal(bestKey(id), 'yatouge-best-' + id + '-r3');
+  assert.equal(taKey('chikuma', 'rally', false, '-r3'), 'yatouge-ta-best-chikuma-rally-r3');
+  assert.equal(taKey('chikuma_up', 'hatch', true, '-r3'), 'yatouge-ta-best-chikuma_up-hatch-up-r3');
   assert.equal(bestKey('kurosagi'), 'yatouge-best'); assert.equal(bestKey('seiran'), 'yatouge-best-seiran'); assert.equal(bestKey('hakuro_up'), 'yatouge-best-hakuro_up');
-  assert.equal(TRACKS.chikuma.rev, 2);
+  assert.equal(TRACKS.chikuma.rev, 3);
   for (const id of ['kurosagi', 'seiran', 'hakuro']) assert.equal(TRACKS[id].rev, undefined);
   const parts = html.split('taKey(trackId').slice(1); // 所有讀寫紀錄處都要帶版本
   assert.ok(parts.length >= 3 && parts.every(p => p.slice(0, 80).includes('revSuffix(trackId)')), 'taKey 呼叫處 ' + parts.length);
