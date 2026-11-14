@@ -232,9 +232,9 @@ test('askDir：背景 inert、預設焦點在目前方向；選了呼叫 callbac
 });
 
 /* ---------- 線上：投票與抽籤帶方向 ---------- */
-test('RP.V 升到 7（千曲坂延長改短）；validVote 要有 d（down／up），乾淨副本', () => {
+test('RP.V 升到 8（千曲坂橋的改版）；validVote 要有 d（down／up），乾淨副本', () => {
   const { RP, validVote } = ROOM();
-  assert.equal(RP.V, 7);
+  assert.equal(RP.V, 8);
   assert.deepEqual(validVote({ t: 'hakuro', m: 'cat', g: 80, d: 'up', evil: 1 }), { t: 'hakuro', m: 'cat', g: 80, d: 'up' });
   assert.deepEqual(validVote({ t: 'seiran', m: 'first', g: 50, d: 'down' }), { t: 'seiran', m: 'first', g: 50, d: 'down' });
   for (const bad of [{ t: 'seiran', m: 'first', g: 50 }, { t: 'seiran', m: 'first', g: 50, d: 'sideways' }, { t: 'seiran', m: 'first', g: 50, d: 'seiran_up' }, { t: 'seiran', m: 'first', g: 50, d: 1 }, { t: 'seiran_up', m: 'first', g: 50, d: 'up' }])

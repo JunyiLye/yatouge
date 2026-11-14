@@ -814,12 +814,12 @@ const confirmKeys = (what, ta, sake) => what === 'lobby' ? { q: 'igLobbyAsk', ye
 // Player-facing release notes, newest first (at most 12 versions). Add today's version, or extend it, whenever a change the player can see goes out.
 const CHANGELOG = [
   { date: '2026-11-14',
-    zh: ['新賽道「千曲坂」：約 6.6 公里、二十五個髮夾彎，路線參考真實的山路，一層一層折返往下，終點前還有兩座跨河谷的水泥橋，對手是 RV-4 拉力四驅。這條路變長了，千曲坂的最佳成績和幽靈車會重新開始記錄；舊的分頁要重新整理才能在線上對戰千曲坂。下坡、上坡、計時賽和線上對戰都可以選。', '新車 RV-4 拉力四驅：90 年代雙門四驅渦輪房車，起步與出彎最猛，有自己的水平對臥引擎聲與車內視角。', '主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：按下「開始」後可以選「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式仍是下坡）。',
+    zh: ['新賽道「千曲坂」：約 6.6 公里、二十五個髮夾彎，路線參考真實的山路，一層一層折返往下，終點前還有兩座跨河谷的橋（第一座是有頂棚的落石防護棚，第二座是白色鋼桁架橋），兩橋之間左邊有高高的山壁，對手是 RV-4 拉力四驅。這條路變長了，千曲坂的最佳成績和幽靈車會重新開始記錄；舊的分頁要重新整理才能在線上對戰千曲坂。下坡、上坡、計時賽和線上對戰都可以選。', '新車 RV-4 拉力四驅：90 年代雙門四驅渦輪房車，起步與出彎最猛，有自己的水平對臥引擎聲與車內視角。', '主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：按下「開始」後可以選「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式仍是下坡）。',
     '主畫面的設定改成三個按鈕：「車輛設定」、「聲音設定」、「遊戲設定」，點開後在視窗裡選車與顏色、選背景音樂與開關音樂，以及調整震動、彎道提示、按鍵設定、查看更新內容，主畫面更簡潔。',
     '上坡或下坡改成按下「開始」後才選（接著選手排或自排）；送酒模式仍是下坡，結果畫面的「同一台再跑」沿用上一場的方向。',
     '線上對戰也可以上坡了：在房間點選賽道時選下坡或上坡，點選車子時選手排或自排，兩個都選好才能按「準備」。方向跟著賽道一起投票，兩人不同時一起抽籤，抽籤後不會再問變速箱。',
     '線上房間的聊天框移到右側，電腦上一進房間就看得到，不用再往下捲。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。', '修正：主畫面按 Enter 只有在「開始」鈕上、或焦點不在任何控制項上時才會開始比賽；在其他按鈕、選單上按 Enter 會照常操作它，方向鍵也能切換下拉選單與滑桿。', '修正：可以把 Ctrl 或 Alt 綁成降檔、鏡頭、聊天，綁了之後確實會作用。', '修正：關閉 KX-2 車門字樣後，離開車內視角不會再冒出來。', '修正：計時在整分、整十秒前後不再顯示成 0:60.00 之類的錯誤格式。', '修正：點選卡片後鍵盤焦點會留在原位；再點已選的車不會重設顏色。', '修正：回到主畫面時視角會恢復正常。', '修正：在遊戲內換語言後，主畫面的線上狀態也會跟著換語言。', '修正：壞掉的語言存檔不再讓文字壞掉。', '修正：AI 衝線後不會再停在終點讓你撞上。', '修正：起跑的 GO 消失後，大型與預告彎道提示才會出現。', '修正：線上對戰中對手在比賽時換車不再造成畫面卡頓；連線較忙時大廳會請你稍候。', '修正：線上對戰衝線後，兩台車不會再互撞。', '修正：線上對戰中，房間裡的其他人無法再冒用你的身分；舊版頁面需重新整理後才能進房。', '修正：計時賽中途才打開幽靈車，幽靈車不會再浮在路面上方。', '修正：和 AI 幾乎同時衝線時，勝負改用同一個時鐘判斷，不再固定偏向 AI。', '修正：在主畫面選了不能用的自選音樂檔，現在會在聲音設定視窗裡顯示提示，不會留到比賽倒數才出現。', '修正：按鍵設定把 Ctrl 綁定後，如果 W、T 或 N 也有綁按鍵，會提醒瀏覽器可能因此關閉或開新分頁。', '修正：使用右 Alt（AltGr）鍵盤配置時，綁在右 Alt 的降檔、鏡頭、聊天可以正常使用。', '修正：視窗失去焦點時按住的手把扳機，回來後不會失效。', '修正：重新開始後，倒數時引擎聲不會延續上一場的油門聲。', '修正：車內視角時，在設定裡開關車門字樣不會讓字樣單獨浮在車外。', '修正：結果畫面按「同一台再跑」再取消變速箱選擇，鍵盤焦點會回到該按鈕。', '修正：線上房間裡，對方離開後不會再被別人冒用他的代號而一直顯示在場；同一個分頁離開後再加入同一個房間，對方不會再看到你上一場停住的車。', '修正：對手離開後，結果畫面仍顯示對手的暱稱，不會變成「玩家」。', '修正：近距離視角下車尾不再前後抖動，畫面更順；重新開始後的順暢程度也會一致。', '修正：和對手車相撞不再扣分或重置連續甩尾；被夾在對手車與牆之間也不會再被推出牆外、拉回來並吃到撞牆懲罰。'],
-    en: ['New course, Chikuma Slope: about 6.6 km with twenty-five hairpins, its line modelled on a real mountain road that zig-zags down in layers, then two concrete bridges over a river valley before the finish, and the RV-4 Rally 4WD as your rival. The course got longer, so the best times and ghosts for this course start fresh, and older open pages need a refresh to race it online. Pick it downhill, uphill, in time attack and in online races.', 'New car, the RV-4 Rally 4WD: a 90s two-door all-wheel-drive turbo saloon that launches and exits corners hardest, with its own flat-four engine sound and cockpit view.', 'New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Corner warnings now have styles: Side, Centre, Next two, Sound or Off. Find them in settings.', 'Uphill runs: after pressing Start you can choose Downhill or Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run stays downhill).',
+    en: ['New course, Chikuma Slope: about 6.6 km with twenty-five hairpins, its line modelled on a real mountain road that zig-zags down in layers, then two bridges over a river valley before the finish (the first a roofed rock-shed gallery, the second a white steel truss) with a tall rock wall on the left between them, and the RV-4 Rally 4WD as your rival. The course got longer, so the best times and ghosts for this course start fresh, and older open pages need a refresh to race it online. Pick it downhill, uphill, in time attack and in online races.', 'New car, the RV-4 Rally 4WD: a 90s two-door all-wheel-drive turbo saloon that launches and exits corners hardest, with its own flat-four engine sound and cockpit view.', 'New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Corner warnings now have styles: Side, Centre, Next two, Sound or Off. Find them in settings.', 'Uphill runs: after pressing Start you can choose Downhill or Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run stays downhill).',
     'The title-screen settings are now three buttons, Car settings, Sound settings and Game settings, that open windows for the car and colour, the music and its switch, and vibration, corner warnings, key settings and what\'s new. The title screen is much tidier.',
     'Uphill or downhill is now chosen after you press Start (followed by manual or automatic). Sake Run stays downhill, and Run again keeps the last direction.',
     'Online races can now be uphill: click a course in the room to choose downhill or uphill and click your car to choose a gearbox; you can only press Ready once both are chosen. The direction is voted together with the course and drawn if you differ, and the gearbox is no longer asked after the draw.',
@@ -1541,7 +1541,7 @@ function waypointPts(WP, PX) {
 /* Chikuma Slope extension (original, NOT OpenStreetMap data): starts at the old finish, tangent to the old road, and runs two concrete bridges to the new finish.
    deg > 0 = right turn, deg < 0 = left (same sign as the Kurosagi plan); the last straight is the 20-point run-out after the finish line. bridge: 1 / 2 marks the bridge decks. */
 const CHIKUMA_EXT = [
-  { deg: -70, r: 30 }, { deg: 20, r: 120, bridge: 1 }, { L: 50, bridge: 1 }, { deg: -25, r: 60 }, { L: 60, bridge: 2 },
+  { deg: -70, r: 30 }, { deg: 20, r: 120, bridge: 1, kind: 'gallery', side: -1 }, { L: 50, bridge: 1 }, { deg: -32, r: 46.9 }, { L: 60, bridge: 2, kind: 'truss' },
   { deg: 40, r: 80 }, { deg: -35, r: 60 }, { deg: 25, r: 50 }, { L: 60 }, { L: 20 * DS }
 ];
 function chikumaPts() {
@@ -1550,7 +1550,7 @@ function chikumaPts() {
   const dense = [[x, z]], bridges = [], STEP = 0.5;
   for (const seg of CHIKUMA_EXT) {
     const L = seg.L ?? Math.abs(seg.deg) * Math.PI / 180 * seg.r, n = Math.ceil(L / STEP), d = L / n, dh = seg.L ? 0 : -seg.deg * Math.PI / 180 / n;
-    if (seg.bridge) { const b = bridges[seg.bridge - 1] ||= { s0: f.s + len, s1: 0 }; b.s1 = f.s + len + L; }
+    if (seg.bridge) { const b = bridges[seg.bridge - 1] ||= { s0: f.s + len, s1: 0, kind: seg.kind, side: seg.side }; b.s1 = f.s + len + L; }
     for (let i = 0; i < n; i++) { h += dh / 2; x += Math.sin(h) * d; z += Math.cos(h) * d; h += dh / 2; dense.push([x, z]); }
     len += L;
   }
@@ -1564,7 +1564,7 @@ function chikumaPts() {
   const N = pts.length;
   for (let i = F + 1; i < N; i++) { const a = pts[i - 1], b = pts[Math.min(N - 1, i + 1)]; pts[i].h = Math.atan2(b.x - a.x, b.z - a.z); }
   for (let i = F + 1; i < N; i++) pts[i].k = wrap(pts[i].h - pts[i - 1].h) / DS;
-  return { pts, hairpins: base.hairpins, bridges };
+  return { pts, hairpins: base.hairpins, bridges, rocks: [{ s0: bridges[0].s1, s1: bridges[1].s0, side: -1 }] }; // the rock wall: left of the road between the two bridges
 }
 const seiranPts = () => waypointPts(SEIRAN_WP, SEIRAN_PX), hakuroPts = () => waypointPts(HAKURO_WP, HAKURO_PX);
 // hw = road half-width in metres (default HW); every wall / rail / road mesh / AI limit reads it from the current course
@@ -1572,7 +1572,7 @@ const TRACKS = {
   kurosagi: { name: { zh: '黑鷺山', en: 'Mt. Kurosagi' }, gate: '黑鷺山 下坡起點 · START', pts: kurosagiPts },
   seiran: { name: { zh: '青嵐峠', en: 'Seiran Pass' }, gate: '青嵐峠 下坡起點 · START', pts: seiranPts, waypoints: SEIRAN_WP },
   hakuro: { name: { zh: '白狼峠', en: 'Hakuro Pass' }, gate: '白狼峠 下坡起點 · START', pts: hakuroPts, waypoints: HAKURO_WP, hw: 6.2 },
-  chikuma: { name: { zh: '千曲坂', en: 'Chikuma Slope' }, gate: '千曲坂 下坡起點 · START', pts: chikumaPts, waypoints: CHIKUMA_WP, hw: 4.2, rev: 3 }
+  chikuma: { name: { zh: '千曲坂', en: 'Chikuma Slope' }, gate: '千曲坂 下坡起點 · START', pts: chikumaPts, waypoints: CHIKUMA_WP, hw: 4.2, rev: 4 }
 };
 /* uphill variant of a course: the same road driven the other way. Each course is also built as "<id>_up". */
 const UP_SUFFIX = '_up', DIRS = ['down', 'up'];
@@ -1595,10 +1595,11 @@ function buildCourse(id) {
   for (const p of gen.pts) p.y = 230 - p.s * 0.062 + 2.5 * Math.sin(p.s / 70);
   const pts = up ? reversePts(gen.pts) : gen.pts, hairpins = gen.hairpins, T = gen.pts[N - 1].s;
   // bridges: s ranges given for the downhill direction; the uphill variant walks the same deck the other way round
-  const bridges = (gen.bridges || []).map(b => up ? { s0: T - b.s1, s1: T - b.s0 } : { s0: b.s0, s1: b.s1 }).sort((a, b) => a.s0 - b.s0);
+  const bridges = (gen.bridges || []).map(b => up ? { ...b, s0: T - b.s1, s1: T - b.s0, side: b.side && -b.side } : { ...b }).sort((a, b) => a.s0 - b.s0);
+  const rocks = (gen.rocks || []).map(r => up ? { s0: T - r.s1, s1: T - r.s0, side: -r.side } : { ...r });
   for (let i = 0; i < N; i++) { let a = 0, c = 0; for (let j = i - 8; j <= i + 8; j++) if (j >= 0 && j < N) { a += pts[j].k; c++; } pts[i].ks = a / c; }
   const FINISH_I = N - 20;
-  return { pts, N, TOTAL: pts[N - 1].s, FINISH_I, FINISH_S: pts[FINISH_I].s, hairpins, hw: TRACKS[base].hw ?? HW, bridges };
+  return { pts, N, TOTAL: pts[N - 1].s, FINISH_I, FINISH_S: pts[FINISH_I].s, hairpins, hw: TRACKS[base].hw ?? HW, bridges, rocks };
 }
 /* centre, bounding radius and lowest height of a course; the far ridgelines are placed relative to these */
 function courseBounds(pts) {
@@ -2305,7 +2306,7 @@ const specViewKey = code => (typeof code === 'string' && Object.hasOwn(SPEC_KEYS
 /* Picking the course, mode and car inside the room (pure part). Each player votes { t: course, d: 'down' | 'up', m: mode, g: catch distance m } and
    picks a car / colour; the host draws between two different votes with a seed it publishes, so both sides get the same result.
    V: room states and lobby entries with room picks carry v 4 (the vote has d); older clients and this one never see each other's rooms. */
-const RP = { V: 7, DIRS: ['down', 'up'], MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4, rally: 4 } };
+const RP = { V: 8, DIRS: ['down', 'up'], MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4, rally: 4 } };
 const validSeed = v => Number.isInteger(v) && v >= 0 && v <= 0xffffffff;
 function validVote(x) {
   if (!x || typeof x !== 'object' || Array.isArray(x)) return null;
@@ -2689,7 +2690,7 @@ for (const id in TRACKS) { for (const cid of [id, upId(id)]) { COURSES[cid] = bu
 const SAKE_TRACK = 'seiran', SAKE_CAR = { car: 'hatch', color: 3 }; // Sake Run's fixed course and car (white KX-2); never written over the saved picks
 let trackDir = dirFrom(store.get('yatouge-dir')); // 'down' | 'up': the title's direction switch (Sake Run and online ignore it)
 let trackId = store.get('yatouge-mode') === 'sake' ? SAKE_TRACK : courseId(trackFrom(store.get('yatouge-track')), trackDir);
-let pts, N, TOTAL, FINISH_I, FINISH_S, hairpins, gutters, bridges;
+let pts, N, TOTAL, FINISH_I, FINISH_S, hairpins, gutters, bridges, rocks, galleryIdx = [];
 let tsList = null, tsCur = '', tsKey = '', goUntil = 0, tsStyle = tsStyleFrom(store.get('yatouge-turn-style'), store.get('yatouge-turn-signs')); // turn signs: corner list of the current course (built lazily), index shown, last layout key (rect / --ts-pop recomputed only when it changes), time until which the GO text is up (set by the start countdown), display style (default side); read by resetRace / buildTrack at start-up
 
 const trackGroup = new THREE.Group(); scene.add(trackGroup); // everything that belongs to one course; rebuilt on course change
@@ -2772,8 +2773,19 @@ function disposeTrack() {
 /* Bridges (concrete girder decks): grass, cliff skirt, rails and trees are left out, a deck underside, parapets, piers, a wide valley below and a moonlit river are drawn instead.
    The valley is a bowl across the road: its depth follows the position along the bridge (0 at the bridge ends, VALLEY_D m in the middle) and rises again towards the sides
    (VALLEY_W m each side in the middle), so the ground meets the abutments and the surrounding ground without a trench or a void. */
+/* @gallery:start */
+// gallery (rock shed) on Chikuma: clear height of the roof, inner wall offset beyond the road half-width, distance between the pillars
+const GALLERY = { CLEAR: 6.4, WALL_IN: 0.4, PILLAR_GAP: 6, ENTRY: 6 };
+// keeps a camera under the gallery roof and between its walls; pos = { x, y, z }, rp = the road point beside the camera ({ x, y, z, h }).
+// ahead = metres before the gallery's start: the limits are wider there and tighten towards the entrance, so a camera eases in instead of snapping
+function galleryClampCam(pos, rp, hw, ahead = 0) {
+  const sx = Math.sin(rp.h), cx = Math.cos(rp.h), dx = pos.x - rp.x, dz = pos.z - rp.z, lim = hw + 0.2 + ahead * 1.5;
+  const o = Math.max(-lim, Math.min(lim, -dx * cx + dz * sx)), lon = dx * sx + dz * cx;
+  return { x: rp.x + sx * lon - cx * o, y: Math.min(pos.y, rp.y + GALLERY.CLEAR - 1.0 + ahead), z: rp.z + cx * lon + sx * o };
+}
+/* @gallery:end */
 const BRIDGE = { VALLEY_D: 30, VALLEY_W: 80, RAMP: 45, PIER_GAP: 27.5, DECK: 0.95, GIRDER: 1.6, PARAPET: 0.85, ROW: 6 };
-function buildBridges(onBridge, gw) {
+function buildBridges(onBridge, gw) { // bridges / rocks come from the course; kind: gallery | truss, side: the gallery's closed side (o < 0 = left)
   const conc = new THREE.MeshLambertMaterial({ color: 0x8b8f99, side: THREE.DoubleSide }), hw = roadHW, D = BRIDGE.DECK, G = BRIDGE.GIRDER, H = BRIDGE.PARAPET, smooth = r => r * r * (3 - 2 * r);
   // one more point either side of each bridge: the deck and parapets start at the last ordinary point, where the grass strip and guard rail stop
   const vmask = new Uint8Array(N);
@@ -2795,17 +2807,69 @@ function buildBridges(onBridge, gw) {
   // deck: slab top, side faces and a girder underside, one continuous profile
   const prof = [[-hw, 0], [-hw - D, 0], [-hw - D, -0.55], [-hw + 0.8, -G], [hw - 0.8, -G], [hw + D, -0.55], [hw + D, 0], [hw, 0]];
   strip(8, (p, j) => [...off(p, prof[j][0], prof[j][1]), j, p.s / 6], conc, skipOff);
-  // low concrete parapet (the collision wall stays at hw + 0.3) and a metal top rail on posts
-  for (const sg of [-1, 1]) {
-    const o0 = sg * (hw + 0.3), o1 = sg * (hw + 0.75), pr = [[o0, 0], [o0, H], [o1, H], [o1, 0]];
-    strip(4, (p, j) => [...off(p, pr[j][0], pr[j][1]), j, p.s / 6], conc, skipOff);
-    strip(2, (p, j) => [...off(p, sg * (hw + 0.52), H + (j ? 0.55 : 0.5)), 0, 0], railMat, skipOff);
+  const maskOf = kind => { const m = new Uint8Array(N); for (let i = 0; i < N; i++) if (onBridge[i] && bridges.some(b => b.kind === kind && pts[i].s >= b.s0 && pts[i].s <= b.s1)) for (let k = i - 1; k <= i + 1; k++) if (k >= 0 && k < N) m[k] = 1; return m; };
+  const mG = maskOf('gallery'), mT = maskOf('truss'), skipG = i => !mG[i], skipT = i => !mT[i];
+  const TC = 0.3, TH = 1.7; // truss: kerb height, top chord height
+  const place = (mesh, p, lat, y, shift = 0) => { const q = off(p, lat, y); mesh.position.set(q[0] + Math.sin(p.h) * shift, q[1], q[2] + Math.cos(p.h) * shift); mesh.rotation.y = p.h; trackGroup.add(mesh); return mesh; };
+  // gallery (rock shed, after the photo): closed wall on the bridge's own side, closed roof, an open side of square pillars with a low kerb wall, a thick portal frame at both ends; the clear height stays above every camera
+  const lampS = [];
+  for (const g of bridges.filter(b => b.kind === 'gallery')) {
+    const cs = g.side, CL = GALLERY.CLEAR, T = 0.6, WI = GALLERY.WALL_IN;
+    const wall = [[cs * (hw + WI), 0], [cs * (hw + WI), CL], [cs * (hw + WI + 0.5), CL + T], [cs * (hw + WI + 0.5), 0]];
+    strip(4, (p, j) => [...off(p, wall[j][0], wall[j][1]), j, p.s / 6], conc, skipG);
+    const roof = [[cs * (hw + WI + 0.5), CL + T], [-cs * (hw + 1.3), CL + T], [-cs * (hw + 1.3), CL], [cs * (hw + WI), CL], [cs * (hw + WI + 0.5), CL + T]];
+    strip(5, (p, j) => [...off(p, roof[j][0], roof[j][1]), j, p.s / 6], conc, skipG);
+    const o0 = -cs * (hw + 0.3), o1 = -cs * (hw + 0.75), pr = [[o0, 0], [o0, H], [o1, H], [o1, 0]];
+    strip(4, (p, j) => [...off(p, pr[j][0], pr[j][1]), j, p.s / 6], conc, skipG);
+    const ia = pts.findIndex(q => q.s >= g.s0), ib = pts.findLastIndex(q => q.s <= g.s1), step = Math.round(GALLERY.PILLAR_GAP / DS);
+    const pil = new THREE.InstancedMesh(new THREE.BoxGeometry(0.7, CL, 0.7), conc, Math.ceil((ib - ia) / step) + 1), m = new THREE.Matrix4(); let n = 0;
+    for (let i = ia; i <= ib; i += step) { const q = off(pts[i], -cs * (hw + 0.8), CL / 2); m.makeRotationY(pts[i].h); m.setPosition(q[0], q[1], q[2]); pil.setMatrixAt(n++, m); }
+    pil.count = n; trackGroup.add(pil);
+    // portal frames: a lintel hanging a little below the roof, a thick end column on each side
+    const lintel = new THREE.BoxGeometry(2 * hw + 2.6, 1.5, 1.0), colL = new THREE.BoxGeometry(1.4, CL + 0.8, 1.0), colR = new THREE.BoxGeometry(1.2, CL, 1.0);
+    for (const [i, sh] of [[ia, 0.5], [ib, -0.5]]) {
+      place(new THREE.Mesh(lintel, conc), pts[i], -cs * 0.2, CL + 0.05, sh);
+      place(new THREE.Mesh(colL, conc), pts[i], cs * (hw + WI + 0.7), (CL + 0.8) / 2, sh);
+      place(new THREE.Mesh(colR, conc), pts[i], -cs * (hw + 1.1), CL / 2, sh);
+    }
+    const lampMat = new THREE.MeshBasicMaterial({ color: 0xffd9a0 }), lampGeo = new THREE.BoxGeometry(0.5, 0.1, 0.25);
+    for (let i = ia + 6; i <= ib - 4; i += Math.round(20 / DS)) { // dim ceiling lamps
+      const q = off(pts[i], 0, CL - 0.08), lamp = new THREE.Mesh(lampGeo, lampMat); lamp.position.set(q[0], q[1], q[2]); lamp.rotation.y = pts[i].h; trackGroup.add(lamp);
+      const gl = glow(0xffc27a, 6); gl.material.opacity = 0.3; gl.position.set(q[0], q[1] - 0.3, q[2]); trackGroup.add(gl);
+      lampS.push(pts[i].s);
+    }
   }
-  {
-    const post = new THREE.InstancedMesh(new THREE.BoxGeometry(0.07, 0.55, 0.07), new THREE.MeshLambertMaterial({ color: 0x8c93a3 }), N);
-    const m = new THREE.Matrix4(); let n = 0;
-    for (let i = 0; i < N; i += 2) if (vmask[i]) for (const sg of [-1, 1]) { const q = off(pts[i], sg * (hw + 0.52), H + 0.27); m.makeTranslation(q[0], q[1], q[2]); post.setMatrixAt(n++, m); }
-    post.count = n; trackGroup.add(post);
+  if (lampS.length) { // a soft lit patch on the road under each lamp (additive, so it only brightens)
+    const patch = new THREE.MeshBasicMaterial({ map: glowTex, color: 0xffc27a, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2, side: THREE.DoubleSide });
+    const near = s => lampS.reduce((a, b) => Math.abs(b - s) < Math.abs(a - s) ? b : a);
+    strip(3, (p, j) => [...off(p, [-hw + 0.3, 0, hw - 0.3][j], 0.04), j / 2, (p.s - near(p.s)) / 9 + 0.5], patch, i => Math.abs(pts[i].s - near(pts[i].s)) > 4.3);
+  }
+  // truss bridge (after the photo): white steel pony truss on both sides with sloped end posts, a low kerb below it; the collision wall stays at hw + 0.3
+  if (bridges.some(b => b.kind === 'truss')) {
+    const white = new THREE.MeshLambertMaterial({ color: 0xf2f2ef, emissive: 0x3a3a38, side: THREE.DoubleSide });
+    for (const sg of [-1, 1]) {
+      const o0 = sg * (hw + 0.3), o1 = sg * (hw + 0.75), pr = [[o0, 0], [o0, TC], [o1, TC], [o1, 0]];
+      strip(4, (p, j) => [...off(p, pr[j][0], pr[j][1]), j, p.s / 6], conc, skipT);
+      const oc = sg * (hw + 0.5), ch = [[oc - 0.07, TH - 0.14], [oc - 0.07, TH], [oc + 0.07, TH], [oc + 0.07, TH - 0.14], [oc - 0.07, TH - 0.14]]; // top chord, a square beam
+      strip(5, (p, j) => [...off(p, ch[j][0], ch[j][1]), 0, 0], white, skipT);
+    }
+    const PAN = 2, panel = PAN * DS, vh = TH - TC, ang = Math.atan2(vh, panel), post = Math.atan2(vh, 1.5);
+    const vert = new THREE.InstancedMesh(new THREE.BoxGeometry(0.11, vh, 0.11), white, N), dia = new THREE.InstancedMesh(new THREE.BoxGeometry(0.1, 0.1, Math.hypot(panel, vh)), white, N);
+    const postGeo = new THREE.BoxGeometry(0.16, 0.16, Math.hypot(1.5, vh)), m = new THREE.Matrix4(), r = new THREE.Matrix4(); let nv = 0, nd = 0;
+    for (const t of bridges.filter(b => b.kind === 'truss')) {
+      const ia = pts.findIndex(q => q.s >= t.s0), ib = pts.findLastIndex(q => q.s <= t.s1);
+      for (let i = ia, k = 0; i + PAN <= ib; i += PAN, k++) for (const sg of [-1, 1]) {
+        const a = pts[i], c = pts[i + PAN], q = off(a, sg * (hw + 0.5), TC + vh / 2);
+        m.makeTranslation(q[0], q[1], q[2]); vert.setMatrixAt(nv++, m);
+        const mid = off(pts[i + 1], sg * (hw + 0.5), TC + vh / 2);
+        m.makeRotationY(pts[i + 1].h); r.makeRotationX(k % 2 ? ang : -ang); m.multiply(r); m.setPosition(mid[0], mid[1], mid[2]); dia.setMatrixAt(nd++, m);
+        if (i + 2 * PAN > ib) { const e = off(c, sg * (hw + 0.5), TC + vh / 2); m.makeTranslation(e[0], e[1], e[2]); vert.setMatrixAt(nv++, m); }
+      }
+      for (const sg of [-1, 1]) for (const [i, lean] of [[ia, -1], [ib, 1]]) { // sloped end posts, leaning in towards the span
+        const pm = place(new THREE.Mesh(postGeo, white), pts[i], sg * (hw + 0.5), TC + vh / 2, -lean * 0.75); pm.rotation.order = 'YXZ'; pm.rotation.x = lean * post;
+      }
+    }
+    vert.count = nv; dia.count = nd; trackGroup.add(vert); trackGroup.add(dia);
   }
   const river = new THREE.MeshPhongMaterial({ color: 0x1b3558, emissive: 0x0a1630, specular: 0x2a3a5c, shininess: 60, transparent: true, opacity: 0.92, side: THREE.DoubleSide });
   const FR = [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.42, 0.35, 0.28, 0.22, 0.16, 0.11, 0.06], lats = [...FR.map(f => -f), 0, ...FR.slice().reverse()];
@@ -2850,10 +2914,26 @@ function buildBridges(onBridge, gw) {
       trackGroup.add(new THREE.Mesh(geo, river));
     }
   }
+  // rock wall: a hillside on the left of the stretch between the gallery and the truss bridge. Where it meets the gallery it is lower than the gallery wall, it rises to its full height away
+  // from it and sinks into the terrain towards the truss bridge (the same in both directions); its back slopes down into the valley bowls
+  for (const rk of rocks) {
+    const sg = rk.side, rockMat = new THREE.MeshLambertMaterial({ color: 0x4a4d55, side: THREE.DoubleSide });
+    const gal = bridges.find(b => b.kind === 'gallery'), galAtStart = gal && Math.abs(gal.s1 - rk.s0) < Math.abs(gal.s0 - rk.s1);
+    const sGal = galAtStart ? rk.s0 : rk.s1, sTru = galAtStart ? rk.s1 : rk.s0;
+    const iLo = pts.findLastIndex(q => q.s <= rk.s0) + 1, iHi = pts.findIndex(q => q.s >= rk.s1) - 1; // between the gallery's / truss bridge's last drawn points: no gap, no overlap
+    const R = [[0.35, 0, 0], [1.0, 0.35, 0.3], [2.4, 0.7, 0.9], [4.2, 1, 1.4], [7.5, 0.95, 2.1], [13, 0.72, 2.6], [21, 0.38, 2.8], [30, 0, 2.6], [31, 0, 0]]; // lateral from the shoulder, share of the height, lateral bump weight
+    const grassDy = o => -0.08 - clamp((o - hw - 0.35) / 12.65, 0, 1) * 1.12;
+    strip(R.length, (p, j) => {
+      const dG = Math.abs(p.s - sGal), dT = Math.abs(p.s - sTru), fade = smooth(clamp(dT / 8, 0, 1));
+      const h = (6 + (10 + 1.8 * Math.sin(p.s * 0.31) - 6) * smooth(clamp(dG / 10, 0, 1))) * fade;
+      const o = hw + R[j][0] + 0.4 * R[j][2] * Math.sin(p.s * 0.7 + j), dy = j === R.length - 1 ? grassDy(o) - 54 : grassDy(o) + h * R[j][1] * (1 + 0.12 * Math.sin(p.s * 0.45 + j * 1.7));
+      return [...off(p, sg * o, dy), j, p.s / 6];
+    }, rockMat, i => i < iLo || i > iHi);
+  }
 }
 function buildTrack(id) {
   disposeTrack();
-  trackId = id; ({ pts, N, TOTAL, FINISH_I, FINISH_S, hairpins, gutters, bridges, hw: roadHW } = COURSES[id]); WALL_LAT = roadHW + 0.3; tsList = null; tsHide();
+  trackId = id; ({ pts, N, TOTAL, FINISH_I, FINISH_S, hairpins, gutters, bridges, rocks, hw: roadHW } = COURSES[id]); WALL_LAT = roadHW + 0.3; tsList = null; tsHide();
   const rand = rng(86420); // per-course stream, so a course always gets the same trees
   // gutter depth 0..1 per point and side (index 0 = left, 1 = right); eased in/out over the first/last GUTTER.RAMP metres of each section
   const GW = 0.7, GD = 0.12, gdepth = [new Float32Array(N), new Float32Array(N)];
@@ -2874,11 +2954,17 @@ function buildTrack(id) {
   const gw = groundWidths(pts, roadHW), onBridge = new Uint8Array(N);
   for (const b of bridges) for (let i = 0; i < N; i++) if (pts[i].s >= b.s0 && pts[i].s <= b.s1) onBridge[i] = 1;
   const offBridge = i => onBridge[i] === 1;
+  // rock wall side: no grass or trees there (the wall takes its place); onRock[0] = left (o < 0), onRock[1] = right
+  const onRock = [new Uint8Array(N), new Uint8Array(N)], onGallery = new Uint8Array(N);
+  for (const r of rocks) { const a = pts.findLastIndex(q => q.s <= r.s0) + 1, e = pts.findIndex(q => q.s >= r.s1) - 1; for (let i = a; i <= e; i++) onRock[r.side > 0 ? 1 : 0][i] = 1; } // the points between the two bridges' last drawn points
+  for (const b of bridges) if (b.kind) for (let i = 0; i < N; i++) if (pts[i].s >= b.s0 - DS && pts[i].s <= b.s1 + DS) onGallery[i] = 1; // no street lamps on the gallery or the truss bridge
+  galleryIdx = bridges.filter(b => b.kind === 'gallery').map(g => ({ g, ia: pts.findIndex(q => q.s >= g.s0), ib: pts.findLastIndex(q => q.s <= g.s1) }));
+  const grassSkip = sg => i => onBridge[i] === 1 || onRock[sg > 0 ? 1 : 0][i] === 1;
   for (const sg of [-1, 1]) {
     strip(3, (p, j, i) => {
       const w = gw[sg > 0 ? 1 : 0][i], o = [roadHW + 0.35, w, w + 1][j], dy = [-0.08, -0.08 - (w - roadHW - 0.35) / 12.65 * 1.12, -55][j];
       return [...off(p, sg * o, dy), j * 3, p.s / 6];
-    }, grassMat, offBridge);
+    }, grassMat, grassSkip(sg));
   }
   {
     const caps = groundCaps(pts, roadHW, gw), pa = new Float32Array(caps.length * 12), ua = new Float32Array(caps.length * 8), idx = [];
@@ -2907,7 +2993,7 @@ function buildTrack(id) {
     let n = 0;
     for (let t = 0; t < 2200 && n < 1400; t++) {
       const idx = Math.floor(rand() * N), p = pts[idx], side = rand() < .5 ? -1 : 1, sg = side, o = roadHW + 3 + rand() * 9.5;
-      if (onBridge[idx] || o > gw[side > 0 ? 1 : 0][idx] - 0.5) continue;
+      if (onBridge[idx] || onRock[side > 0 ? 1 : 0][idx] || o > gw[side > 0 ? 1 : 0][idx] - 0.5) continue;
       const dy = -0.08 - (o - roadHW - 0.35) / 12.65 * 1.12;
       const w = off(p, sg * o, dy);
       if (!clearOfRoad(w[0], w[2], w[1], roadHW + 3)) continue;
@@ -2922,6 +3008,7 @@ function buildTrack(id) {
     const poleMat = new THREE.MeshLambertMaterial({ color: 0x40444f });
     const headMat = new THREE.MeshBasicMaterial({ color: 0xffc27a });
     for (let i = 30, side = 1; i < N - 30; i += 60, side = -side) {
+      if (onGallery[i]) continue; // the gallery roof / the truss are in the way (the gallery has its own ceiling lamps)
       const p = pts[i], b = onBridge[i] ? off(p, side * (roadHW + 0.52), BRIDGE.PARAPET) : off(p, side * (roadHW + 1.3), 0), top = off(p, side * (roadHW - 0.6), 6.2);
       const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 6.4, 6), poleMat); pole.position.set(b[0], b[1] + 3.2, b[2]); trackGroup.add(pole);
       const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.14, 0.3), headMat); head.position.set(top[0], top[1], top[2]); trackGroup.add(head);
@@ -5228,6 +5315,16 @@ function easeFov(dt, fov) {
   if (fovSnap) { fovSnap = false; camera.fov = fov; camera.updateProjectionMatrix(); return; }
   const nf = stepFov(camera.fov, fov, dt); if (nf !== camera.fov) { camera.fov = nf; camera.updateProjectionMatrix(); }
 }
+// both the player's camera and the spectator camera: inside (and just before) the gallery, keep it under the roof and between the walls
+function galleryClampCamera() {
+  for (const gi of galleryIdx) {
+    const cam = camera.position; let bi = -1, bd = 1600;
+    for (let i = Math.max(0, gi.ia - 6); i <= Math.min(N - 1, gi.ib + 1); i++) { const d = (pts[i].x - cam.x) ** 2 + (pts[i].z - cam.z) ** 2; if (d < bd) { bd = d; bi = i; } }
+    if (bi < 0) continue;
+    const ahead = Math.max(0, gi.g.s0 - pts[bi].s); if (ahead > GALLERY.ENTRY || pts[bi].s > gi.g.s1 + DS) continue;
+    const q = galleryClampCam(cam, pts[bi], roadHW, ahead); cam.set(q.x, q.y, q.z);
+  }
+}
 function updateCamera(dt) {
   const c = car, L = c.loc, spd = Math.hypot(c.vx, c.vz);
   camera.up.set(0, 1, 0);
@@ -5263,6 +5360,7 @@ function updateCamera(dt) {
     camera.position.y = Math.max(camera.position.y, L.y + 1.6);
     camLook.set(c.x + Math.sin(camH) * 4, L.y + 1.1, c.z + Math.cos(camH) * 4);
   }
+  galleryClampCamera();
   if (shake > 0) { camLook.x += (Math.random() - .5) * shake; camLook.y += (Math.random() - .5) * shake; shake = Math.max(0, shake - dt * 1.6); }
   camera.lookAt(camLook);
   easeFov(dt, 64 + clamp(spd / 55, 0, 1) * 14);
@@ -6678,6 +6776,7 @@ function specCamera(dt) {
     camPos.set(o.x - Math.sin(s.camH) * dist, f.y + 2.5 + spd * 0.012, o.z - Math.cos(s.camH) * dist);
     if (s.snap) { s.snap = false; camera.position.copy(camPos); } else camera.position.lerp(camPos, Math.min(1, 12 * dt)); // a new car to follow: cut, do not fly across the course
     camera.position.y = Math.max(camera.position.y, f.y + 1.6);
+    galleryClampCamera();
     camLook.set(o.x + Math.sin(s.camH) * 4, f.y + 1.1, o.z + Math.cos(s.camH) * 4);
     camera.lookAt(camLook); easeFov(dt, 64 + clamp(spd / 55, 0, 1) * 14); return;
   }
