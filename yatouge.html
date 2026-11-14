@@ -76,6 +76,8 @@ body.gp :is(button, input, select):focus { outline: 2px solid var(--sodium); out
 @media (max-width: 480px) and (orientation: portrait) { .tsign.big, .tsign.pre { top: max(260px, var(--ts-top, 0px)); } }
 @media (prefers-reduced-motion: reduce) { .tsign { transition: none; } .tsign.flash svg, .tsign.pre .p1.flash svg { animation: none; } }
 #pop.ts-below { top: max(26%, var(--ts-pop)); }
+#pop.ts-beside { left: auto; right: var(--ts-pop-r); top: var(--ts-pop-y); max-width: var(--ts-pop-w); text-align: right; font-size: clamp(18px, 7vh, 28px); transform: translateY(-50%) scale(.9); }
+#pop.ts-beside.show { transform: translateY(-50%) scale(1); }
 .count { position: absolute; left: 0; right: 0; top: 34%; text-align: center; font-family: var(--mono); font-style: italic; font-weight: 700; font-size: clamp(80px, 18vw, 160px); color: var(--ink); text-shadow: 0 0 40px rgba(255,255,255,.35); }
 
 .tools { position: absolute; top: calc(12px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); display: flex; gap: 8px; width: max-content; pointer-events: auto; }
@@ -489,6 +491,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <button id="btnOwnClear" type="button" data-i18n="ownClear" hidden>移除</button>
       <input id="ownFile" type="file" accept="audio/*" hidden tabindex="-1" aria-hidden="true">
     </div>
+    <p id="ownMsg" class="kbnote" role="status"></p>
     <div id="tKx" class="tctl" hidden>
       <div class="igrow"><span id="tKxChimeL" data-i18n="kxChime">時速警示音</span><button id="tKxChime" type="button" role="switch" aria-labelledby="tKxChimeL" aria-checked="true"></button></div>
       <div class="igrow"><span id="tKxLetterL" data-i18n="kxLetter">車門字樣</span><button id="tKxLetter" type="button" role="switch" aria-labelledby="tKxLetterL" aria-checked="true"></button></div>
@@ -643,6 +646,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <div class="kbtabs" role="group" data-i18n-aria="kbTitle" aria-label="按鍵設定"><button type="button" data-p="keys" aria-pressed="true" data-i18n="kbKeys">鍵盤</button><button type="button" data-p="pad" aria-pressed="false" data-i18n="kbPad">控制器</button></div>
     <div id="kbList" class="kblist"></div>
     <p id="kbInfo" class="kbinfo"></p>
+    <p id="kbWarn" class="kbnote" role="note" hidden></p>
     <p id="kbNote" class="kbnote" role="status"></p>
     <div class="kbacts"><button class="ghost" id="kbReset" type="button" data-i18n="kbReset">恢復預設</button><button class="go" id="kbBack" type="button" data-i18n="igBack">返回</button></div>
   </div>
@@ -745,8 +749,8 @@ const confirmKeys = (what, ta, sake) => what === 'lobby' ? { q: 'igLobbyAsk', ye
 // Player-facing release notes, newest first (at most 12 versions). Add today's version, or extend it, whenever a change the player can see goes out.
 const CHANGELOG = [
   { date: '2026-11-14',
-    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：主畫面選好賽道後可以切換「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式與線上對戰仍是下坡）。'],
-    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after picking a course on the title screen you can switch between Downhill and Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run and online matches stay downhill).'] },
+    zh: ['主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：主畫面選好賽道後可以切換「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式與線上對戰仍是下坡）。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。', '修正：主畫面按 Enter 只有在「開始」鈕上、或焦點不在任何控制項上時才會開始比賽；在其他按鈕、選單上按 Enter 會照常操作它，方向鍵也能切換下拉選單與滑桿。', '修正：可以把 Ctrl 或 Alt 綁成降檔、鏡頭、聊天，綁了之後確實會作用。', '修正：關閉 KX-2 車門字樣後，離開車內視角不會再冒出來。', '修正：計時在整分、整十秒前後不再顯示成 0:60.00 之類的錯誤格式。', '修正：點選卡片後鍵盤焦點會留在原位；再點已選的車不會重設顏色。', '修正：回到主畫面時視角會恢復正常。', '修正：在遊戲內換語言後，主畫面的線上狀態也會跟著換語言。', '修正：壞掉的語言存檔不再讓文字壞掉。', '修正：AI 衝線後不會再停在終點讓你撞上。', '修正：起跑的 GO 消失後，大型與預告彎道提示才會出現。', '修正：線上對戰中對手在比賽時換車不再造成畫面卡頓；連線較忙時大廳會請你稍候。', '修正：線上對戰衝線後，兩台車不會再互撞。', '修正：線上對戰中，房間裡的其他人無法再冒用你的身分；舊版頁面需重新整理後才能進房。', '修正：計時賽中途才打開幽靈車，幽靈車不會再浮在路面上方。', '修正：和 AI 幾乎同時衝線時，勝負改用同一個時鐘判斷，不再固定偏向 AI。', '修正：在主畫面選了不能用的自選音樂檔，現在會在音樂按鈕下方顯示提示，不會留到比賽倒數才出現。', '修正：按鍵設定把 Ctrl 綁定後，如果 W、T 或 N 也有綁按鍵，會提醒瀏覽器可能因此關閉或開新分頁。', '修正：使用右 Alt（AltGr）鍵盤配置時，綁在右 Alt 的降檔、鏡頭、聊天可以正常使用。', '修正：視窗失去焦點時按住的手把扳機，回來後不會失效。', '修正：重新開始後，倒數時引擎聲不會延續上一場的油門聲。', '修正：車內視角時，在設定裡開關車門字樣不會讓字樣單獨浮在車外。', '修正：結果畫面按「同一台再跑」再取消變速箱選擇，鍵盤焦點會回到該按鈕。', '修正：線上房間裡，對方離開後不會再被別人冒用他的代號而一直顯示在場；同一個分頁離開後再加入同一個房間，對方不會再看到你上一場停住的車。', '修正：對手離開後，結果畫面仍顯示對手的暱稱，不會變成「玩家」。'],
+    en: ['New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after picking a course on the title screen you can switch between Downhill and Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run and online matches stay downhill).', 'Fix: a turn sign no longer disappears and reappears when you brake after it shows up.', 'Fix: if the car is sliding backwards when you cross the line, the auto-brake no longer sends it flying.', 'Fix: in a room with several rounds, later rounds no longer always show a win.', 'Fix: the lobby list now updates right away when someone leaves or closes a room.', 'Fix: a join that finishes after you went back from the lobby no longer pulls you into a room.', 'Fix: on the title screen Enter starts the race only from the Start button or when focus is not on any control; on other buttons and menus it works that control, and the arrow keys now change dropdowns and sliders.', 'Fix: Ctrl or Alt can be bound to downshift, camera or chat and now really work.', 'Fix: with the KX-2 door lettering turned off it no longer pops back when you leave the cockpit view.', 'Fix: timers around full minutes and ten-second marks no longer show formats like 0:60.00.', 'Fix: keyboard focus stays in place after choosing a card, and clicking the car you already picked no longer resets its colour.', 'Fix: the view returns to normal when you are back on the title screen.', 'Fix: switching language in-game also updates the title-screen online status.', 'Fix: a corrupted language save no longer breaks the text.', 'Fix: the AI no longer stops at the finish line for you to crash into.', 'Fix: the large and preview turn signs now appear only after the start GO has gone.', 'Fix: an opponent changing cars during an online race no longer makes the game stutter; the lobby asks you to wait when the connection is busy.', 'Fix: in online races the two cars no longer bump into each other after finishing.', 'Fix: other people in an online room can no longer pretend to be you; older pages need a refresh to join a room.', 'Fix: opening the ghost car in the middle of a time attack run no longer leaves it floating above the road.', 'Fix: when you and the AI cross the line almost together, the winner is now judged on one shared clock instead of always favouring the AI.', 'Fix: choosing an unusable own-music file on the title screen now shows a message under the music buttons instead of showing up during the next countdown.', 'Fix: in key settings, binding Ctrl while W, T or N is also bound now shows a warning that the browser may close or open a tab.', 'Fix: on AltGr keyboard layouts, downshift, camera and chat bound to the right Alt now work.', 'Fix: a controller trigger held while the window lost focus no longer stops working when you return.', 'Fix: after a restart the engine no longer keeps the throttle sound of the previous run during the countdown.', 'Fix: in cockpit view, toggling the door lettering in settings no longer leaves it floating outside the car.', 'Fix: cancelling the gearbox choice after pressing Run again on the result screen returns keyboard focus to that button.', 'Fix: in an online room a player who left is no longer kept on the roster by someone using their id, and when you leave and rejoin the same room from one tab the other player no longer sees your car frozen where the last match left it.', 'Fix: after the opponent leaves, the result screen still shows their nickname instead of "Player".'] },
   { date: '2026-11-13',
     zh: ['彎道前會出現提示圖示，可以在設定裡關掉。', '送酒模式通關有獎勵：KX-2 的極速升級開關，以及白色碳纖維引擎蓋塗裝。', '遊戲內選單新增「重新開始」與「回到大廳」。', '比賽結束後車子不會再倒退。', 'SR-7 新增引擎蓋與尾燈細節。', '手機車內視角：後照鏡縮小，KX-2 與 GT-32 的儀表降低，視野更開闊。', '鍵盤與手把的按鍵都可以自己設定。', '線上房間可以聊天、玩貓捉老鼠，也能在房間裡選賽道和車。', '三台車的外型都依真車照片重新製作。'],
     en: ['Turn signs now appear before corners; you can switch them off in settings.', 'Sake Run rewards: a top-speed upgrade switch for the KX-2 and a white carbon-fibre hood paint.', 'The in-game menu now has Restart and Back to lobby.', 'The car no longer rolls backwards after the race ends.', 'New hood and tail-light details on the SR-7.', 'Phone cockpit view: smaller rear-view mirror, and lower dashboards on the KX-2 and GT-32 for a clearer view.', 'Keyboard and controller buttons can be rebound.', 'Online rooms now have chat and Cat and Mouse, and you can pick the course and car inside the room.', 'All three cars were rebuilt from photos of the real cars.'] },
@@ -782,6 +786,8 @@ const KB_DEF = Object.freeze({
     shiftUp: Object.freeze(['ShiftLeft', 'ShiftRight']), shiftDown: Object.freeze(['KeyZ']), cam: Object.freeze(['KeyC']), music: Object.freeze(['KeyM']), chat: Object.freeze(['KeyT']) }),
   pad: Object.freeze({ gas: 7, brake: 6, left: null, right: null, hb: 3, shiftUp: 5, shiftDown: 4, cam: 12, music: 8, chat: null }),
 });
+// a Ctrl binding next to W / T / N: the browser keeps Ctrl+W (close tab), Ctrl+T and Ctrl+N and a page cannot cancel them
+const kbCtrlClash = keys => { const all = Object.values(keys).flat(); return all.some(c => c === 'ControlLeft' || c === 'ControlRight') && all.some(c => c === 'KeyW' || c === 'KeyT' || c === 'KeyN'); };
 const kbIsAction = a => KB.ACTIONS.includes(a);
 const kbCodeOk = c => typeof c === 'string' && /^[A-Za-z][A-Za-z0-9]{0,31}$/.test(c) && c !== 'Unidentified';
 const kbPadOk = i => Number.isInteger(i) && i >= 0 && i < KB.PAD_N;
@@ -1030,7 +1036,7 @@ const I18N = {
     driftGod: '神級甩尾', driftNice: '漂亮的甩尾', drift: '甩尾', first: '第一名衝線', second: '第二名衝線',
     gutter: '水溝過彎', gutterLow: '甩尾分數不足', gutterNeed: '水溝過彎需要 1,000 分',
     cam: '鏡頭', camAria: '切換鏡頭', kCam: '切換鏡頭（追蹤／近距離／車內）', camPop: '鏡頭：', camM_chase: '追蹤', camM_near: '近距離', camM_cockpit: '車內',
-    onConnecting: '連線中…', onNotClaude: '這裡無法使用線上對戰', onNeedPerm: '需要允許線上連線', onAllow: '允許線上',
+    trackBusy: '連線較忙，請稍候…', onConnecting: '連線中…', onNotClaude: '這裡無法使用線上對戰', onNeedPerm: '需要允許線上連線', onAllow: '允許線上',
     onDenied: '線上權限已被拒絕', onManage: '開啟權限設定', onManageFail: '無法開啟設定，請從瀏覽器的權限設定開啟', onError: c => `線上暫時無法使用 (${c})`,
     pvpOnline: '線上對戰', pvpEyebrow: '1 對 1 · 即時連線', pvpLobby: '線上對戰大廳', pvpRoomsLbl: '開著的房間',
     pvpPick: '賽道、模式與車子在房間裡選。', pvpEmpty: '目前沒有開著的房間，自己開一間吧。',
@@ -1066,7 +1072,7 @@ const I18N = {
     kbA_gas: '油門', kbA_brake: '煞車／倒車', kbA_left: '左轉', kbA_right: '右轉', kbA_hb: '手煞車', kbA_shiftUp: '升檔', kbA_shiftDown: '降檔', kbA_cam: '切換鏡頭', kbA_music: '音樂開關', kbA_chat: '聊天',
     kbInfoKeys: '點一下格子再按新的鍵，每個動作可設 1–2 個鍵。Esc、Enter、Tab、R 與觀戰的 1／2／3 固定不變。', kbInfoPad: '點一下格子（或用十字鍵選到後按 A）再按手把按鈕。左搖桿固定為轉向；A、B、Menu 與十字鍵的選單操作固定不變。',
     kbCapKey: '請按新的鍵，Esc 取消', kbCapPad: '請按手把按鈕，B 取消', kbSet: (a, k) => `「${a}」設為 ${k}`, kbSwap: a => `已與「${a}」互換`, kbMoved: a => `已從「${a}」移過來`,
-    kbLast: a => `「${a}」只剩這個鍵，不能移走`, kbFixed: k => `${k} 是固定按鍵，不能設定`, kbBad: '這個鍵不能使用', kbCancel: '已取消', kbCleared: '已移除', kbDone: '已恢復預設', shiftUp: '升檔', shiftDown: '降檔',
+    kbLast: a => `「${a}」只剩這個鍵，不能移走`, kbFixed: k => `${k} 是固定按鍵，不能設定`, kbBad: '這個鍵不能使用', kbCtrlWarn: '提醒：瀏覽器會保留 Ctrl+W（關閉分頁）、Ctrl+T 與 Ctrl+N，遊戲無法攔截。按住 Ctrl 的同時按 W、T、N 可能會關掉或開新分頁。',kbCancel: '已取消', kbCleared: '已移除', kbDone: '已恢復預設', shiftUp: '升檔', shiftDown: '降檔',
     modeLbl: '模式', modeRace: '比賽', modeRaceD: up => up ? '跟對手車比誰先衝到山頂。' : '跟對手車比誰先衝到山腳。', modeTa: '計時賽', modeTaD: '沒有對手，挑戰自己的最佳時間與幽靈車。',
     leadTa: name => `凌晨兩點的${name}，整條路只屬於你。沒有對手，只有碼表和上一次最快的自己。`,
     taGhost: '幽靈車', taBestIs: t => `最佳 ${t}`, taFirst: '第一次計時', taVsBest: d => `與最佳 ${d} 秒`,
@@ -1101,7 +1107,7 @@ const I18N = {
     driftGod: 'Legendary drift', driftNice: 'Nice drift', drift: 'Drift', first: 'First across the line', second: 'Second across the line',
     gutter: 'Gutter run', gutterLow: 'Not enough drift points', gutterNeed: 'A gutter run costs 1,000 points',
     cam: 'Camera', camAria: 'Switch camera', kCam: 'Switch camera (chase / close / cockpit)', camPop: 'Camera: ', camM_chase: 'Chase', camM_near: 'Close', camM_cockpit: 'Cockpit',
-    onConnecting: 'Connecting…', onNotClaude: 'Online play is not available here', onNeedPerm: 'Online needs your permission', onAllow: 'Allow online',
+    trackBusy: 'Connection is busy, please wait…', onConnecting: 'Connecting…', onNotClaude: 'Online play is not available here', onNeedPerm: 'Online needs your permission', onAllow: 'Allow online',
     onDenied: 'Online permission was denied', onManage: 'Open permissions', onManageFail: "Couldn't open settings. Use your browser's permission settings", onError: c => `Online unavailable (${c})`,
     pvpOnline: 'Online 1v1', pvpEyebrow: '1v1 · live', pvpLobby: 'Online lobby', pvpRoomsLbl: 'Open rooms',
     pvpPick: 'You pick the course, mode and car in the room.', pvpEmpty: 'No open rooms right now. Create one.',
@@ -1137,7 +1143,7 @@ const I18N = {
     kbA_gas: 'Gas', kbA_brake: 'Brake / reverse', kbA_left: 'Steer left', kbA_right: 'Steer right', kbA_hb: 'Handbrake', kbA_shiftUp: 'Shift up', kbA_shiftDown: 'Shift down', kbA_cam: 'Camera', kbA_music: 'Music', kbA_chat: 'Chat',
     kbInfoKeys: 'Click a slot, then press the new key. 1–2 keys per action. Esc, Enter, Tab, R and the spectator keys 1 / 2 / 3 are fixed.', kbInfoPad: 'Click a slot (or pick it with the D-pad and press A), then press a pad button. The left stick always steers; A, B, Menu and the D-pad menu controls are fixed.',
     kbCapKey: 'Press the new key. Esc cancels.', kbCapPad: 'Press a pad button. B cancels.', kbSet: (a, k) => `${a} set to ${k}`, kbSwap: a => `Swapped with ${a}`, kbMoved: a => `Moved from ${a}`,
-    kbLast: a => `${a} needs at least one key`, kbFixed: k => `${k} is fixed and can't be bound`, kbBad: "That key can't be used", kbCancel: 'Cancelled', kbCleared: 'Removed', kbDone: 'Defaults restored', shiftUp: 'Shift up', shiftDown: 'Shift down',
+    kbLast: a => `${a} needs at least one key`, kbFixed: k => `${k} is fixed and can't be bound`, kbBad: "That key can't be used", kbCtrlWarn: 'Heads-up: the browser keeps Ctrl+W (close tab), Ctrl+T and Ctrl+N and the game cannot block them. Holding Ctrl while pressing W, T or N may close the tab or open a new one.',kbCancel: 'Cancelled', kbCleared: 'Removed', kbDone: 'Defaults restored', shiftUp: 'Shift up', shiftDown: 'Shift down',
     modeLbl: 'Mode', modeRace: 'Race', modeRaceD: up => `Beat the rival car to the ${up ? 'top' : 'bottom'}.`, modeTa: 'Time attack', modeTaD: 'No rival. Chase your best time and your ghost car.',
     leadTa: name => `2 a.m. on ${name}, and the road is all yours. No rival, just the clock and the ghost of your fastest run.`,
     taGhost: 'Ghost car', taBestIs: t => `Best ${t}`, taFirst: 'First timed run', taVsBest: d => `${d} s vs best`,
@@ -1156,8 +1162,37 @@ const I18N = {
     sakeRetry: 'Try again', sakeTitle: 'Back to title', sakeQuitAsk: 'Give up this run? Nothing will be saved.'
   }
 };
+/* @ui-fixes:start */
+// Small pure helpers for the title-screen and input fixes (tested in tests/ui-fixes.test.mjs).
+const FOV_BASE = 66; // the camera's FOV on load; the title orbit eases back to it
+// a saved language must be one the table itself owns ('toString' and friends are inherited, not languages)
+const validLang = (v, tbl) => typeof v === 'string' && Object.hasOwn(tbl, v);
+// m:ss.cc, rounded to 0.01 s first so 59.996 reads 1:00.00 and never 0:60.00
+const fmtT = t => { const c = Math.round(t * 100), m = Math.floor(c / 6000), s = (c - m * 6000) / 100; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(2); };
+// Enter starts the race from the Start button or from anywhere that is not a control; on any other control it activates that control
+const ENTER_OWN = 'button, select, input, textarea, a, summary, .music, #tKx, #tTa, #tKeys, #tLog';
+const enterStartsRace = el => !el || el.id === 'btnStart' || !el.closest(ENTER_OWN);
+// on the title screen Space and the arrow keys on a menu or slider keep their native action (they are also driving keys)
+const keepNativeKey = (state, code, el) => state === 'title' && (code === 'Space' || (/^Arrow/.test(code) && !!el && (el.tagName === 'SELECT' || el.tagName === 'INPUT')));
+// is another modifier held? A key that is itself Ctrl, Alt or Meta carries its own flag, which must not count (AltRight also sets ctrlKey on Windows AltGr layouts)
+const kbModHeld = (code, e) => (!!e.ctrlKey && code !== 'ControlLeft' && code !== 'ControlRight' && code !== 'AltRight') || (!!e.altKey && code !== 'AltLeft' && code !== 'AltRight') || (!!e.metaKey && code !== 'MetaLeft' && code !== 'MetaRight');
+// a bound Alt key must not also move the focus to the browser menu
+const kbSuppressAlt = (code, act) => !!act && (code === 'AltLeft' || code === 'AltRight');
+// one FOV easing step (same easing the cameras use)
+const stepFov = (cur, target, dt) => Math.abs(cur - target) > 0.05 ? cur + (target - cur) * Math.min(1, 3 * dt) : cur;
+// clicking the car that is already chosen changes nothing (null); Sake Run fixes the car
+const carPickNext = (choice, k, mode) => mode === 'sake' || k === choice.car ? null : { car: k, color: 0 };
+// remember which card button has the focus before a picker is redrawn; the returned function puts it back on the same slot
+// (not after a pointer pick: the focus then falls to the page as before, so Enter still starts the race)
+function focusKeep(rows, active, byPointer) {
+  let r = -1, i = -1;
+  if (byPointer) return () => {};
+  rows.forEach((row, k) => { const j = [...row.children].indexOf(active); if (j >= 0) { r = k; i = j; } });
+  return () => { const b = r >= 0 && rows[r].children[i]; if (b && !b.disabled) b.focus(); };
+}
+/* @ui-fixes:end */
 let lang = store.get('yatouge-lang') || ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
-if (!I18N[lang]) lang = 'zh';
+if (!validLang(lang, I18N)) lang = 'zh';
 const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
 const Lz = o => (o && typeof o === 'object') ? o[lang] : o;
 function rng(seed) { return () => { seed |= 0; seed = seed + 0x6D2B79F5 | 0; let t = Math.imul(seed ^ seed >>> 15, 1 | seed); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
@@ -1170,7 +1205,7 @@ const scene = new THREE.Scene();
 const FOG = 0x1e2242;
 scene.background = new THREE.Color(0x0a0d1c);
 scene.fog = new THREE.Fog(FOG, 35, 360);
-const camera = new THREE.PerspectiveCamera(66, 1, 0.1, 2400);
+const camera = new THREE.PerspectiveCamera(FOV_BASE, 1, 0.1, 2400);
 scene.add(new THREE.HemisphereLight(0x5c6aa0, 0x1a1a24, 0.85));
 const moonLight = new THREE.DirectionalLight(0xa9b8ff, 0.45);
 moonLight.position.set(-0.4, 1, 0.3);
@@ -1402,18 +1437,18 @@ function cornerList(pts) {
   return tsMerge(runs.filter(r => r.kind));
 }
 // the sign to show at course position s: the first corner not yet passed (HOLD m after its entry) once it is within max(LEAD_MIN, LEAD_S seconds of travel)
-function nextSign(list, s, speed) {
+function nextSign(list, s, speed, shown = -1) {
   const lead = Math.max(TS.LEAD_MIN, (speed > 0 ? speed : 0) * TS.LEAD_S);
   for (let i = 0; i < list.length; i++) {
     if (s > list[i].s0 + TS.HOLD) continue;
-    return list[i].s0 - s <= lead ? { i, k: list[i] } : null;
+    return list[i].s0 - s <= lead || i === shown ? { i, k: list[i] } : null; // shown: the corner whose sign is up stays until passed, braking shrinks lead but must not hide it
   }
   return null;
 }
 // preview: the corner after the next one rides along when it is close enough to matter (gap = its entry minus the next corner's exit)
 const TS_PREVIEW_GAP = 200;
-function nextTwoSigns(list, s, speed) {
-  const a = nextSign(list, s, speed);
+function nextTwoSigns(list, s, speed, shown = -1) {
+  const a = nextSign(list, s, speed, shown);
   if (!a) return null;
   const b = list[a.i + 1];
   return { i: a.i, k: a.k, second: b && b.s0 - a.k.s1 <= TS_PREVIEW_GAP ? { i: a.i + 1, k: b } : null };
@@ -1427,6 +1462,13 @@ const tsBeeps = st => st !== 'off';
 // big and preview sit where the "GO" text is, so they wait for it to clear; side and sound never wait
 const tsGoGated = (st, goShowing) => goShowing && (st === 'big' || st === 'preview');
 const tsPopTop = signBottom => Math.round(signBottom + 8); // the centre toast (#pop) moves below a big / preview sign
+// below the sign unless that would reach past 62% of the viewport (phone landscape in cockpit view); then beside it: left of the sign, centred on it
+const TS_POP_MAX = 0.62;
+function tsPopPlace(r, popH, viewW, viewH) {
+  const top = tsPopTop(r.bottom);
+  if (top + popH <= viewH * TS_POP_MAX) return { mode: 'below', top };
+  return { mode: 'beside', top: Math.round((r.top + r.bottom) / 2), right: Math.round(viewW - r.left + 12), maxWidth: Math.round(r.left - 24) };
+}
 const TS_COLOR = { small: '#3ddc84', mid: '#ffd23f', big: '#ff4d4d', hairpin: '#ff4d4d', s: '#4da3ff' };
 // drawn for a right turn (S: right then left); the left sign is the mirror image. h = arrow head [x, y, direction in degrees]
 const TS_SHAPE = {
@@ -1977,7 +2019,7 @@ const specViewKey = code => (typeof code === 'string' && Object.hasOwn(SPEC_KEYS
 /* Picking the course, mode and car inside the room (pure part). Each player votes { t: course, m: mode, g: catch distance m } and
    picks a car / colour; the host draws between two different votes with a seed it publishes, so both sides get the same result.
    V: room states and lobby entries with room picks carry v 2; older clients (v 1) and this one never see each other's rooms. */
-const RP = { V: 2, MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4, rally: 4 } };
+const RP = { V: 3, MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4, rally: 4 } };
 const validSeed = v => Number.isInteger(v) && v >= 0 && v <= 0xffffffff;
 function validVote(x) {
   if (!x || typeof x !== 'object' || Array.isArray(x)) return null;
@@ -2134,7 +2176,172 @@ function makeLimiter(interval, fn, now = () => performance.now(), later = setTim
     cancel() { dead = true; if (timer !== null) { cancelLater(timer); timer = null; } }
   };
 }
+// presence track() budget (the server allows 5 per 30 s per client): take() returns 0 and records the call when one may go now, else the ms to wait (nothing is booked: a waiting call asks again when its timer fires, however late that is)
+function makeTrackBudget(limit = 5, windowMs = 30000, now = () => performance.now()) {
+  const at = [];
+  return {
+    take() {
+      const t = now(), wait = at.length >= limit ? at[0] + windowMs - t : 0;
+      if (wait > 0) return wait;
+      at.push(t); if (at.length > limit) at.shift();
+      return 0;
+    }
+  };
+}
 /* @supa:end */
+/* @sign:start */
+/* Sender identity for online messages (B2: the sender id in a payload used to be self-declared, so anyone in a channel could
+   speak as another player). Each tab makes an ECDSA P-256 key pair (memory only). The peer id IS the key: 'p' + 20 characters
+   of SHA-256(raw public key), so an id can only be used by whoever holds the matching private key. Every broadcast carries
+   { p: id, q: seq, s: signature, k?: public key } plus its own fields. The signature covers domain, channel topic, event,
+   id, seq and the canonical body (stableJson, from @supa), so it cannot be moved to another channel / event / sender, and
+   a receiver only takes a seq newer than the last one it accepted from that sender. Needs stableJson and validPeerId. */
+const SIGN = { DOMAIN: 'yatouge-msg-v3', ALG: { name: 'ECDSA', namedCurve: 'P-256' }, SIG: { name: 'ECDSA', hash: 'SHA-256' }, ID_CHARS: 'abcdefghijklmnopqrstuvwxyz0123456789', ID_LEN: 20, RAW: 65, SIGLEN: 64, KEY_MS: 5000, SKEW_MS: 600000 }; // SKEW_MS: how far a first message's t may be from this clock (device clocks are often a minute or two off)
+const b64u = u8 => btoa(String.fromCharCode(...u8)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+function unb64u(s, len) { // exactly len bytes, else null
+  if (typeof s !== 'string' || !/^[A-Za-z0-9_-]+$/.test(s) || s.length % 4 === 1) return null;
+  try { const bin = atob(s.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((s.length + 3) % 4)); return bin.length === len ? Uint8Array.from(bin, ch => ch.charCodeAt(0)) : null; } catch (e) { return null; }
+}
+const sigText = (topic, event, id, q, body) => [SIGN.DOMAIN, topic, event, id, q, stableJson(body)].join('\n');
+const bodyOf = d => Object.fromEntries(Object.entries(d).filter(([k]) => k !== 'p' && k !== 'q' && k !== 's' && k !== 'k'));
+async function peerIdOf(raw, c = globalThis.crypto) {
+  const h = new Uint8Array(await c.subtle.digest('SHA-256', raw));
+  return 'p' + Array.from(h.slice(0, SIGN.ID_LEN), b => SIGN.ID_CHARS[b % SIGN.ID_CHARS.length]).join('');
+}
+async function makeIdentity(c = globalThis.crypto) {
+  if (!c || !c.subtle) throw { code: 'sb_crypto', message: 'WebCrypto is not available' };
+  const kp = await c.subtle.generateKey(SIGN.ALG, false, ['sign', 'verify']); // the private key is not extractable
+  const raw = new Uint8Array(await c.subtle.exportKey('raw', kp.publicKey));
+  return { id: await peerIdOf(raw, c), pub: b64u(raw), priv: kp.privateKey, c, seqs: new Map() };
+}
+// A peer's public key (base64url, as it travels) -> { id, key }; null for anything that is not a P-256 point
+async function importPeerKey(pub, c = globalThis.crypto) {
+  const raw = unb64u(pub, SIGN.RAW); if (!raw || raw[0] !== 4) return null;
+  try { return { id: await peerIdOf(raw, c), key: await c.subtle.importKey('raw', raw, SIGN.ALG, false, ['verify']) }; } catch (e) { return null; }
+}
+async function signPayload(ident, topic, event, q, body, withKey = false) {
+  if (/\n/.test(topic + event)) throw new TypeError('bad topic or event');
+  const sig = new Uint8Array(await ident.c.subtle.sign(SIGN.SIG, ident.priv, new TextEncoder().encode(sigText(topic, event, ident.id, q, body))));
+  return { ...body, p: ident.id, q, s: b64u(sig), ...(withKey ? { k: ident.pub } : {}) };
+}
+// d: the payload as received (untrusted). peerKey: { id, key } from importPeerKey
+async function verifyMsg(peerKey, topic, event, d, c = globalThis.crypto) {
+  try {
+    if (!peerKey || !d || typeof d !== 'object' || d.p !== peerKey.id || !Number.isSafeInteger(d.q) || d.q < 1) return false;
+    const sig = unb64u(d.s, SIGN.SIGLEN); if (!sig) return false;
+    return await c.subtle.verify(SIGN.SIG, peerKey.key, sig, new TextEncoder().encode(sigText(topic, event, d.p, d.q, bodyOf(d))));
+  } catch (e) { return false; }
+}
+// Sending side of one channel. The seq is taken at call time (call order = seq order, kept across leaving and re-joining the
+// channel), the signature is async, so sign + deliver run as one chained step: messages leave in seq order. The public key
+// rides on 'p' every keyMs for late joiners (the roster entry carries it too). Every body gets a signed wall-clock t (ms): a receiver
+// with no baseline for this sender only takes a message whose t is recent, so recorded old messages cannot be replayed to a late joiner.
+function makeSigner(ident, topic, keyMs = SIGN.KEY_MS, now = () => performance.now(), wall = Date.now) {
+  let chain = Promise.resolve(), keyAt = -Infinity;
+  return {
+    post(event, body, deliver) {
+      const q = (ident.seqs.get(topic) || 0) + 1; ident.seqs.set(topic, q);
+      const t = now(), withKey = event === 'p' && t - keyAt >= keyMs; if (withKey) keyAt = t;
+      const signed = { ...body, t: wall() };
+      return chain = chain.then(async () => deliver(await signPayload(ident, topic, event, q, signed, withKey))).catch(() => {});
+    },
+    idle: () => chain
+  };
+}
+// Receiving side of one channel: per-sender key, last accepted seq, an in-order async verification queue, rate caps, and a short
+// buffer for messages whose sender's key has not arrived yet (it comes with the roster entry or a 'p'). Everything is untrusted.
+// onMsg(event, id, body) gets only messages whose signature checked out and whose seq is newer than the sender's last.
+// Cheap shape and size checks run first, before any decoding, queueing or holding.
+// Two tables: `senders` holds only ids that have had a signature verified (LRU; pinned ids, isPinned(id) e.g. the roster, are not
+// evicted while an unpinned one exists); everything unverified lives in the small `pend` table, so junk ids cannot push a real sender
+// out. An evicted verified sender leaves its last seq in `tomb` (ids only, much larger), so its old messages stay rejected.
+// A sender with no baseline here (no accepted message, no tombstone) must send a recent t (see makeSigner). The per-sender bucket is
+// charged on success only; failures charge a small per-id bucket, and an id out of that bucket (suspect) also spends the global one.
+function makeInbox({ topic, selfId, onMsg, events = ['p', 'c', 'x'], c = globalThis.crypto, verify = verifyMsg, now = () => performance.now(), wall = Date.now, isPinned = () => false,
+  rate = { burst: 60, perSec: 60 }, fail = { burst: 20, perSec: 2 }, suspect = { burst: 200, perSec: 200 }, maxQueue = 64, holdMs = 3000, holdMax = 16, maxSenders = 300, maxPending = 128, maxTomb = 5000, maxBytes = 8192, maxSkewMs = SIGN.SKEW_MS }) {
+  const senders = new Map(), pend = new Map(), tomb = new Map(); let active = 0, waiters = []; const warned = new Set(), G = { g: suspect.burst, gAt: now() };
+  const refill = (o, key, at, b, t) => { o[key] = Math.min(b.burst, o[key] + (t - o[at]) * b.perSec / 1000); o[at] = t; };
+  const firstOf = map => { // oldest that is not pinned and not busy; else oldest not busy; else oldest
+    for (const [id, r] of map) if (!isPinned(id) && !r.running) return id;
+    for (const [id, r] of map) if (!r.running) return id;
+    return map.keys().next().value;
+  };
+  const bury = r => { tomb.delete(r.id); tomb.set(r.id, r.last); if (tomb.size > maxTomb) tomb.delete(tomb.keys().next().value); };
+  const drop = (map, id) => { const r = map.get(id); map.delete(id); if (r) r.dead = true; return r; }; // a running queue sees dead and stops
+  const fresh = r => { const t = now(); r.hold = r.hold.filter(h => t - h.at < holdMs).slice(-holdMax); };
+  const find = id => {
+    const r = senders.get(id); if (r) { senders.delete(id); senders.set(id, r); return r; }
+    return pend.get(id) || null;
+  };
+  const make = id => {
+    const t = now();
+    for (const [pid, p] of pend) { fresh(p); if (!p.running && !p.queue.length && !p.hold.length && t - p.at > holdMs && !isPinned(pid) && !p.key) pend.delete(pid); }
+    if (pend.size >= maxPending) drop(pend, firstOf(pend));
+    const r = { id, key: null, last: tomb.get(id) || 0, verified: false, dead: false, queue: [], hold: [], running: false, tokens: rate.burst, tAt: t, fails: fail.burst, fAt: t, at: t }; pend.set(id, r); return r;
+  };
+  const promote = r => { // the first verified signature: from now on this sender is in the protected table
+    r.verified = true; if (pend.get(r.id) === r) pend.delete(r.id);
+    if (senders.size >= maxSenders) { const o = drop(senders, firstOf(senders)); if (o) bury(o); }
+    senders.set(r.id, r);
+  };
+  const settle = () => { if (active === 0) { const w = waiters; waiters = []; for (const f of w) f(); } };
+  const release = r => { fresh(r); r.queue.unshift(...r.hold); r.hold = []; }; // what was held is older than anything queued
+  const recent = d => typeof d.t === 'number' && Math.abs(wall() - d.t) <= maxSkewMs;
+  async function run(r) {
+    if (r.running) return; r.running = true; active++;
+    try {
+      while (r.queue.length && !r.dead) {
+        if (r.key && r.hold.length) release(r);
+        const it = r.queue.shift();
+        if (!r.key && typeof it.d.k === 'string') {
+          const k = await importPeerKey(it.d.k, c);
+          if (k && k.id === r.id) { if (!r.key) r.key = k; r.hold.push(it); release(r); continue; } // a roster key may have arrived meanwhile: older held ones still go first
+        }
+        if (!r.key) { r.hold.push(it); fresh(r); continue; }
+        const t = now(); refill(r, 'tokens', 'tAt', rate, t); refill(r, 'fails', 'fAt', fail, t); refill(G, 'g', 'gAt', suspect, t);
+        if (!(it.d.q > r.last) || r.tokens < 1) continue;
+        if (r.last === 0 && !recent(it.d)) { // skew: say so once per sender (only for a message that really is theirs)
+          if (warned.has(r.id) || warned.size >= 50 || r.fails < 1) continue; // no verify once told, or once this id has spent its failures
+          if (await verify(r.key, topic, it.ev, it.d, c)) { warned.add(r.id); console.warn('room: a message from', r.id, 'was dropped: its clock differs by over', maxSkewMs / 1000, 's'); } else r.fails--;
+          continue;
+        }
+        const sus = r.fails < 1; if (sus) { if (G.g < 1) continue; G.g--; }
+        const ok = await verify(r.key, topic, it.ev, it.d, c);
+        if (!ok) { if (!sus) r.fails--; continue; }
+        if (r.dead || !(it.d.q > r.last)) continue;
+        r.tokens--; r.last = it.d.q; if (!r.verified) promote(r);
+        const body = bodyOf(it.d); delete body.t;
+        try { onMsg(it.ev, r.id, body); } catch (e) { console.error(e); }
+      }
+    } finally { r.running = false; r.at = now(); active--; settle(); }
+  }
+  return {
+    submit(ev, d) {
+      if (!events.includes(ev) || !d || typeof d !== 'object' || Array.isArray(d)) return;
+      if (typeof d.s !== 'string' || d.s.length !== 86 || (d.k !== undefined && (typeof d.k !== 'string' || d.k.length !== 87))) return;
+      if (typeof d.p !== 'string' || d.p.length > 128 || d.p === selfId || !validPeerId(d.p) || !Number.isSafeInteger(d.q) || d.q < 1) return;
+      try { if (JSON.stringify(d).length > maxBytes) return; } catch (e) { return; }
+      if (d.q <= (tomb.get(d.p) || 0)) return; // an evicted sender's old messages never reach the queue
+      const r = find(d.p) || make(d.p);
+      if (d.q <= r.last || r.queue.length >= maxQueue) return;
+      fresh(r); r.queue.push({ ev, d, at: now() }); run(r);
+    },
+    async learn(id, pub) { // a public key from the roster: only kept when it is the one this id is derived from (the record stays unverified until a signature checks out)
+      if (typeof id !== 'string' || id === selfId || !validPeerId(id)) return false;
+      const have = find(id); if (have && have.key) return false;
+      const k = await importPeerKey(pub, c); if (!k || k.id !== id) return false;
+      const r = find(id) || make(id); if (r.key) return false;
+      r.key = k; if (!r.running) { release(r); run(r); } return true; // a running loop releases the held ones itself before its next item
+    },
+    idle: () => active === 0 ? Promise.resolve() : new Promise(res => waiters.push(res))
+  };
+}
+/* @sign:end */
+/* @lobbygate:start */
+// Cancel token for the lobby's async joins: take a token before the await, and when it resolves only go on if it is still valid. cancel() (leaving the lobby, starting a solo race) voids every token taken so far.
+function makeGate() { let g = 0; return { token: () => g, cancel: () => { g++; }, ok: t => t === g }; }
+/* @lobbygate:end */
+const lobbyGate = makeGate();
 /* @chat:start */
 /* Room and race chat (pure part). A message rides in the sender's room state as a small rolling field ch: the last KEEP messages as
    [seq, text], seq counting up for the whole tab. The claude.ai room has presence only; on Supabase that state already travels by
@@ -3487,7 +3694,7 @@ const tiltSensOf = v => { const n = parseFloat(v); return Number.isFinite(n) ? c
 const car = {};
 const rival = {};
 let state = 'title', raceT = 0, countT = 0, camOrbit = 0, shake = 0, lastGapSign = 1, finishTimer = -1;
-let playerWon = false, driftTotal = 0, driftChain = 0, driftIdle = 0, rivalFinishT = null, playerFinishT = null;
+let playerWon = false, driftTotal = 0, driftChain = 0, driftIdle = 0, rivalFinishT = null, playerFinishT = null, rivalCrossN = null, playerCrossN = null, stepN = 0;
 let menuOpen = false, menuView = 'main'; // in-game menu (never pauses the race)
 let confirmFor = 'forfeit', confirmFrom = '#igForfeit'; // what the menu confirm view asks (forfeit / lobby), and the button to refocus when it closes; read by syncMenuUI at start-up
 let steerMode = 'drag', tiltSens = TILT.SENS_DEF, tiltNoteKey = '', steerTok = 0; // 'drag' | 'tilt' | 'zones'; the touch-control code is in the controls section
@@ -3517,11 +3724,11 @@ function samplePos(s, lat) {
 }
 function resetRace() {
   const p = pts[8];
-  Object.assign(car, { x: p.x - Math.cos(p.h) * startLat, z: p.z + Math.sin(p.h) * startLat, h: p.h, vx: 0, vz: 0, w: 0, steer: 0, drift: false, idx: 8, rpm: 1000, gear: 1, autoGear: 1, shiftT: 0, penalty: 0, gutSide: 0, gutT: 0, gutLat: 0, gutCool: 0, gutDrop: 0, gutDropSide: 1, railAgo: Infinity, toll: { paid: [], warned: [] } });
+  Object.assign(car, { x: p.x - Math.cos(p.h) * startLat, z: p.z + Math.sin(p.h) * startLat, h: p.h, vx: 0, vz: 0, w: 0, steer: 0, drift: false, idx: 8, rpm: 1000, gear: 1, autoGear: 1, shiftT: 0, penalty: 0, gutSide: 0, gutT: 0, gutLat: 0, gutCool: 0, gutDrop: 0, gutDropSide: 1, gas: false, brakeOn: false, railAgo: Infinity, toll: { paid: [], warned: [] } });
   if (startS) { const q = samplePos(p.s + startS, startLat); Object.assign(car, { x: q.x, z: q.z, h: q.h, idx: q.i }); }
   car.loc = locate(car);
   Object.assign(rival, { s: pts[24].s, v: 0, lat: -2.2, latV: 0, i: 0, vis: 0 });
-  state = 'title'; raceT = 0; driftTotal = 0; driftChain = 0; driftIdle = 0; rivalFinishT = null; playerFinishT = null; finishTimer = -1; lastGapSign = 1; tsHide();
+  state = 'title'; raceT = 0; driftTotal = 0; driftChain = 0; driftIdle = 0; rivalFinishT = null; playerFinishT = null; rivalCrossN = null; playerCrossN = null; stepN = 0; finishTimer = -1; lastGapSign = 1; tsHide();
 }
 resetRace();
 
@@ -3562,6 +3769,7 @@ function vehicleTurn(c, P, u, a, dt) {
   let fx = Math.sin(c.h), fz = Math.cos(c.h), rx = -Math.cos(c.h), rz = Math.sin(c.h);
   let vf = c.vx * fx + c.vz * fz, vl = c.vx * rx + c.vz * rz;
   const spd = Math.hypot(c.vx, c.vz);
+  if (c.drift && u.hold && u.brake && vf <= 0.5) c.drift = false; // after the finish the auto-brake stops the car for good: a backwards slide ends here instead of feeding the drift integration
   if (!c.drift && spd > 11 && u.hb && Math.abs(c.steer) > 0.2) { c.drift = true; c.w += -Math.sign(c.steer) * 0.7; }
   const sf = clamp(vf / 9, -1, 1);
   let wT;
@@ -3645,7 +3853,7 @@ function physics(dt) {
     if (vt > 0) { c.vx -= tx * vt; c.vz -= tz * vt; }
   }
   if (pvp) pvpBump(c);
-  else if (!taRun && !sakeRun) {
+  else if (!taRun && !sakeRun && carsMayCollide(rival.s, L.s, FINISH_S, state)) {
     const rp = samplePos(rival.s, rival.lat);
     const cr = carStep(c, CAR_BOX[choice.car], { x: rp.x, z: rp.z, h: rp.h, vis: rival.vis, s: rival.s, lat: rival.lat, v: rival.v, latV: rival.latV }, CAR_BOX[rivalFor(baseId(trackId), choice.car).car], roadHW - 1, COLL);
     if (cr) {
@@ -3667,6 +3875,16 @@ function wallHit(v) {
 }
 
 /* ---------- rival AI ---------- */
+/* @finish-clock:start */
+// who crossed first, by fixed-step number: the same step is a tie and the player wins it (the player's own time is still the frame-end raceT)
+const playerFirst = (playerStep, rivalStep) => rivalStep === null || playerStep <= rivalStep;
+/* @finish-clock:end */
+/* @finish-hit:start */
+// Past the finish line nobody races: the rival is pinned at the end of the road (pts[N-3]) and would sit in the middle of it, so no car-to-car hit once the rival, or the finished player, is past it
+function carsMayCollide(rivalS, playerS, finishS, st) { return !(rivalS > finishS || (st === 'done' && playerS > finishS)); }
+// the rival's advance along the road; held at the end of the road it stops dead (no wheelspin against the stop)
+function rivalAdvance(s, v, dt, endS) { const n = s + v * dt; return n >= endS ? { s: endS, v: 0 } : { s: n, v }; }
+/* @finish-hit:end */
 /* @rival-hill:start */
 // Uphill courses only (up = true); downhill returns ai.top / ai.acc untouched. The AI's top speed was tuned on the downhill course (average grade -AI_HILL_REF):
 // 'hill' = m/s of top speed one unit of extra grade costs that car (measured on the player physics of the same car); the slope also bleeds acceleration like vehicleAccel does.
@@ -3687,16 +3905,16 @@ function rivalUpdate(dt) {
   }
   const gap = r.s - car.loc.s;
   if (gap > 140) target *= 0.85; else if (gap > 70) target *= 0.94; else if (gap < -30) target *= 1.08;
-  if (rivalFinishT !== null) target = 0;
+  if (rivalCrossN !== null) target = 0;
   if (r.v < target) r.v = Math.min(target, r.v + aiHillAcc(ai, up, here.grade) * dt); else r.v = Math.max(target, r.v - 16 * dt);
-  r.s = Math.min(pts[N - 3].s, r.s + r.v * dt);
+  ({ s: r.s, v: r.v } = rivalAdvance(r.s, r.v, dt, pts[N - 3].s));
   const latT = Math.abs(here.k) > 0.008 ? -Math.sign(here.k) * 2.4 : 0;
   r.lat += clamp(latT - r.lat, -1.3 * dt, 1.3 * dt) + r.latV * dt;
   r.latV *= Math.exp(-4 * dt);
   if (Math.abs(r.lat) > roadHW - 1) { r.lat = Math.sign(r.lat) * (roadHW - 1); r.latV = 0; }
   const visT = Math.abs(here.k) > 0.015 ? clamp(here.k * r.v * 0.6, -0.55, 0.55) : 0;
   r.vis += (visT - r.vis) * Math.min(1, 3 * dt);
-  if (rivalFinishT === null && r.s >= FINISH_S) rivalFinishT = raceT;
+  if (rivalCrossN === null && r.s >= FINISH_S) rivalCrossN = stepN;
 }
 
 /* ---------- audio (all synthesized) ---------- */
@@ -3875,10 +4093,16 @@ function ownClear() {
   ownBlob = null; ownName = ''; ownSetSrc(); ownIdb('readwrite', s => s.delete('bgmFile'));
   bgm = 'synth'; store.set('yatouge-bgm', 'synth'); applyBgm();
 }
+let ownNoteT = 0;
+// the title screen hides the HUD pop-up, so a refused file is told next to the music buttons
+function ownNote(msg) {
+  $('#ownMsg').textContent = msg; clearTimeout(ownNoteT);
+  if (msg) ownNoteT = setTimeout(() => ownNote(''), 5000);
+}
 function ownPicked(file) {
   const v = ownCheck(file);
-  if (v === 'ok') ownUse(file, file.name, true);
-  else showPop(T(v === 'size' ? 'ownBig' : 'ownBad'));
+  if (v === 'ok') { ownNote(''); ownUse(file, file.name, true); }
+  else { const m = T(v === 'size' ? 'ownBig' : 'ownBad'); ownNote(m); if (state !== 'title') showPop(m); } // in a race the HUD pop-up is the visible place
 }
 // 還原上次的自選檔；缺檔或資料壞掉就靜默維持原創
 if (ownMode(store.get('yatouge-bgm')) === 'own') {
@@ -4011,12 +4235,12 @@ function updateEngineAudio(dt) {
 document.addEventListener('visibilitychange', () => { if (!ac) return; if (document.hidden) ac.suspend(); else ac.resume(); });
 
 /* ---------- HUD ---------- */
-const fmtT = t => { const m = Math.floor(t / 60), s = t - m * 60; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(2); };
 let popTimer = 0;
 function showPop(big, small) { const el = $('#pop'); el.innerHTML = ''; el.append(big); if (small) { const sm = document.createElement('small'); sm.textContent = small; el.append(sm); } el.classList.add('show'); popTimer = 1.4; }
-function tsHide() { tsCur = ''; tsKey = ''; const el = $('#turnSign'); if (!el.classList.contains('show')) return; el.classList.remove('show', 'flash'); el.setAttribute('aria-hidden', 'true'); $('#pop').classList.remove('ts-below'); } // the DOM is the truth: safe to call after tsCur was cleared elsewhere
+function tsPopClear(pop) { pop.classList.remove('ts-below', 'ts-beside'); for (const v of ['--ts-pop', '--ts-pop-y', '--ts-pop-r', '--ts-pop-w']) pop.style.removeProperty(v); }
+function tsHide() { tsCur = ''; tsKey = ''; const el = $('#turnSign'); if (!el.classList.contains('show')) return; el.classList.remove('show', 'flash'); el.setAttribute('aria-hidden', 'true'); tsPopClear($('#pop')); } // the DOM is the truth: safe to call after tsCur was cleared elsewhere
 function turnSignFrame() {
-  const sg = tsStyle !== 'off' && state === 'race' && !sakeRun && !tsGoGated(tsStyle, performance.now() < goUntil) ? nextTwoSigns(tsList || (tsList = cornerList(pts)), car.loc.s, Math.hypot(car.vx, car.vz)) : null;
+  const sg = tsStyle !== 'off' && state === 'race' && !sakeRun && !tsGoGated(tsStyle, goUntil > 0) ? nextTwoSigns(tsList || (tsList = cornerList(pts)), car.loc.s, Math.hypot(car.vx, car.vz), tsCur === '' ? -1 : +tsCur) : null;
   if (!sg) { tsHide(); return; }
   const el = $('#turnSign'), k = sg.k;
   if (tsCur !== String(sg.i)) {
@@ -4041,8 +4265,11 @@ function turnSignFrame() {
   const pop = $('#pop');
   if (tsStyle === 'big' || tsStyle === 'preview') {
     if (cockpit) el.style.setProperty('--ts-top', tsMirrorBottom + 'px'); else el.style.removeProperty('--ts-top'); // below the cockpit mirror; chase view uses the CSS base
-    pop.classList.add('ts-below'); pop.style.setProperty('--ts-pop', tsPopTop(el.getBoundingClientRect().bottom) + 'px'); // the toast sits below the sign
-  } else if (pop.classList.contains('ts-below')) pop.classList.remove('ts-below');
+    tsPopClear(pop); // measure the toast at its normal size, two lines tall
+    const pl = tsPopPlace(el.getBoundingClientRect(), parseFloat(getComputedStyle(pop).fontSize) * 2, window.innerWidth, window.innerHeight);
+    if (pl.mode === 'below') { pop.classList.add('ts-below'); pop.style.setProperty('--ts-pop', pl.top + 'px'); } // the toast sits below the sign
+    else { pop.classList.add('ts-beside'); pop.style.setProperty('--ts-pop-y', pl.top + 'px'); pop.style.setProperty('--ts-pop-r', pl.right + 'px'); pop.style.setProperty('--ts-pop-w', pl.maxWidth + 'px'); } // or beside it
+  } else tsPopClear(pop);
 }
 function hud(dt) {
   const spd = Math.hypot(car.vx, car.vz), vf = car.vx * Math.sin(car.h) + car.vz * Math.cos(car.h);
@@ -4079,7 +4306,7 @@ function hud(dt) {
     el.className = 'gap ' + (gap > 0 ? 'behind' : 'ahead');
     const sg = gap > 0 ? 1 : -1;
     if (state === 'race' && sg !== lastGapSign && Math.abs(gap) > 1) { showPop(T(sg < 0 ? 'overtake' : 'passed'), T(sg < 0 ? 'hold' : 'chase')); lastGapSign = sg; }
-  } else { el.textContent = pvp ? nickOf(pvp.opp && pvp.opp.nk) : T('rival') + Lz(CARS[rivalFor(baseId(trackId), choice.car).car].name); el.className = 'gap behind'; }
+  } else { el.textContent = pvp ? nickOf(pvp.opp ? pvp.opp.nk : pvp.oppNk) : T('rival') + Lz(CARS[rivalFor(baseId(trackId), choice.car).car].name); el.className = 'gap behind'; }
   $('#progRival').style.left = clamp((rs ?? 0) / FINISH_S * 100, 0, 100) + '%';
 }
 // time attack: the gap line shows the time against the best run at this point of the course; the second dot is the ghost
@@ -4132,10 +4359,11 @@ function placeCars(dt) {
 function placeGhost(dt) {
   if (!ghostCar || !taRun) return;
   ghostCar.g.visible = ghostOn;
-  if (!ghostOn) return;
-  const r = taRun, p = taAt(r.ghost, state === 'race' || state === 'done' ? raceT : 0, r.gi);
+  const r = taRun, p = taAt(r.ghost, state === 'race' || state === 'done' ? raceT : 0, r.gi); // keeps tracking while hidden so it is on the road the moment it is switched on
   r.gi = p.i; r.gs = p.s; r.gpos.x = p.x; r.gpos.z = p.z;
-  const L = locate(r.gpos), g = ghostCar.g, moved = Math.hypot(p.x - g.position.x, p.z - g.position.z);
+  const L = locate(r.gpos);
+  if (!ghostOn) return;
+  const g = ghostCar.g, moved = Math.hypot(p.x - g.position.x, p.z - g.position.z);
   g.position.set(p.x, L.y, p.z);
   g.rotation.set(Math.atan(-L.grade * Math.cos(wrap(p.h - L.h))), p.h, 0, 'YXZ');
   if (moved < 5) for (const w of ghostCar.spin) w.rotation.x += moved / 0.34;
@@ -4552,7 +4780,7 @@ function syncBody(hide) {
     const cols = CARS[choice.car].colors; const pc = cols[choice.color] || cols[0]; playerInterior = makeInterior(choice.car, pc.top, pc.hood === 'carbon');
     playerCar.g.add(playerInterior.group);
   }
-  for (const o of playerCar.g.children) if (o !== head && o !== headTarget && o !== playerInterior?.group) o.visible = !hide;
+  for (const o of playerCar.g.children) if (o !== head && o !== headTarget && o !== playerInterior?.group) o.visible = o === playerCar.door ? !hide && kxLetterOn : !hide;
   if (playerInterior) playerInterior.group.visible = hide;
 }
 const _a = new THREE.Vector3(), _up = new THREE.Vector3();
@@ -4580,7 +4808,7 @@ function cockpitCamera(dt) {
 }
 function easeFov(dt, fov) {
   if (fovSnap) { fovSnap = false; camera.fov = fov; camera.updateProjectionMatrix(); return; }
-  if (Math.abs(camera.fov - fov) > 0.05) { camera.fov += (fov - camera.fov) * Math.min(1, 3 * dt); camera.updateProjectionMatrix(); }
+  const nf = stepFov(camera.fov, fov, dt); if (nf !== camera.fov) { camera.fov = nf; camera.updateProjectionMatrix(); }
 }
 function updateCamera(dt) {
   const c = car, L = c.loc, spd = Math.hypot(c.vx, c.vz);
@@ -4592,7 +4820,7 @@ function updateCamera(dt) {
     const w = window.innerWidth, h = window.innerHeight;
     if (w >= 900) camera.setViewOffset(w, h, -w * 0.2, 0, w, h); else camera.clearViewOffset();
     camPos.set(c.x + Math.sin(camOrbit) * 7, L.y + 2.2, c.z + Math.cos(camOrbit) * 7);
-    camera.position.copy(camPos); camera.lookAt(c.x, L.y + 0.9, c.z); camH = c.h; return;
+    camera.position.copy(camPos); camera.lookAt(c.x, L.y + 0.9, c.z); camH = c.h; easeFov(dt, FOV_BASE); return;
   }
   // follow the direction of travel (so a drift shows the car sideways); fall back to the car's heading when slow or reversing
   const fwdV = c.vx * Math.sin(c.h) + c.vz * Math.cos(c.h);
@@ -4641,7 +4869,7 @@ function scoring(dt) {
 function finishRace() {
   state = 'done'; playerFinishT = raceT; finishTimer = 1.6;
   if (driftChain > 0) { driftTotal += driftChain; driftChain = 0; }
-  playerWon = rivalFinishT === null || playerFinishT < rivalFinishT;
+  playerWon = rivalCrossN === null || playerFirst(playerCrossN ?? stepN, rivalCrossN);
   if (pvp) { pvpFinished(); showPop(T('pvpLine')); } else if (taRun) { taSample(true); showPop(T('pvpLine')); } else if (sakeRun) { const j = sakeCheck(true); showPop(T(j === 'win' ? 'sakeOk' : j === 'hits' ? 'sakeFailHits' : 'sakeFailTime')); } else showPop(T(playerWon ? 'first' : 'second'));
 }
 function taSample(force) { const r = taRun; if (!r.full && !taRecord(r.buf, raceT, { s: car.loc.s, x: car.x, z: car.z, h: car.h }, force)) r.full = true; }
@@ -4813,15 +5041,20 @@ function showResult() {
   $('#hud').hidden = true; $('#result').hidden = false;
   $('#btnMenu').focus();
 }
+// the card rows are rebuilt from scratch, so a keyboard focus on one of them is put back on the same slot afterwards
+let pickByPointer = false; // last input was a mouse or touch press, not a key
+window.addEventListener('pointerdown', () => { pickByPointer = true; }, true);
+window.addEventListener('keydown', () => { pickByPointer = false; }, true);
+const keepPickFocus = () => focusKeep(['#pick', '#swatches', '#modePick', '#trackPick', '#dirPick'].map($), document.activeElement, pickByPointer);
 function renderPicker() {
-  const pick = $('#pick'), sw = $('#swatches');
+  const pick = $('#pick'), sw = $('#swatches'), keep = keepPickFocus();
   pick.innerHTML = ''; sw.innerHTML = '';
   for (const [k, d] of Object.entries(CARS)) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(k === choice.car));
     b.innerHTML = `<b></b><small></small>` + carStats(k, kxUpActive()).map(([n, v]) => `<div class="stat"><span>${Lz(n)}</span><div class="pips">${[1, 2, 3, 4, 5].map(i => `<i class="${i <= v ? 'on' : ''}"></i>`).join('')}</div></div>`).join('');
     b.querySelector('b').textContent = Lz(d.name); b.querySelector('small').textContent = Lz(d.sub);
     b.disabled = mode === 'sake'; // the car is fixed in Sake Run
-    b.addEventListener('click', () => { if (mode === 'sake') return; choice = { car: k, color: 0 }; chosen(); });
+    b.addEventListener('click', () => { const next = carPickNext(choice, k, mode); if (!next) return; choice = next; chosen(); });
     pick.append(b);
   }
   CARS[choice.car].colors.forEach((c, i) => {
@@ -4834,11 +5067,11 @@ function renderPicker() {
     b.addEventListener('click', () => { if (mode === 'sake') return; choice = { car: choice.car, color: i }; chosen(); });
     sw.append(b);
   });
-  syncKxUI(); renderModePicker();
+  syncKxUI(); renderModePicker(); keep();
 }
 // race / time attack cards; the time-attack card shows the best for the chosen course × car
 function renderModePicker() {
-  const el = $('#modePick'), best = taParse(store.get(taKey(trackId, choice.car, kxUpActive())));
+  const keep = keepPickFocus(), el = $('#modePick'), best = taParse(store.get(taKey(trackId, choice.car, kxUpActive())));
   el.innerHTML = '';
   const sb = sakeParseBest(store.get(sakeKey));
   for (const m of ['race', 'ta', 'sake']) {
@@ -4850,7 +5083,7 @@ function renderModePicker() {
     el.append(b);
   }
   $('#lead').textContent = T(mode === 'ta' ? 'leadTa' : mode === 'sake' ? 'leadSake' : 'lead', Lz(TRACKS[baseId(trackId)].name), isUp(trackId));
-  syncTaUI();
+  syncTaUI(); keep();
 }
 function setMode(m) {
   if (state !== 'title' || m === mode) return;
@@ -4881,7 +5114,7 @@ function syncKxUI() {
 }
 function setKx(kind, on) {
   if (kind === 'chime') { kxChimeOn = on; store.set('yatouge-kx-chime', on ? '1' : '0'); }
-  else { kxLetterOn = on; store.set('yatouge-kx-letter', on ? '1' : '0'); for (const c of [playerCar, rivalCar, ghostCar]) if (c && c.door) c.door.visible = on; }
+  else { kxLetterOn = on; store.set('yatouge-kx-letter', on ? '1' : '0'); for (const c of [playerCar, rivalCar, ghostCar]) if (c && c.door) c.door.visible = on && !(c === playerCar && bodyCar === playerCar && bodyHidden); }
   syncKxUI();
 }
 for (const [id, kind] of [['#tKxChime', 'chime'], ['#igKxChime', 'chime'], ['#tKxLetter', 'letter'], ['#igKxLetter', 'letter']])
@@ -4891,7 +5124,7 @@ $('#tKxUp').addEventListener('click', () => { kxUpOn = !kxUpOn; store.set('yatou
 for (const id of ['#tVibe', '#igVibe']) $(id).addEventListener('click', () => { vibeOn = !vibeOn; store.set('yatouge-vibe', vibeOn ? '1' : '0'); syncKxUI(); });
 for (const id of ['#tTurn', '#igTurn']) $(id).addEventListener('change', e => { if (!TS_STYLES.includes(e.target.value)) return; tsStyle = e.target.value; store.set('yatouge-turn-style', tsStyle); tsHide(); syncKxUI(); }); // tsHide: redraw (or re-beep) the current corner in the new style
 function renderTrackPicker() {
-  const el = $('#trackPick'); el.innerHTML = '';
+  const keep = keepPickFocus(), el = $('#trackPick'); el.innerHTML = '';
   for (const id in TRACKS) {
     const c = COURSES[courseId(id, mode === 'sake' ? 'down' : trackDir)], b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(id === baseId(trackId)));
     b.innerHTML = '<b></b><small></small>';
@@ -4900,6 +5133,7 @@ function renderTrackPicker() {
     b.addEventListener('click', () => setTrack(id));
     el.append(b);
   }
+  keep();
 }
 function setTrack(id) {
   const cid = courseId(id, trackDir);
@@ -4908,7 +5142,7 @@ function setTrack(id) {
 }
 // downhill / uphill switch under the course cards; the saved course stays a plain id, the direction is stored apart. Sake Run is always downhill.
 function renderDirPicker() {
-  const el = $('#dirPick'); el.innerHTML = '';
+  const keep = keepPickFocus(), el = $('#dirPick'); el.innerHTML = '';
   for (const d of DIRS) {
     const b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(d === (mode === 'sake' ? 'down' : trackDir)));
     b.innerHTML = '<b></b><small></small>';
@@ -4917,6 +5151,7 @@ function renderDirPicker() {
     b.addEventListener('click', () => setDir(d));
     el.append(b);
   }
+  keep();
 }
 function setDir(d) {
   if (state !== 'title' || d === trackDir || mode === 'sake') return;
@@ -4949,7 +5184,9 @@ applyLang();
 function startRace() {
   document.body.classList.toggle('manual', trans === 'manual');
   if (!pvp && mode === 'sake' && (trackId !== SAKE_TRACK || choice.car !== SAKE_CAR.car || choice.color !== SAKE_CAR.color)) sakeForce(true); // defensive: online play may have moved the course
+  $('#pop').classList.remove('show'); popTimer = 0;
   initAudio(); resetRace(); taBegin(); sakeBegin(); Object.assign(P, carPhys(choice.car, kxUpActive())); camera.clearViewOffset();
+  lobbyGate.cancel(); // a join still pending from the lobby must not pull the player into a room over this race
   state = 'count'; countT = 3.999;
   $('#title').hidden = true; $('#result').hidden = true; $('#hud').hidden = false; $('#lobby').hidden = true; $('#room').hidden = true; onlineUI = false;
   camera.position.set(car.x - Math.sin(car.h) * 7, car.loc.y + 3, car.z - Math.cos(car.h) * 7);
@@ -4978,16 +5215,26 @@ function onlineStatus(i) {
 /* ---------- online 1v1: transport ---------- */
 /* The transport is the claude.ai `room` capability, presence only (no topics: those are admin-only). With ?mockroom=1 a
    BroadcastChannel stand-in of the same shape is used instead, so two tabs of one browser can race each other.
-   Mock protocol (messages on channel 'yatouge-mockroom', {k, s: scope, peer, by, pres}): 'p' = my whole presence (sent on change,
-   at most every 33 ms, and as a 1 s heartbeat), 'hi' = everybody in the scope re-sends, 'bye' = explicit leave. A tab that closes
-   sends nothing: its peer disappears once no message has arrived for 3 s. No room at all = no online button. */
-function makeMockRoom() {
+   Mock protocol (messages on channel 'yatouge-mockroom', {k, s: scope, d}): 'p' = my whole presence (sent on change,
+   at most every 33 ms, and as a 1 s heartbeat), 'hi' = everybody in the scope re-sends, 'x' = explicit leave. 'p' and 'x' carry d =
+   a signed payload exactly like the Supabase transport (see @sign; the public key rides on every 'p'), so tab tests exercise the same
+   checks. A tab that closes sends nothing: its peer disappears once no message has arrived for 3 s. No room at all = no online button. */
+async function makeMockRoom() {
   const bc = new BroadcastChannel('yatouge-mockroom'), TIMEOUT = 3000, scopes = new Map(), connSubs = new Set();
-  const rid = () => Math.random().toString(36).slice(2, 10);
-  const me = { peer: rid() + rid(), by: null }; // like the real room without the `user` capability: nobody has an account id
+  const ident = await makeIdentity();
+  const me = { peer: ident.id, by: null }; // like the real room without the `user` capability: nobody has an account id
   const connected = () => navigator.onLine !== false;
   window.addEventListener('online', () => connSubs.forEach(f => f(true))); window.addEventListener('offline', () => connSubs.forEach(f => f(false)));
-  const send = sc => bc.postMessage({ k: 'p', s: sc.name, peer: me.peer, by: me.by, pres: sc.mine });
+  const send = sc => sc.sg.post('p', { pres: sc.mine }, d => bc.postMessage({ k: 'p', s: sc.name, d }));
+  // a message that passed @sign: the sender id is verified
+  const onSigned = (sc, ev, id, body) => {
+    if (ev === 'x') { if (sc.remote.delete(id)) later(sc); return; }
+    const pres = body.pres; if (!pres || typeof pres !== 'object' || Array.isArray(pres)) return;
+    const old = sc.remote.get(id), now = Date.now(), by = null, kind = 'viewer';
+    const same = !!old && old.by === by && old.kind === kind && JSON.stringify(old.presence) === JSON.stringify(pres);
+    sc.remote.set(id, { by, kind, presence: same ? old.presence : Object.freeze(pres), updatedAt: same ? old.updatedAt : now, seen: now });
+    if (!same) later(sc);
+  };
   // deliver the net change since the last delivery (peers are frozen; an unchanged one stays the same object)
   const flush = sc => {
     sc.flushT = 0;
@@ -5009,6 +5256,8 @@ function makeMockRoom() {
   const later = sc => { if (!sc.flushT) sc.flushT = setTimeout(() => flush(sc), 8); };
   const makeScope = name => {
     const sc = { name, mine: Object.freeze({}), mineAt: Date.now(), remote: new Map(), subs: new Set(), cache: new Map(), arr: Object.freeze([]), flushT: 0, sendT: 0, left: false };
+    sc.sg = makeSigner(ident, 'yatouge-mockroom/' + name, 0);
+    sc.vf = makeInbox({ topic: 'yatouge-mockroom/' + name, selfId: me.peer, c: ident.c, events: ['p', 'x'], isPinned: id => sc.remote.has(id), onMsg: (ev, id, body) => onSigned(sc, ev, id, body) });
     scopes.set(name, sc); flush(sc);
     sc.api = {
       name,
@@ -5030,7 +5279,7 @@ function makeMockRoom() {
       },
       connected,
       onConnection(fn) { connSubs.add(fn); Promise.resolve().then(() => { if (connSubs.has(fn)) fn(connected()); }); return () => { connSubs.delete(fn); }; },
-      leave() { if (!sc.left) { sc.left = true; scopes.delete(name); bc.postMessage({ k: 'bye', s: name, peer: me.peer }); sc.subs.clear(); } return Promise.resolve(); }
+      leave() { if (!sc.left) { sc.left = true; scopes.delete(name); sc.sg.post('x', {}, d => bc.postMessage({ k: 'x', s: name, d })); sc.subs.clear(); } return Promise.resolve(); }
     };
     bc.postMessage({ k: 'hi', s: name }); send(sc);
     return sc;
@@ -5041,13 +5290,7 @@ function makeMockRoom() {
       if (!m || typeof m !== 'object' || typeof m.s !== 'string') return;
       const sc = scopes.get(m.s); if (!sc || sc.left) return;
       if (m.k === 'hi') { send(sc); return; }
-      if (typeof m.peer !== 'string' || m.peer === me.peer) return;
-      if (m.k === 'bye') { if (sc.remote.delete(m.peer)) later(sc); return; }
-      if (m.k !== 'p' || !m.pres || typeof m.pres !== 'object' || Array.isArray(m.pres)) return;
-      const old = sc.remote.get(m.peer), now = Date.now(), by = null, kind = m.kind === 'agent' ? 'agent' : 'viewer';
-      const same = !!old && old.by === by && old.kind === kind && JSON.stringify(old.presence) === JSON.stringify(m.pres);
-      sc.remote.set(m.peer, { by, kind, presence: same ? old.presence : Object.freeze(m.pres), updatedAt: same ? old.updatedAt : now, seen: now });
-      if (!same) later(sc);
+      if (m.k === 'p' || m.k === 'x') sc.vf.submit(m.k, m.d);
     } catch (e) { /* a malformed message from another tab is ignored */ }
   };
   setInterval(() => { for (const sc of scopes.values()) send(sc); }, 1000);
@@ -5072,14 +5315,17 @@ function makeMockRoom() {
    (see mergePeer):
    - low-rate fields (st, car, col, trk, go, opp, ft, nk, lobby ...): event 'p' { p: sender peer, low }, on change (at most every
      LOW_MS) and as a HB_MS heartbeat while non-empty, so a lost message or a late joiner is repaired within a second;
+     a cleared low is sent as an empty one 3 times (so the others drop the old state);
    - the car: event 'c' { p, n, c }, at most every CAR_MS.
    The sdk is loaded from the CDN (pinned, with an integrity hash) only when the player presses Online. */
 const SUPA = {
   URL: 'https://kvalgehfazubficybqhw.supabase.co', KEY: 'sb_publishable_dAQEl29T_VoG_SaKb4jzsg_AppMoOJw',
   SRC: 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js', SRI: 'sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK',
-  LOW_MS: 300, HB_MS: 1000, CAR_MS: 50, CONNECT_MS: 15000, SYNC_MS: 1500, GHOST_MS: 2500, MAX_PEERS: 256, MAX_CARS: 64
+  LOW_MS: 300, HB_MS: 1000, CAR_MS: 50, CONNECT_MS: 15000, SYNC_MS: 1500, GHOST_MS: 2500, LIVE_MS: 75000, MAX_GONE: 256, MAX_PEERS: 256, MAX_CARS: 64,
+  TRACK_MAX: 5, TRACK_WIN_MS: 30500, TRACK_RETRY_MS: 3000 // presence track(): 5 per 30 s allowed, with a margin; one retry after a failed result
 };
 let sdkLoad = null;
+let carSeq = 0; // the car sample number only grows across matches in this tab: a receiver that kept our last sample (a lost bye) must not drop the new ones as stale
 function loadSupabaseSdk() {
   if (sdkLoad) return sdkLoad;
   return sdkLoad = new Promise((res, rej) => {
@@ -5093,13 +5339,29 @@ function loadSupabaseSdk() {
     document.head.append(s);
   });
 }
-function makeSupabaseRoom(load = loadSupabaseSdk) {
-  const ra = new Uint8Array(15);
-  if (window.crypto && crypto.getRandomValues) crypto.getRandomValues(ra); else for (let i = 0; i < 15; i++) ra[i] = Math.random() * 256;
-  const me = { peer: 'p' + Array.from(ra, b => 'abcdefghijklmnopqrstuvwxyz0123456789'[b % 36]).join(''), by: null }; // random per tab: the only id sent
+function makeSupabaseRoom(load = loadSupabaseSdk, onBusy = () => {}, budget = makeTrackBudget(SUPA.TRACK_MAX, SUPA.TRACK_WIN_MS), retryMs = SUPA.TRACK_RETRY_MS, mkIdent = makeIdentity) {
+  const me = { peer: '', by: null }; // peer: derived from this tab's public key (see @sign), set by start() before any channel opens
+  let ident = null;
   const scopes = new Set(), byName = new Map(), EMPTY = Object.freeze([]);
-  let client = null, lobby = null, startP = null;
-  const canPush = sc => !sc.left && !!client && client.realtime.isConnected() && sc.ch.state === 'joined'; // the sdk's own state: it rejoins by itself and fires no event for every change
+  let client = null, lobby = null, startP = null, delayed = 0;
+  // our roster entry, queued by the budget (never dropped); a result other than 'ok' is tried once more after retryMs. onBusy(true / false): a call is waiting for its slot
+  const unbusy = () => { if (--delayed === 0) onBusy(false); };
+  // at most one call per channel is waiting (for a slot, or for its retry): a repeated SUBSCRIBED while one waits adds nothing
+  const trackLater = (sc, ms, retry, counted) => {
+    if (counted && !sc.busyOn) { sc.busyOn = true; if (delayed++ === 0) onBusy(true); }
+    sc.tq = setTimeout(() => { sc.tq = null; sendTrack(sc, retry, true); }, ms);
+  };
+  const sendTrack = (sc, retry, queued) => {
+    if (sc.left || (sc.tq && !queued)) return;
+    const d = budget.take();
+    if (d > 0) { trackLater(sc, d, retry, true); return; }
+    if (sc.busyOn) { sc.busyOn = false; unbusy(); }
+    const again = () => { if (retry && !sc.left && !sc.tq) trackLater(sc, retryMs, false, false); };
+    let r; try { r = Promise.resolve(sc.ch.track({ v: 1, k: ident.pub })); } catch (e) { r = Promise.reject(e); }
+    r.then(res => { if (res !== 'ok') again(); }, again);
+  };
+  const chanUp = sc => !!client && client.realtime.isConnected() && sc.ch.state === 'joined'; // the sdk's own state: it rejoins by itself and fires no event for every change
+  const canPush = sc => !sc.left && chanUp(sc);
   const isConn = sc => canPush(sc) && navigator.onLine !== false;
   const flush = sc => { // deliver the net change since the last delivery (same contract as the mock: frozen peers, unchanged ones stay ===)
     sc.flushT = 0;
@@ -5126,23 +5388,27 @@ function makeSupabaseRoom(load = loadSupabaseSdk) {
   const setStatus = (sc, s) => { sc.status = s; checkConn(sc); };
   const kill = sc => {
     if (sc.left) return Promise.resolve();
-    try { sc.bye(); } catch (e) { /* not joined: nobody to tell */ }
-    sc.left = true; sc.lowL.cancel(); sc.carL.cancel(); clearInterval(sc.hb); clearInterval(sc.tick); scopes.delete(sc); byName.delete(sc.name);
+    let byeP; try { byeP = sc.bye(); } catch (e) { /* not joined: nobody to tell */ }
+    sc.left = true; if (sc.tq) { clearTimeout(sc.tq); sc.tq = null; } if (sc.busyOn) { sc.busyOn = false; unbusy(); } sc.lowL.cancel(); sc.carL.cancel(); clearInterval(sc.hb); clearInterval(sc.tick); scopes.delete(sc); byName.delete(sc.name);
     sc.subs.clear(); sc.conn.clear();
-    return Promise.resolve(client && client.removeChannel(sc.ch)).catch(() => {});
+    return Promise.resolve(byeP).then(() => client && client.removeChannel(sc.ch)).catch(() => {}); // the bye is signed asynchronously: the channel stays until it is out
   };
   const open = (name, isLobby) => new Promise((resolve, reject) => {
-    const sc = { name, status: 'none', ch: null, low: {}, mine: Object.freeze({}), mineAt: Date.now(), car: null, cars: new Map(), lows: new Map(), recs: new Map(), roster: new Set(), seen: new Map(), ghosts: false, connPrev: false, hb: 0, tick: 0, bye: null, cache: new Map(), arr: EMPTY, subs: new Set(), conn: new Set(), flushT: 0, left: false, synced: false, afterSync: null };
+    const sc = { name, tq: null, busyOn: false, status: 'none', ch: null, low: {}, clearN: 0, mine: Object.freeze({}), mineAt: Date.now(), car: null, cars: new Map(), lows: new Map(), recs: new Map(), roster: new Set(), seen: new Map(), live: new Map(), first: new Map(), out: new Map(), gone: new Map(), expAt: Infinity, ghosts: false, connPrev: false, hb: 0, tick: 0, bye: null, cache: new Map(), arr: EMPTY, subs: new Set(), conn: new Set(), flushT: 0, left: false, synced: false, afterSync: null };
     scopes.add(sc); if (!isLobby) byName.set(name, sc);
-    sc.ch = client.channel(isLobby ? 'yatouge-lobby' : 'yatouge-room-' + name, { config: { broadcast: { self: false, ack: false }, presence: { key: me.peer } } });
+    const topic = isLobby ? 'yatouge-lobby' : 'yatouge-room-' + name; // also signed into every message
+    sc.ch = client.channel(topic, { config: { broadcast: { self: false, ack: false }, presence: { key: me.peer } } });
     const live = () => canPush(sc); // never while rejoining: the sdk would fall back to one HTTP request per send
-    const bcast = (event, payload) => { if (live()) Promise.resolve(sc.ch.send({ type: 'broadcast', event, payload: { p: me.peer, ...payload } })).catch(() => {}); };
-    const sendLow = () => { if (Object.keys(sc.low).length) bcast('p', { low: sc.low }); };
+    const signer = makeSigner(ident, topic);
+    const bcast = (event, body) => live() ? signer.post(event, body, d => { if (event === 'x' ? chanUp(sc) : live()) return sc.ch.send({ type: 'broadcast', event, payload: d }); }) : Promise.resolve(); // signed in seq order; only the final bye may leave after sc.left
+    const sendLow = () => { // a cleared low goes out as an empty one a few times (the heartbeat repeats it, broadcast may drop): without it the others keep the old lobby state
+      if (Object.keys(sc.low).length) bcast('p', { low: sc.low }); else if (sc.clearN > 0 && live()) { sc.clearN--; bcast('p', { low: {} }); } // live(): a clear made while disconnected stays pending until it can really go out
+    };
     const sendCar = () => { if (sc.car) bcast('c', { n: sc.car.n, c: sc.car.c }); };
     sc.lowL = makeLimiter(SUPA.LOW_MS, sendLow); sc.carL = makeLimiter(SUPA.CAR_MS, sendCar);
     sc.bye = () => bcast('x', {});
     sc.hb = setInterval(() => sc.lowL.poke(), SUPA.HB_MS);
-    sc.tick = setInterval(() => { checkConn(sc); if (sc.ghosts) rebuild(); }, 500);
+    sc.tick = setInterval(() => { checkConn(sc); if (sc.ghosts || performance.now() >= sc.expAt) rebuild(); }, 500);
     flush(sc);
     // re-merge one peer after its low / car part changed (a part that arrives before the peer's roster entry waits in lows / cars)
     const lowFor = id => { const e = sc.lows.get(id); return e ? e.low : {}; };
@@ -5150,9 +5416,27 @@ function makeSupabaseRoom(load = loadSupabaseSdk) {
     const shape = d => d && typeof d === 'object' && typeof d.p === 'string' && d.p !== me.peer && validPeerId(d.p); // untrusted: only the shape is checked here, the values by validatePeerState
     const room_ = (map, id) => map.has(id) || map.size < SUPA.MAX_CARS;
     // peers = the roster, plus a peer that left the roster but still sends (it is reconnecting: the old registration expires while the
-    // new one joins) for GHOST_MS; a peer that says bye, or goes silent, is dropped
+    // new one joins) for GHOST_MS; a peer that says bye, or goes silent, is dropped.
+    // A roster entry is only a claim anybody can make with another peer's id, so a roster id counts as present only if it has not said bye
+    // (until a newer verified message) and has sent a verified message within LIVE_MS (a never-heard id gets LIVE_MS from its first appearance).
     const rebuild = () => {
-      const now = Date.now(), t = performance.now(), ids = new Set(sc.roster), next = new Map(); let ghost = false;
+      const now = Date.now(), t = performance.now(), ids = new Set(), next = new Map(); let ghost = false, exp = Infinity;
+      for (const id of sc.roster) {
+        if (sc.gone.has(id)) continue;
+        if (!sc.first.has(id)) sc.first.set(id, t);
+        const dl = (sc.live.get(id) ?? sc.first.get(id)) + SUPA.LIVE_MS;
+        if (t < dl) { ids.add(id); if (dl < exp) exp = dl; }
+      }
+      sc.expAt = exp;
+      // what we know about an id outlives its roster entry by LIVE_MS, so leaving and re-registering does not buy a fresh grace period
+      for (const id of sc.roster) sc.out.delete(id);
+      for (const id of sc.first.keys()) {
+        if (sc.roster.has(id)) continue;
+        if (!sc.out.has(id)) sc.out.set(id, t);
+        if (t - sc.out.get(id) >= SUPA.LIVE_MS) { sc.first.delete(id); sc.live.delete(id); sc.out.delete(id); }
+      }
+      while (sc.first.size > SUPA.MAX_PEERS) { const o = sc.first.keys().next().value; sc.first.delete(o); sc.live.delete(o); sc.out.delete(o); }
+      for (const id of sc.live.keys()) if (!sc.first.has(id) && !sc.roster.has(id) && !sc.recs.has(id)) sc.live.delete(id);
       for (const id of sc.recs.keys()) if (!ids.has(id) && t - (sc.seen.get(id) || -1e9) < SUPA.GHOST_MS) { ids.add(id); ghost = true; }
       for (const id of ids) { if (next.size >= SUPA.MAX_PEERS) break; next.set(id, mergePeer(sc.recs.get(id), lowFor(id), sc.cars.get(id) || null, now)); }
       for (const m of [sc.lows, sc.cars, sc.seen]) for (const [id, v] of m) if (!next.has(id) && t - (v.at ?? v) > 5000) m.delete(id); // a part may arrive just before its sender's roster entry
@@ -5161,23 +5445,38 @@ function makeSupabaseRoom(load = loadSupabaseSdk) {
     sc.ch.on('presence', { event: 'sync' }, () => { // the roster only
       let st; try { st = sc.ch.presenceState(); } catch (e) { return; }
       const ids = new Set(Object.keys(st).filter(id => id !== me.peer && validPeerId(id)));
+      for (const id of ids) for (const m of Array.isArray(st[id]) ? st[id] : []) if (m && typeof m.k === 'string') sc.vf.learn(id, m.k).catch(() => {}); // the public key rides on the roster entry
       const fresh = [...ids].some(id => !sc.recs.has(id));
       sc.roster = ids; sc.synced = true; rebuild();
       if (fresh) sc.lowL.poke(); // somebody new: tell them our state now instead of at the next heartbeat
       if (sc.afterSync) sc.afterSync();
     });
-    sc.ch.on('broadcast', { event: 'x' }, msg => { const d = msg && msg.payload; if (shape(d)) { sc.seen.delete(d.p); rebuild(); } }); // bye
-    sc.ch.on('broadcast', { event: 'p' }, msg => {
-      const d = msg && msg.payload; if (!shape(d) || !room_(sc.lows, d.p)) return;
+    // only messages whose signature checked out reach these (see @sign: the sender id is the sender's public key); d = { p: verified id, ...body }
+    const touch = id => { if (sc.roster.has(id) || sc.recs.has(id)) sc.live.set(id, performance.now()); sc.gone.delete(id); return sc.roster.has(id) && !sc.recs.has(id); }; // true: a roster id that was hidden is back, so the roster must be rebuilt
+    const onBye = d => {
+      if (!shape(d)) return;
+      sc.seen.delete(d.p); sc.lows.delete(d.p); sc.cars.delete(d.p); sc.live.delete(d.p); // the old state must not outlive the player (a rejoin from the same tab starts clean)
+      sc.gone.delete(d.p); sc.gone.set(d.p, performance.now()); if (sc.gone.size > SUPA.MAX_GONE) sc.gone.delete(sc.gone.keys().next().value);
+      rebuild();
+    };
+    const onLow = d => {
+      if (!shape(d)) return;
+      const back = touch(d.p);
+      if (!room_(sc.lows, d.p)) { if (back) rebuild(); return; }
       const low = lowOf(d.low); if (!low) return;
       sc.lows.set(d.p, { low, at: performance.now() }); sc.seen.set(d.p, performance.now());
-      remerge(d.p);
-    });
-    sc.ch.on('broadcast', { event: 'c' }, msg => {
-      const d = msg && msg.payload; if (!shape(d) || !Number.isInteger(d.n) || !room_(sc.cars, d.p)) return;
+      if (back) rebuild(); else remerge(d.p);
+    };
+    const onCar = d => {
+      if (!shape(d)) return;
+      const back = touch(d.p);
+      if (!Number.isInteger(d.n) || !room_(sc.cars, d.p)) { if (back) rebuild(); return; }
       if (!(d.c === null || (d.c && typeof d.c === 'object' && !Array.isArray(d.c)))) return;
-      sc.cars.set(d.p, { n: d.n, c: d.c, at: performance.now() }); sc.seen.set(d.p, performance.now()); remerge(d.p);
-    });
+      sc.cars.set(d.p, { n: d.n, c: d.c, at: performance.now() }); sc.seen.set(d.p, performance.now()); if (back) rebuild(); else remerge(d.p);
+    };
+    const handlers = { x: onBye, p: onLow, c: onCar };
+    sc.vf = makeInbox({ topic, selfId: me.peer, c: ident.c, isPinned: id => sc.roster.has(id) || sc.recs.has(id), onMsg: (ev, id, body) => handlers[ev]({ ...body, p: id }) });
+    for (const ev of ['x', 'p', 'c']) sc.ch.on('broadcast', { event: ev }, msg => sc.vf.submit(ev, msg && msg.payload));
     sc.api = {
       name,
       presence(patch) {
@@ -5188,7 +5487,7 @@ function makeSupabaseRoom(load = loadSupabaseSdk) {
         for (const [k, v] of carP) nextCar[k] = v;
         let size = Infinity; try { size = Math.max(new TextEncoder().encode(JSON.stringify(next)).length, nextCar ? new TextEncoder().encode(JSON.stringify(nextCar)).length : 0); } catch (e) { /* not JSON */ }
         if (size > 4096) return Promise.reject({ code: 'invalid_argument', message: 'presence over 4 KiB' });
-        if (lowP.length) { sc.low = next; sc.mine = Object.freeze({ ...next }); sc.mineAt = Date.now(); later(sc); sc.lowL.poke(); }
+        if (lowP.length) { sc.low = next; sc.clearN = Object.keys(next).length ? 0 : 3; sc.mine = Object.freeze({ ...next }); sc.mineAt = Date.now(); later(sc); sc.lowL.poke(); }
         if (nextCar) {
           sc.car = nextCar;
           if (nextCar.c === null) { sendCar(); setTimeout(sendCar, 150); } else sc.carL.poke(); // clearing the car matters and is cheap: sent now and once more (broadcast may drop)
@@ -5215,7 +5514,7 @@ function makeSupabaseRoom(load = loadSupabaseSdk) {
       setStatus(sc, status);
       if (settled && !sc.left && status !== 'SUBSCRIBED') console.warn('room:', 'sb_' + status, err && err.message); // the sdk rejoins by itself; this only leaves a trace
       if (status === 'SUBSCRIBED') {
-        Promise.resolve(sc.ch.track({ v: 1 })).catch(() => {}); // our roster entry: the only presence call (5 per 30 s allowed); also after a rejoin
+        sendTrack(sc, true); // the only presence call (5 per 30 s allowed, see makeTrackBudget); also after a rejoin
         sc.lowL.poke();
         if (sc.synced) fin(); else { sc.afterSync = () => fin(); setTimeout(fin, SUPA.SYNC_MS); }
       } else if (!settled && (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED')) {
@@ -5226,6 +5525,7 @@ function makeSupabaseRoom(load = loadSupabaseSdk) {
   const start = () => startP || (startP = (async () => {
     try {
       const sdk = await load();
+      ident = await mkIdent(); me.peer = ident.id;
       client = sdk.createClient(SUPA.URL, SUPA.KEY, { auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }, realtime: { params: { eventsPerSecond: 40 } } });
       lobby = (await open('', true)).api;
       return room;
@@ -5245,8 +5545,8 @@ function makeSupabaseRoom(load = loadSupabaseSdk) {
     }
   };
   // closing the page: leave every channel so the other player sees us go at once instead of after a timeout
-  const close = () => { for (const sc of [...scopes]) kill(sc); try { client && client.removeAllChannels(); } catch (e) { /* page is closing */ } };
-  return { room, start, close, peerId: me.peer };
+  const close = () => { for (const sc of [...scopes]) kill(sc); try { client && client.removeAllChannels(); } catch (e) { /* page is closing */ } }; // the signed bye is async and may not get out: leaving the channels now is what the others see
+  return { room, start, close, get peerId() { return me.peer; } };
 }
 
 /* ---------- online 1v1: lobby and room UI ---------- */
@@ -5289,9 +5589,11 @@ function showPanel(which) {
   syncNet();
 }
 let lobbyKey = '', emptySince = null;
-const lobbyNote = k => { lobbyKey = k; $('#lobbyNote').textContent = k ? T(k) : ''; }; // k is an i18n key, so a language change can re-render it
+let trackBusyOn = false; // sticky: a queued presence call keeps its note over the blank / connecting ones that lobby code sets meanwhile
+const trackBusyNote = busy => { trackBusyOn = busy; if (busy) lobbyNote('trackBusy'); else if (lobbyKey === 'trackBusy') lobbyNote(''); }; // the transport is waiting for a presence slot
+const lobbyNote = k => { if (trackBusyOn && (!k || k === 'onConnecting')) k = 'trackBusy'; lobbyKey = k; $('#lobbyNote').textContent = k ? T(k) : ''; }; // k is an i18n key, so a language change can re-render it
 function openLobby() { showPanel('lobby'); $('#codeBox').hidden = $('#btnCreatePriv').hidden = onl.transport !== 'supabase'; /* private rooms: Supabase transport only */ lobbyNote(room ? '' : 'onConnecting'); emptySince = null; $('#codeInput').value = ''; syncCode(); renderLobby(true); clearInterval(lobbyT); lobbyT = setInterval(renderLobby, 500); $('#btnCreate').focus(); }
-function closeLobby() { clearInterval(lobbyT); showPanel(null); $('#btnOnline').focus(); }
+function closeLobby() { lobbyGate.cancel(); clearInterval(lobbyT); showPanel(null); $('#btnOnline').focus(); }
 function renderLobby(force) {
   if (!room || $('#lobby').hidden) return;
   const rooms = lobbyRooms(room.peers(), Date.now(), Object.keys(TRACKS), NET.LOBBY_TTL, RP.V).filter(r => !r.mine), now = performance.now();
@@ -5316,10 +5618,10 @@ function randName() {
 }
 async function createRoom() {
   if (busy || pvp || !room) return;
-  busy = true;
+  busy = true; const gt = lobbyGate.token();
   try {
     const name = randName(), rm = await room.join(name);
-    startMatch({ rm, name, host: true, hostPeer: null });
+    if (!lobbyGate.ok(gt)) rm.leave().catch(() => {}); else startMatch({ rm, name, host: true, hostPeer: null });
   } catch (e) { lobbyNote('pvpCreateFail'); netFail(e, 'join'); }
   busy = false;
 }
@@ -5327,10 +5629,11 @@ const rand4 = () => { const a = new Uint8Array(4); if (window.crypto && crypto.g
 // Private room (Supabase transport): the channel is derived from a 4-character code and never advertised in the lobby
 async function createPrivateRoom() {
   if (busy || pvp || !room) return;
-  busy = true;
+  busy = true; const gt = lobbyGate.token();
   try {
     for (let i = 0; i < 3; i++) { // a code somebody is already using is skipped
       const code = genRoomCode(rand4()), name = privRoomName(code), rm = await room.join(name);
+      if (!lobbyGate.ok(gt)) { rm.leave().catch(() => {}); busy = false; return; }
       if (rm.peers().some(x => !x.isMe)) { await rm.leave().catch(() => {}); continue; }
       startMatch({ rm, name, code, host: true, hostPeer: null });
       busy = false; return;
@@ -5342,12 +5645,13 @@ async function createPrivateRoom() {
 async function joinByCode(raw) {
   const code = normalizeCode(raw);
   if (busy || pvp || !room || !code) return;
-  busy = true; lobbyNote('pvpJoining');
+  busy = true; lobbyNote('pvpJoining'); const gt = lobbyGate.token();
   try {
     const name = privRoomName(code), rm = await room.join(name), t0 = performance.now(), seenOthers = () => rm.peers().filter(x => !x.isMe && x.kind === 'viewer');
     let others = seenOthers();
     while (!others.length && performance.now() - t0 < 3000) { await new Promise(r => setTimeout(r, 150)); others = seenOthers(); } // the roster can arrive a moment after the join
-    if (others.length !== 1) { await rm.leave().catch(() => {}); lobbyNote(others.length ? 'pvpCodeFull' : 'pvpCodeNone'); }
+    if (!lobbyGate.ok(gt)) rm.leave().catch(() => {});
+    else if (others.length !== 1) { await rm.leave().catch(() => {}); lobbyNote(others.length ? 'pvpCodeFull' : 'pvpCodeNone'); }
     else startMatch({ rm, name, code, host: false, hostPeer: others[0].peer });
   } catch (e) { lobbyNote('pvpJoinFail'); netFail(e, 'join'); }
   busy = false;
@@ -5356,10 +5660,10 @@ const codeInputVal = () => [...$('#codeInput').value.toUpperCase()].filter(ch =>
 function syncCode() { const i = $('#codeInput'), v = codeInputVal(); if (i.value !== v) i.value = v; $('#btnJoinCode').disabled = !validRoomCode(v); }
 async function joinRoom(r) {
   if (busy || pvp || !room || !validRoomName(r.room)) return;
-  busy = true; lobbyNote('pvpJoining');
+  busy = true; lobbyNote('pvpJoining'); const gt = lobbyGate.token();
   try {
     const rm = await room.join(r.room);
-    startMatch({ rm, name: r.room, host: false, hostPeer: r.peer });
+    if (!lobbyGate.ok(gt)) rm.leave().catch(() => {}); else startMatch({ rm, name: r.room, host: false, hostPeer: r.peer });
   } catch (e) { lobbyNote('pvpJoinFail'); netFail(e, 'join'); }
   busy = false;
 }
@@ -5408,8 +5712,8 @@ function startMatch(o) {
   const down = baseId(trackId); // online is downhill only; leaving puts the title's own course (maybe uphill) back
   const pick = rpLast || { car: choice.car, col: col0, vote: { t: down, m: 'first', g: RP.GAP } };
   const p = pvp = {
-    rm: o.rm, name: o.name, code: o.code || null, host: o.host, hostPeer: o.hostPeer, track: down, prevTrack: trackId, prevChoice: choice, st: 'waiting', go: 0, n: 0, hb: 0, ft: null,
-    opp: null, oppPeer: null, oppFt: null, oppLeft: false, seen: false, joinedAt: performance.now(), buf: [], pose: null,
+    rm: o.rm, name: o.name, code: o.code || null, host: o.host, hostPeer: o.hostPeer, track: down, prevTrack: trackId, prevChoice: choice, st: 'waiting', go: 0, n: carSeq, hb: 0, ft: null,
+    opp: null, oppNk: null, oppPeer: null, oppFt: null, oppLeft: false, seen: false, joinedAt: performance.now(), buf: [], pose: null,
     lastPres: null, oppKey: '', goAt: 0, sentAt: 0, tickAt: 0, finishAt: 0, note: '', unsub: null, unsubConn: null, hbT: 0,
     missingSince: null, dnfLocked: false, watch: 0,
     pick: { car: pick.car, col: pick.col, vote: { ...pick.vote } }, oppSig: null, gb: 0, sd: null, match: null, asking: false, phase: 'pick',
@@ -5524,7 +5828,7 @@ function pvpToRoom() {
   state = 'title'; startS = 0; resetRace();
   for (const s of ['#hud', '#result']) $(s).hidden = true;
   $('#count').textContent = ''; goUntil = 0; $('#pop').classList.remove('show');
-  Object.assign(p, { st: 'waiting', ft: null, buf: [], pose: null, cat: null, ck: null }); rpReset(p); // the picks stay; the next round votes again
+  Object.assign(p, { st: 'waiting', ft: null, buf: [], pose: null, cat: null, ck: null, lastPres: null }); rpReset(p); // the picks stay; the next round votes again
   pvpPublish({ c: null }); advertise(p);
   showPanel('room'); renderRoom(); focusRoom();
 }
@@ -5535,7 +5839,7 @@ function beginCountdown(go) {
   // p.match: { t, m, g } of this match. Cat and mouse ('cat') runs rounds on the same course (catBegin); the leader starts CAT.LEAD m ahead.
   if (!p.match) p.match = { t: p.track, m: 'first', g: null, dt: false, dm: false, dg: false };
   if (p.match.m === 'cat') catBegin(); else Object.assign(p, { cat: null, ck: null });
-  Object.assign(p, { go, st: 'countdown', oppFt: null, ft: null, note: '' });
+  Object.assign(p, { go, st: 'countdown', oppFt: null, ft: null, note: '', dnfLocked: false }); // each round is judged on its own: a "did not finish" from an earlier round must not turn later ones into wins
   startLat = p.host ? 2.2 : -2.2; startS = p.cat ? catStart(p.cat.L, catMe(p)) : 0; p.goAt = performance.now();
   pvpPublish(); advertise(p);
   startRace();
@@ -5560,13 +5864,13 @@ function ingest(pres, peers, now) {
     const mine = peers.find(x => x.isMe && x.sameTab);
     if (v.opp && mine && v.opp !== mine.peer && peers.some(x => x.peer === v.opp)) { leaveToLobby('pvpFull'); return 'drop'; }
   }
-  const prev = p.opp; p.opp = v;
+  const prev = p.opp; p.opp = v; p.oppNk = v.nk;
   const it = intake(p.buf, v, now); p.buf = it.buf; if (it.reset) p.pose = null;
   if (v.st === 'finished' && v.ft !== null) p.oppFt = v.ft;
   if (!p.host && catOn(p) && v.cm && v.cm.r === p.cat.r) { const had = catResult(p.cat); p.cat = v.cm; if (!had && catResult(p.cat)) catDecided(); } // the host's call on this round
   if (v.st === 'finished' && (!prev || prev.st !== 'finished') && state === 'race') showPop(T('pvpOppDone'), v.ft !== null ? fmtT(v.ft) : '');
-  const key = v.car + ':' + v.col;
-  if (key !== p.oppKey) { p.oppKey = key; scene.remove(rivalCar.g); disposeCar(rivalCar); rivalCar = makeCar(v.car, v.col); rivalCar.g.visible = false; renderer.compile(scene, camera); }
+  const key = v.car + ':' + v.col; // a car change during the countdown / race / result waits for the room (a rebuild every 300 ms would stutter)
+  if (key !== p.oppKey && (p.st === 'waiting' || p.st === 'ready')) { p.oppKey = key; scene.remove(rivalCar.g); disposeCar(rivalCar); rivalCar = makeCar(v.car, v.col); rivalCar.g.visible = false; renderer.compile(scene, camera); }
   const sig = pickSig(v), was = p.oppSig, st = cancelReady(p.st, was, sig); p.oppSig = sig;
   if (p.note !== 'rpChanged') p.note = '';
   if (st !== p.st) { p.note = 'rpChanged'; pvpSetSt(st); } // their pick changed: our ready is cancelled too
@@ -5628,13 +5932,14 @@ function pvpSend(now) {
   const p = pvp; if (now - p.sentAt < 33) return;
   p.sentAt = now;
   const r2 = v => Math.round(v * 100) / 100, c = car;
-  p.rm.presence({ n: ++p.n, c: { x: r2(c.x), z: r2(c.z), h: Math.round(wrap(c.h) * 1000) / 1000, vx: r2(c.vx), vz: r2(c.vz), w: r2(c.w), s: r2(c.loc.s), lat: r2(c.loc.lat), sr: r2(c.steer), dr: c.drift ? 1 : 0, bk: c.brakeOn ? 1 : 0 } }).catch(roomFail);
+  p.rm.presence({ n: carSeq = ++p.n, c: { x: r2(c.x), z: r2(c.z), h: Math.round(wrap(c.h) * 1000) / 1000, vx: r2(c.vx), vz: r2(c.vz), w: r2(c.w), s: r2(c.loc.s), lat: r2(c.loc.lat), sr: r2(c.steer), dr: c.drift ? 1 : 0, bk: c.brakeOn ? 1 : 0 } }).catch(roomFail);
 }
 // Our car against the other player's interpolated pose. carStep splits the push-out half and half; the other car is not ours to
 // move, so we take the whole separation, and only our velocity changes (the other side runs the same code for its own car).
 function pvpBump(c) {
   const p = pvp, o = p.pose;
   if (!o || o.stale || !p.opp) return;
+  if (!carsMayCollide(p.oppFt !== null ? o.s : 0, c.loc.s, FINISH_S, state)) return; // past the line after finishing: no more bumps (the rival counts once it has a finish time)
   const cr = carStep(c, CAR_BOX[choice.car], remoteAsRival(o), CAR_BOX[p.opp.car], roadHW - 1, COLL);
   if (!cr) return;
   Object.assign(c, pushOut(c, cr), { vx: cr.vx, vz: cr.vz, w: cr.w });
@@ -5680,7 +5985,7 @@ function pvpFinished() {
 // result tiles are labelled with the two nicknames (applyLang puts the plain labels back when the match ends)
 function resNames() {
   $('#resTimeLbl').textContent = T('pvpTimeOf', T('pvpYouTag', nickOf(nick)));
-  $('#resOppLbl').textContent = T('pvpTimeOf', nickOf(pvp && pvp.opp && pvp.opp.nk));
+  $('#resOppLbl').textContent = T('pvpTimeOf', nickOf(pvp && (pvp.opp ? pvp.opp.nk : pvp.oppNk)));
 }
 function showPvpResult() {
   if (catOn(pvp)) { showCatResult(); $('#hud').hidden = true; $('#result').hidden = false; ($('#btnAgain').disabled ? $('#btnMenu') : $('#btnAgain')).focus(); return; }
@@ -5838,10 +6143,10 @@ const specCache = new WeakMap(); // frozen presences: each one is validated once
 const specValid = pres => { if (!pres || typeof pres !== 'object') return null; if (!specCache.has(pres)) specCache.set(pres, pvpCheck(pres)); return specCache.get(pres); };
 async function watchRoom(r) {
   if (busy || pvp || spec || !room || !r.live || !validRoomName(r.room)) return;
-  busy = true; lobbyNote('pvpJoining');
+  busy = true; lobbyNote('pvpJoining'); const gt = lobbyGate.token();
   try {
     const rm = await room.join(r.room);
-    startSpectate({ rm, name: r.room, hostPeer: r.peer, track: r.track });
+    if (!lobbyGate.ok(gt)) rm.leave().catch(() => {}); else startSpectate({ rm, name: r.room, hostPeer: r.peer, track: r.track });
   } catch (e) { lobbyNote('pvpJoinFail'); netFail(e, 'join'); }
   busy = false;
 }
@@ -6108,7 +6413,7 @@ async function initOnline() {
   if (tr === 'supabase') return; // nothing is loaded or contacted until the player presses Online (sbConnect)
   let r = null;
   try {
-    if (mock) r = (onl.mock || (onl.mock = makeMockRoom())).room;
+    if (mock) r = (await (onl.mock || (onl.mock = makeMockRoom()))).room;
     else if (onl.hasClaude) {
       r = await safeUse('room');
       if (!r) { onl.permApi = await safeUse('permissions'); onl.perm = await readPerm(); }
@@ -6134,7 +6439,7 @@ async function sbConnect() {
   const gen = onl.gen;
   onl.room = 'pending'; renderOnline();
   try {
-    const r = await (onl.sb || (onl.sb = makeSupabaseRoom())).start();
+    const r = await (onl.sb || (onl.sb = makeSupabaseRoom(undefined, trackBusyNote))).start();
     if (gen !== onl.gen) return;
     attachRoom(r);
     if (onlineUI && !pvp) { lobbyNote(''); renderLobby(true); }
@@ -6204,8 +6509,22 @@ $('#btnReady').addEventListener('click', () => {
 initOnline();
 
 /* ---------- loop ---------- */
+// The GO text and the sign gate (turnSignFrame reads goUntil > 0) end together here, in the same frame, before hud()
+function goTick(now) {
+  if (!goUntil || now < goUntil) return;
+  goUntil = 0;
+  if ($('#count').textContent === 'GO') $('#count').textContent = '';
+}
 let last = performance.now(), acc = 0;
 const FIX = 1 / 120;
+// one fixed step at a time; stepN orders who crossed the line first inside a frame
+function raceSteps() {
+  while (acc >= FIX) {
+    physics(FIX); stepN++; if (!pvp && !taRun && !sakeRun) rivalUpdate(FIX);
+    if (state === 'race') { if (car.loc.s < FINISH_S) playerCrossN = null; else if (playerCrossN === null) playerCrossN = stepN; } // slid back over the line: the next crossing counts
+    acc -= FIX;
+  }
+}
 function frame(now) {
   const dt = Math.min(0.05, (now - last) / 1000); last = now;
   syncRotate(); controlsTick(dt); gamepadTick(now); chatFrame();
@@ -6213,13 +6532,14 @@ function frame(now) {
   if (pvp) pvpFrame();
   if (state === 'count') {
     const before = Math.ceil(countT); countT = pvp ? countdownLeft(pvp.goAt, performance.now()) : countT - dt; const after = Math.ceil(countT);
-    // goUntil is self-expiring: a missed clear can never gate longer than the GO text
-    if (after !== before) { if (after > 0) { $('#count').textContent = after; beep(440, 0.15); } else { $('#count').textContent = 'GO'; goUntil = performance.now() + 700; beep(880, 0.4); state = 'race'; if (pvp) pvpSetSt('racing'); setTimeout(() => { if ($('#count').textContent === 'GO') $('#count').textContent = ''; }, 700); } }
+    if (after !== before) { if (after > 0) { $('#count').textContent = after; beep(440, 0.15); } else { $('#count').textContent = 'GO'; goUntil = performance.now() + 700; beep(880, 0.4); state = 'race'; if (pvp) pvpSetSt('racing'); } }
   }
+  goTick(performance.now());
   if (state === 'race' || state === 'done') {
     acc += dt;
-    while (acc >= FIX) { physics(FIX); if (!pvp && !taRun && !sakeRun) rivalUpdate(FIX); acc -= FIX; }
+    raceSteps();
     raceT += dt; // keeps running after the player finishes so the rival's time is real
+    if (rivalCrossN !== null && rivalFinishT === null) rivalFinishT = raceT; // same clock as the player's time (end of this frame)
     if (state === 'race' && sakeRun) sakeCheck(false); // the clock ran out
     if (state === 'race') { if (taRun) taSample(false); scoring(dt); if (car.loc.s >= FINISH_S) finishRace(); }
     if (finishTimer > 0) { finishTimer -= dt; if (finishTimer <= 0) showResult(); }
@@ -6264,22 +6584,23 @@ window.addEventListener('keydown', e => {
     } else if (act === 'music' && !e.repeat && e.target.tagName !== 'SELECT') { setMusic(!musicOn); syncMenuUI(); }
     return;
   }
-  const ck = chatKey({ code: e.code, repeat: e.repeat, mod: e.ctrlKey || e.metaKey || e.altKey, online: !!pvp, spec: !!spec, room: !!pvp && !$('#room').hidden, state, keys: kb.keys.chat });
+  if (kbSuppressAlt(e.code, act)) e.preventDefault(); // a bound Alt key must not move the focus to the browser menu
+  const ck = chatKey({ code: e.code, repeat: e.repeat, mod: kbModHeld(e.code, e), online: !!pvp, spec: !!spec, room: !!pvp && !$('#room').hidden, state, keys: kb.keys.chat });
   if (ck) { e.preventDefault(); chatFocus(ck); return; } // T: chat, online only (no 't' typed into the box it opens)
   if (spec) { const v = specViewKey(e.code); if (v) { e.preventDefault(); specView(v); } return; } // a spectator has no car: only the view keys
   if (!e.repeat && act === 'shiftUp') shiftGear(1);
-  if (!e.repeat && act === 'shiftDown' && !e.ctrlKey && !e.metaKey && !e.altKey) shiftGear(-1);
-  if (KB_DRIVE.includes(act)) { input[act] = true; if (state !== 'title' || e.code !== 'Space') e.preventDefault(); }
+  if (!e.repeat && act === 'shiftDown' && !kbModHeld(e.code, e)) shiftGear(-1);
+  if (KB_DRIVE.includes(act)) { input[act] = true; if (!keepNativeKey(state, e.code, e.target)) e.preventDefault(); }
   if (e.code === 'KeyR' && (state === 'race')) resetCar();
   if (act === 'music') setMusic(!musicOn);
-  if (act === 'cam' && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey && !hudEl.hidden) setCamMode(nextCam(camMode), true);
-  if (e.code === 'Enter' && !e.repeat && state === 'title' && !onlineUI && !e.target.closest('.music, #tKx, #tTa, #tKeys, #tLog')) { e.preventDefault(); askTrans(startRace); } // Enter on a music button, a KX-2 option or "key bindings" or "what's new" activates it, not the race
+  if (act === 'cam' && !e.repeat && !kbModHeld(e.code, e) && !hudEl.hidden) setCamMode(nextCam(camMode), true);
+  if (e.code === 'Enter' && !e.repeat && state === 'title' && !onlineUI && enterStartsRace(e.target)) { e.preventDefault(); askTrans(startRace); } // Enter on any control (music, options, online, pickers, key bindings, what's new) activates that control; only Start or a non-control starts the race
 });
 window.addEventListener('keyup', e => {
   if (kbOpen && kbSwallow === e.code) { kbSwallow = null; e.preventDefault(); } // the key just bound must not also press the focused slot (Space clicks on keyup)
   const act = kbKeyAction(kb, e.code); if (KB_DRIVE.includes(act)) input[act] = false;
 });
-window.addEventListener('blur', () => { for (const k in input) input[k] = k === 'steerAxis' ? null : false; releaseTouch(); });
+window.addEventListener('blur', () => { for (const k in input) input[k] = k === 'steerAxis' ? null : false; releaseTouch(); gp.last = { ...GP_IDLE }; });
 function menuEsc(a) { if (a === 'open') openMenu(); else if (a === 'close') closeMenu(); else if (a === 'back') showMenuView('main', menuView === 'settings' ? '#igSettings' : confirmFrom); }
 // Manual only, countdown or race, menu closed. A refused downshift (it would over-rev) is told to the player.
 function shiftGear(dir) {
@@ -6605,7 +6926,7 @@ function tryLandscape() {
 $('#btnStart').addEventListener('click', tryLandscape);
 $('#btnOnline').addEventListener('click', () => { if ($('#btnOnline').getAttribute('aria-disabled') !== 'true') tryLandscape(); });
 $('#btnStart').addEventListener('click', () => askTrans(startRace));
-$('#btnAgain').addEventListener('click', () => pvp ? (catOn(pvp) && pvp.ck.between ? catConfirm() : pvpBackToRoom()) : askTrans(startRace));
+$('#btnAgain').addEventListener('click', () => pvp ? (catOn(pvp) && pvp.ck.between ? catConfirm() : pvpBackToRoom()) : askTrans(startRace, '#btnAgain'));
 function returnToTitle() {
   taEnd(); sakeEnd(); resetRace(); camOrbit = 0; $('#count').textContent = ''; goUntil = 0; $('#pop').classList.remove('show');
   $('#result').hidden = true; $('#hud').hidden = true; $('#title').hidden = false; renderPicker(); $('#btnStart').focus();
@@ -6636,7 +6957,7 @@ function syncMenuUI() {
   const mb = $('#igMusic'); mb.setAttribute('aria-checked', String(musicOn)); mb.textContent = T(musicOn ? 'igOn' : 'igOff');
   $('#igMusicVol').value = volPct(musicVol); $('#igMusicOut').textContent = volPct(musicVol) + '%';
   $('#igSfxVol').value = volPct(sfxVol); $('#igSfxOut').textContent = volPct(sfxVol) + '%';
-  $('#igCam').value = camMode; $('#igLang').value = lang;
+  $('#igCam').value = camNow(); $('#igLang').value = lang;
   syncKxUI(); syncSteerUI(); syncTaUI(); syncSakeUI();
   $('#igCam').disabled = !!sakeRun; // Sake Run: cockpit only
   // time attack / Sake Run: "forfeit" becomes "quit" (back to the title, nothing saved)
@@ -6689,7 +7010,7 @@ $('#igMusic').addEventListener('click', () => { setMusic(!musicOn); syncMenuUI()
 $('#igMusicVol').addEventListener('input', e => { setVolume('music', volFromPct(e.target.value)); syncMenuUI(); });
 $('#igSfxVol').addEventListener('input', e => { setVolume('sfx', volFromPct(e.target.value)); syncMenuUI(); });
 $('#igCam').addEventListener('change', e => { if (CAM_MODES.includes(e.target.value)) setCamMode(e.target.value, true); });
-$('#igLang').addEventListener('change', e => { if (!I18N[e.target.value]) return; lang = e.target.value; store.set('yatouge-lang', lang); applyLang(); });
+$('#igLang').addEventListener('change', e => { if (!validLang(e.target.value, I18N)) return; lang = e.target.value; store.set('yatouge-lang', lang); applyLang(); renderOnline(); });
 
 /* ---------- key bindings page: from the title settings or the in-game menu settings ---------- */
 function kbName(a) { return T('kbA_' + a); }
@@ -6734,6 +7055,7 @@ function kbRender(focus) {
   }
   for (const b of document.querySelectorAll('.kbtabs button')) b.setAttribute('aria-pressed', String(b.dataset.p === kbSide));
   $('#kbInfo').textContent = T(kbSide === 'keys' ? 'kbInfoKeys' : 'kbInfoPad');
+  $('#kbWarn').textContent = T('kbCtrlWarn'); $('#kbWarn').hidden = !(kbSide === 'keys' && kbCtrlClash(kb.keys));
   const f = focus && $('#kbs').querySelector(focus); if (f) f.focus();
 }
 function kbNote(s) { $('#kbNote').textContent = s; }

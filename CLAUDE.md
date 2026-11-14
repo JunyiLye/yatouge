@@ -34,7 +34,7 @@
 | 車輛外觀 | `cars`（`CARS`、`rivalFor`）、`lettering`、`cabin-shape`（`CAB`：外觀與車內共用的車艙資料）、`dispose` |
 | 車內視角 | `cockpit`（`COCKPIT_CARS`）、`lean`（慣性前傾）、`camera-modes` |
 | 模式 | `timeattack`（幽靈車壓縮）、`sake`（送酒模式）、`kx-chime`、`changelog`（更新紀錄資料與是否顯示的判斷） |
-| 線上 | `netcode`、`supa`、`onlinestatus`、`spectate`、`roompick`（房間投票）、`catmouse`、`chat` |
+| 線上 | `netcode`、`supa`、`sign`、`onlinestatus`、`spectate`、`roompick`（房間投票）、`catmouse`、`chat` |
 | 輸入與介面 | `keybind`、`gamepad`（含震動 `shiftBuzz`）、`touch`、`tilt`、`tapguard`、`ingame-menu`、`own-music`、`turbo-sfx` |
 
 ### 車輛模型
@@ -47,7 +47,8 @@
 ### 線上對戰
 - GitHub Pages 上的傳輸層是 Supabase Realtime（URL 與 publishable key 寫在 `SUPA`，publishable key 本來就是公開給瀏覽器用的）。不使用資料表，不存任何資料。
 - **Supabase 每個 client 每 30 秒只能呼叫 presence 5 次**：presence 只當名單，所有遊戲狀態、投票、聊天都走 broadcast。
-- 房間協定版本 `v: 2`，舊版 client 會被拒絕。只顯示暱稱，不使用任何帳號資訊。
+- 房間協定版本 `RP.V = 3`（`v: 3`），舊版 client 會被拒絕。只顯示暱稱，不使用任何帳號資訊。
+- **訊息簽章（`@sign` 區塊，防冒充）**：每個分頁用 WebCrypto 產生 ECDSA P-256 金鑰（只在記憶體）；玩家代號 = `'p'` + SHA-256(公開金鑰) 前 20 個字元，所以代號本身就綁定金鑰。每則 broadcast（`p` / `c` / `x`，聊天、貓捉老鼠、大廳廣告都在 `p` 的 low 裡）都帶 `{ p, q: 序號, s: 簽章 }`，簽章涵蓋頻道名、事件、代號、序號與 `stableJson(內容)`。公開金鑰 `k` 放在唯一那次 presence `track({ v: 1, k })`（**不增加 presence 呼叫**），並每 5 秒隨 `p` 再帶一次給晚加入者。接收端用 `makeInbox`：代號與金鑰對得上、簽章正確、序號比上一則被接受的新才採用；同一發送者依序驗證、每秒上限 60 則；金鑰未到的訊息暫存 3 秒。每則內容都含簽章涵蓋的 `t`（毫秒時間）；收件匣對「還沒收過任何訊息的發送者」只收 `t` 在 10 分鐘內（`SIGN.SKEW_MS`；因時鐘誤差被拒絕時，每個發送者在 console 警告一次）的第一則，防止重播舊訊息給晚加入者；超大或格式不對的訊息在解碼前就丟掉。Mock 傳輸層（`?mockroom=1`）走同一套。新增 broadcast 事件時必須經過 `signer.post` 送出、`makeInbox` 接收，不可直接 `ch.send`。
 - `?mockroom=1` 是只在 localhost 運作的雙分頁模擬，測試用。
 
 ### 本機儲存

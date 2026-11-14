@@ -10,8 +10,8 @@ function block(name) {
   return html.slice(s + open.length, e);
 }
 const M = new Function(`${block('course-geometry')}\n${block('turn-signs')}
-return { buildCourse, TS, cornerList, nextSign, nextTwoSigns, tsIcon, tsLabel, tsAria, TS_STYLES, tsStyleFrom, tsDraws, tsBeeps, TS_PREVIEW_GAP, tsPopTop, tsGoGated };`)();
-const { buildCourse, cornerList, nextSign, nextTwoSigns, tsIcon, tsLabel, tsAria, TS_STYLES, tsStyleFrom, tsDraws, tsBeeps, TS_PREVIEW_GAP, tsPopTop, tsGoGated } = M;
+return { buildCourse, TS, cornerList, nextSign, nextTwoSigns, tsIcon, tsLabel, tsAria, TS_STYLES, tsStyleFrom, tsDraws, tsBeeps, TS_PREVIEW_GAP, tsPopTop, tsPopPlace, tsGoGated };`)();
+const { buildCourse, cornerList, nextSign, nextTwoSigns, tsIcon, tsLabel, tsAria, TS_STYLES, tsStyleFrom, tsDraws, tsBeeps, TS_PREVIEW_GAP, tsPopTop, tsPopPlace, tsGoGated } = M;
 
 test('顯示方式清單：side（預設）、big、preview、sound、off', () => {
   assert.deepEqual(TS_STYLES, ['side', 'big', 'preview', 'sound', 'off']);
@@ -102,6 +102,7 @@ test('tsAria：只有第一個時等於 tsLabel；有第二個時兩段用「，
 /* ---------- turnSignFrame 的行為（用假的 DOM 跑真的函式）---------- */
 function harness(style, extra = {}) {
   const hide = /function tsHide\(\) \{[^\n]*\}/.exec(html)[0];
+  const clr = /function tsPopClear\(pop\) \{[^\n]*\}/.exec(html)[0];
   const fr = /function turnSignFrame\(\) \{[\s\S]*?\n\}/.exec(html)[0];
   const els = {};
   const st = {}, calls = { rect: 0, top: 0, pop: 0 };
@@ -111,20 +112,22 @@ function harness(style, extra = {}) {
     style: { setProperty(k, v) { st[k] = v; calls.top++; }, removeProperty(k) { delete st[k]; } } };
   els['#turnSign'] = el;
   const pcls = new Set(), pst = {};
-  els['#pop'] = { cls: pcls, st: pst, classList: { add: c => pcls.add(c), remove: c => pcls.delete(c), contains: c => pcls.has(c) }, style: { setProperty(k, v) { pst[k] = v; calls.pop++; } } };
-  el.getBoundingClientRect = () => { calls.rect++; return { bottom: env.bottom ?? 200 }; };
+  els['#pop'] = { cls: pcls, st: pst, classList: { add: c => pcls.add(c), remove: (...c) => c.forEach(x => pcls.delete(x)), contains: c => pcls.has(c) }, style: { setProperty(k, v) { pst[k] = v; calls.pop++; }, removeProperty(k) { delete pst[k]; } } };
+  el.getBoundingClientRect = () => { calls.rect++; return { bottom: env.bottom ?? 200, top: (env.bottom ?? 200) - 100, left: env.left ?? 600 }; };
   let beeps = [];
   const env = { tsStyle: style, state: 'race', sakeRun: false, tsList: L, tsCur: '', pts: [], car: { loc: { s: 450 }, vx: 0, vz: 10 }, lang: 'zh', mirror: 0, cam: 'chase', goUntil: 0, now: 1000, ...extra };
   const fn = new Function('M', 'env', 'els', 'beeps', `
-    const { nextTwoSigns, cornerList, tsIcon, tsLabel, tsAria, tsDraws, tsBeeps, tsPopTop, tsGoGated } = M;
+    const { nextTwoSigns, cornerList, tsIcon, tsLabel, tsAria, tsDraws, tsBeeps, tsPopTop, tsPopPlace, tsGoGated } = M;
     const $ = q => els[q]; let { tsStyle, state, sakeRun, tsList, tsCur, pts, car, lang, goUntil } = env; let tsKey = '';
     const performance = { now: () => env.now };
+    const getComputedStyle = () => ({ fontSize: '40px' });
     const window = { innerWidth: env.w ?? 1280, innerHeight: env.h ?? 720 };
     const camNow = () => env.cam; let tsMirrorBottom = env.mirror;
     const sfxTurnSign = d => beeps.push(d ? 2 : 1);
+    ${clr}
     ${hide}
     ${fr}
-    return { frame: turnSignFrame, hide: tsHide, set: (k, v) => { ({ tsStyle: () => tsStyle = v, state: () => state = v, tsList: () => tsList = v, sakeRun: () => sakeRun = v, mirror: () => tsMirrorBottom = v, cam: () => env.cam = v, go: () => goUntil = v, now: () => env.now = v, w: () => window.innerWidth = v, bottom: () => env.bottom = v })[k](); }, car, cur: () => tsCur };
+    return { frame: turnSignFrame, hide: tsHide, set: (k, v) => { ({ tsStyle: () => tsStyle = v, state: () => state = v, tsList: () => tsList = v, sakeRun: () => sakeRun = v, mirror: () => tsMirrorBottom = v, cam: () => env.cam = v, go: () => goUntil = v, now: () => env.now = v, w: () => window.innerWidth = v, bottom: () => env.bottom = v, h: () => window.innerHeight = v })[k](); }, car, cur: () => tsCur };
   `)(M, env, els, beeps);
   return { ...fn, el, beeps, pop: els['#pop'], calls };
 }
@@ -311,7 +314,7 @@ test('GO 文字還在時（goUntil 之前）只有 big / preview 等它消失；
     const gated = st === 'big' || st === 'preview';
     assert.deepEqual(h.beeps, gated || st === 'off' ? [] : [1], st + ' GO 期間');
     assert.equal(h.el.className !== '', !gated && tsDraws(st), st + ' GO 期間的畫面');
-    h.set('now', 1700); h.frame(); h.frame(); h.frame(); // 700 ms later, no explicit clear needed
+    h.set('go', 0); h.frame(); h.frame(); h.frame(); // 700 ms later the main loop's goTick has cleared goUntil
     assert.deepEqual(h.beeps, st === 'off' ? [] : [1], st + ' 整段只嗶一次');
     assert.equal(h.el.className !== '', tsDraws(st), st);
   }
@@ -344,8 +347,8 @@ test('置中提示（#pop）：big / preview 顯示時被推到提示下方，si
     const h = harness(st, { bottom: 333 });
     h.frame();
     assert.ok(h.pop.cls.has('ts-below'), st); assert.equal(h.pop.st['--ts-pop'], '341px', st);
-    h.set('bottom', 400); h.set('w', 900); h.frame();
-    assert.equal(h.pop.st['--ts-pop'], '408px', st + ' 每個 frame 更新');
+    h.set('bottom', 350); h.set('w', 900); h.frame();
+    assert.equal(h.pop.st['--ts-pop'], '358px', st + ' 每個 frame 更新');
     h.set('state', 'done'); h.frame();
     assert.equal(h.pop.cls.has('ts-below'), false, st + ' 提示消失就還原');
   }
@@ -362,23 +365,54 @@ test('後照鏡版面在 hud() 之前算好（turnSignFrame 讀到的 tsMirrorBo
   assert.ok(html.indexOf('const mirrorOn') < html.indexOf(call));
 });
 
-test('goUntil：GO 寫入時設為 now + 700 ms，700 ms 計時器、倒數開始、結束、回標題、重置時清掉；turnSignFrame 不讀 DOM 文字', () => {
+test('goUntil：GO 寫入時設為 now + 700 ms，由主迴圈的 goTick 到期清除（不再有計時器）；倒數開始、結束、回標題、重置時清掉；turnSignFrame 不讀 DOM 文字', () => {
   assert.ok(/textContent = 'GO'; goUntil = performance\.now\(\) \+ 700;/.test(html));
-  assert.ok(/=== 'GO'\) \$\('#count'\)\.textContent = ''; \}, 700\)/.test(html), '視覺上的清除計時器不變');
+  assert.ok(html.includes('goTick(performance.now());'), '主迴圈清除 GO');
   assert.ok(/textContent = '3'; goUntil = 0;/.test(html));
   assert.ok((html.match(/textContent = ''; goUntil = 0;/g) || []).length >= 4, '重置、回標題、結束、離開線上等處');
   const m = /function turnSignFrame\(\) \{[\s\S]*?\n\}/.exec(html)[0];
   assert.equal(m.includes('#count'), false);
 });
 
-test('goUntil 自己會過期：忘了清除也最多擋 700 ms（時間走過去就顯示）', () => {
+test('turnSignFrame 只看 goUntil 是否大於 0：有值就擋 big / preview，清成 0 就顯示（過期由主迴圈的 goTick 負責，見 go-clear.test.mjs）', () => {
   for (const st of ['big', 'preview']) {
-    const h = harness(st, { goUntil: 1000 + 700, now: 1000 });
-    h.frame(); assert.equal(h.el.className, '', st + ' 700 ms 內擋住');
-    h.set('now', 1699); h.frame(); assert.equal(h.el.className, '', st + ' 699 ms 還擋');
-    h.set('now', 1700); h.frame(); assert.notEqual(h.el.className, '', st + ' 到期就顯示（沒人清除 goUntil）');
+    const h = harness(st, { goUntil: 1700, now: 1000 });
+    h.frame(); assert.equal(h.el.className, '', st + ' goUntil 有值就擋');
+    h.set('go', 0); h.frame(); assert.notEqual(h.el.className, '', st + ' goUntil 清掉就顯示');
     assert.deepEqual(h.beeps, [1]);
   }
-  const old = harness('big', { goUntil: 5, now: 1e9 }); old.frame();
-  assert.notEqual(old.el.className, '', '很久以前留下的值不擋');
+});
+
+test('tsPopPlace：桌機放在提示下方；手機橫向車內（下方會超過 62% 高度）改放提示左側', () => {
+  const desk = tsPopPlace({ left: 565, top: 72, bottom: 222 }, 100, 1280, 720);
+  assert.deepEqual(desk, { mode: 'below', top: 230 });
+  const phone = tsPopPlace({ left: 384, top: 131, bottom: 197 }, 70, 844, 390);
+  assert.equal(phone.mode, 'beside');
+  assert.equal(phone.top, 164, '垂直置中於提示');
+  assert.equal(phone.right, 844 - 384 + 12, '右緣 = 提示左緣 - 12');
+  assert.equal(phone.maxWidth, 384 - 24);
+});
+
+test('tsPopPlace：邊界，下緣剛好 62% 仍在下方，多 1 px 就改放旁邊', () => {
+  const at = tsPopPlace({ left: 400, top: 0, bottom: 92 }, 100, 1000, 500); // top 100 + 100 = 200... 
+  assert.equal(at.mode, 'below');
+  const edge = tsPopPlace({ left: 400, top: 0, bottom: 202 }, 100, 1000, 500); // 210 + 100 = 310 = 62% of 500
+  assert.equal(edge.mode, 'below');
+  assert.equal(tsPopPlace({ left: 400, top: 0, bottom: 203 }, 100, 1000, 500).mode, 'beside');
+});
+
+test('置中提示：手機橫向 big 改放旁邊（ts-beside，不加 ts-below），提示消失與換樣式都清掉', () => {
+  const h = harness('big', { bottom: 197, left: 384, w: 844, h: 390, cam: 'cockpit', mirror: 100 });
+  h.frame();
+  assert.ok(h.pop.cls.has('ts-beside')); assert.equal(h.pop.cls.has('ts-below'), false);
+  assert.equal(h.pop.st['--ts-pop-r'], '472px'); assert.equal(h.pop.st['--ts-pop-w'], '360px'); assert.equal(h.pop.st['--ts-pop-y'], '147px');
+  h.set('w', 1280); h.set('h', 720); h.set('bottom', 222); h.frame();
+  assert.ok(h.pop.cls.has('ts-below')); assert.equal(h.pop.cls.has('ts-beside'), false, '回到桌機尺寸就換回下方');
+  assert.equal(h.pop.st['--ts-pop-r'], undefined);
+  h.set('w', 844); h.set('h', 390); h.set('bottom', 197); h.frame();
+  assert.ok(h.pop.cls.has('ts-beside'));
+  h.set('state', 'done'); h.frame();
+  assert.equal(h.pop.cls.size, 0, '消失時全部清掉');
+  assert.deepEqual(h.pop.st, {}, '變數也清掉');
+  assert.ok(/#pop\.ts-beside \{[^}]*right: var\(--ts-pop-r\)[^}]*max-width: var\(--ts-pop-w\)/.test(html), 'CSS 有 ts-beside 規則');
 });

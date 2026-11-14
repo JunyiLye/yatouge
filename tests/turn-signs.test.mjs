@@ -195,8 +195,9 @@ test('送酒模式與觀戰不顯示；關閉時不顯示；只在 race 狀態�
 test('tsHide 以 DOM 為準：tsCur 已被清掉、圖標還顯示時，仍然要把圖標藏起來（線上離開後殘留圖標的 bug）', () => {
   const src = /function tsHide\(\) \{[^\n]*\}/.exec(html);
   assert.ok(src, '找不到 tsHide');
-  const mkEl = cls => { const s = new Set(cls); return { s, attrs: { 'aria-hidden': null }, classList: { contains: c => s.has(c), remove: (...c) => c.forEach(x => s.delete(x)) }, setAttribute(k, v) { this.attrs[k] = v; } }; };
-  const run = (el, cur) => new Function('$', `let tsCur = ${JSON.stringify(cur)}, tsKey = 'x';\n${src[0]}\ntsHide(); return tsCur;`)(() => el);
+  const clr = /function tsPopClear\(pop\) \{[^\n]*\}/.exec(html);
+  const mkEl = cls => { const s = new Set(cls); return { s, attrs: { 'aria-hidden': null }, classList: { contains: c => s.has(c), remove: (...c) => c.forEach(x => s.delete(x)) }, setAttribute(k, v) { this.attrs[k] = v; }, style: { removeProperty() {} } }; };
+  const run = (el, cur) => new Function('$', `let tsCur = ${JSON.stringify(cur)}, tsKey = 'x';\n${clr[0]}\n${src[0]}\ntsHide(); return tsCur;`)(() => el);
   const el = mkEl(['tsign', 'l', 'show', 'flash']);
   assert.equal(run(el, ''), '', 'tsCur 先被清掉（buildTrack 的舊行為）');
   assert.equal(el.s.has('show'), false); assert.equal(el.s.has('flash'), false);
@@ -223,4 +224,35 @@ test('script 可以被解析；沒有 CR、沒有 __lc、沒有隱形字元', ()
   assert.equal(html.includes('__lc'), false);
   const bad = [0x2028, 0x2029, 0x200b, 0x200c, 0x200d, 0x200e, 0x200f, 0x202a, 0x202b, 0x202c, 0x202d, 0x202e, 0x2060, 0xfeff];
   for (const cp of bad) assert.equal(html.includes(String.fromCharCode(cp)), false, cp.toString(16));
+});
+
+test('nextSign：提示一出現就鎖定，煞車讓 lead 縮短也不會在進彎前消失或重複出現（只嗶一次）', () => {
+  for (const id of IDS) {
+    const { list } = courses[id], i = list.findIndex(k => k.kind === 'hairpin' || k.kind === 'big' || k.s0 > 400); // 取第一個髮夾，沒有就取大彎或較後面的彎
+    assert.ok(i >= 0, id);
+    const k = list[i], dt = 1 / 120;
+    let s = k.s0 - 200, v = 40, shown = -1, appear = 0, hidden = false;
+    for (let t = 0; s <= k.s0 + TS.HOLD; t += dt) {
+      const r = nextSign(list, s, v, shown);
+      const now = r && r.i === i ? i : -1;
+      if (now === i && shown !== i) appear++;
+      if (shown === i && now !== i && s <= k.s0 + TS.HOLD) hidden = true;
+      shown = r ? r.i : -1;
+      if (appear && v > 15) v = Math.max(15, v - 24 * dt); // 提示出現後才開始重煞
+      s += v * dt;
+    }
+    assert.equal(appear, 1, `${id} 出現次數`);
+    assert.equal(hidden, false, `${id} 進彎前消失`);
+  }
+});
+test('nextSign：鎖定只對「正在顯示的那個彎」有效，已通過的彎不會被鎖住', () => {
+  const list = [{ s0: 500, s1: 560, kind: 'mid', dir: 'R' }, { s0: 700, s1: 760, kind: 'big', dir: 'L' }];
+  assert.equal(nextSign(list, 100, 10, 0).i, 0, '鎖定 0：即使還很遠');
+  assert.equal(nextSign(list, 100, 10, 1), null, '鎖定的不是下一個彎');
+  assert.equal(nextSign(list, 500 + TS.HOLD + 1, 10, 0), null, '過了 HOLD 就放開');
+  assert.equal(nextSign(list, 100, 10, -1), null);
+  assert.equal(nextSign(list, 100, 10), null);
+});
+test('turnSignFrame 把正在顯示的彎傳給 nextTwoSigns（接線檢查）', () => {
+  assert.match(html, /nextTwoSigns\(tsList \|\| \(tsList = cornerList\(pts\)\), car\.loc\.s, Math\.hypot\(car\.vx, car\.vz\), tsCur === '' \? -1 : \+tsCur\)/);
 });
