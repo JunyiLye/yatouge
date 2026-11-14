@@ -16,8 +16,8 @@ function fn(name) {
 }
 const M = new Function(`const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 ${block('course-geometry')}\n${block('gutter')}\n${block('turn-signs')}\n${block('timeattack')}\n${block('rival-hill')}\n${block('finish-hit')}
-return { rivalAdvance, TRACKS, DS, HW, wrap, lerpAngle, buildCourse, bestKey, taKey, gutterSections, trackFrom, upId, isUp, baseId, courseId, gateLabel, aiHillTop, aiHillAcc, cornerList };`)();
-const { TRACKS, DS, HW, wrap, lerpAngle, buildCourse, bestKey, taKey, gutterSections, trackFrom, upId, isUp, baseId, courseId, gateLabel, aiHillTop, aiHillAcc, rivalAdvance, cornerList } = M;
+return { waypointPts, CHIKUMA_WP, CHIKUMA_PX, rivalAdvance, TRACKS, DS, HW, wrap, lerpAngle, buildCourse, bestKey, taKey, gutterSections, trackFrom, upId, isUp, baseId, courseId, gateLabel, aiHillTop, aiHillAcc, cornerList };`)();
+const { waypointPts, CHIKUMA_WP, CHIKUMA_PX, TRACKS, DS, HW, wrap, lerpAngle, buildCourse, bestKey, taKey, gutterSections, trackFrom, upId, isUp, baseId, courseId, gateLabel, aiHillTop, aiHillAcc, rivalAdvance, cornerList } = M;
 
 const down = () => buildCourse('chikuma'), up = () => buildCourse('chikuma_up');
 // 與 waypointPts 相同的數法：同方向、|k| > 0.01 的連續彎累積轉角 >= 150 度算一個髮夾彎（由路點算，和 plan 的 180 度圓弧數互相印證）
@@ -50,9 +50,9 @@ test('千曲坂：存在，名字與起點門牌正確，路寬較窄（hw 不�
   assert.equal(gateLabel('chikuma_up'), '千曲坂 上坡起點 · START');
 });
 
-test('千曲坂：全長 5.0–6.5 km，髮夾彎至少 24 個（建賽道的數法與逐點數法一致）', () => {
+test('千曲坂：全長 6.9–7.1 km（含延長的兩座橋），髮夾彎至少 24 個（建賽道的數法與逐點數法一致）', () => {
   const c = down();
-  assert.ok(c.TOTAL >= 5000 && c.TOTAL <= 6500, `全長 ${c.TOTAL}`);
+  assert.ok(c.TOTAL >= 6900 && c.TOTAL <= 7100, `全長 ${c.TOTAL}`);
   assert.ok(c.hairpins >= 24, `hairpins ${c.hairpins}`);
   const n = hairpinAts(c.pts).length;
   assert.ok(n >= 24, `由路點數到 ${n}`);
@@ -95,8 +95,7 @@ test('千曲坂_up：長度、點數、髮夾彎與下坡相同；trackFrom／co
   assert.equal(upId('chikuma'), 'chikuma_up'); assert.ok(isUp('chikuma_up')); assert.equal(baseId('chikuma_up'), 'chikuma');
   assert.equal(trackFrom('chikuma'), 'chikuma'); assert.equal(trackFrom('chikuma_up'), 'chikuma');
   assert.equal(courseId('chikuma', 'up'), 'chikuma_up'); assert.equal(courseId('chikuma', 'down'), 'chikuma');
-  assert.equal(bestKey('chikuma'), 'yatouge-best-chikuma');
-  assert.equal(taKey('chikuma', 'rally'), 'yatouge-ta-best-chikuma-rally');
+  assert.equal(taKey('chikuma', 'rally'), 'yatouge-ta-best-chikuma-rally'); // 不帶 rev 的呼叫維持舊格式（其他賽道）
   assert.equal(taKey('chikuma', 'hatch', true), 'yatouge-ta-best-chikuma-hatch-up');
 });
 
@@ -120,11 +119,11 @@ test('對手車：TRACK_RIVAL.chikuma 是 RV-4 (rally)，顏色索引存在；�
   for (const id of Object.keys(TRACKS)) assert.ok(R[id], `${id} 有固定對手`);
 });
 
-test('線上：NET.TRACKS 含 chikuma（不含 _up），RP.V 是 5，投票 chikuma 合法（下坡、上坡）', () => {
+test('線上：NET.TRACKS 含 chikuma（不含 _up），RP.V 是 6，投票 chikuma 合法（下坡、上坡）', () => {
   const N = new Function(`${block('netcode')}\nreturn { NET, validatePeerState };`)();
   assert.deepEqual(N.NET.TRACKS, ['kurosagi', 'seiran', 'hakuro', 'chikuma']);
   const R = new Function(`const NET = { TRACKS: ['kurosagi', 'seiran', 'hakuro', 'chikuma'], CARS: ['hatch', 'coupe', 'gtr', 'rally'] };\n${block('roompick')}\nreturn { RP, validVote };`)();
-  assert.equal(R.RP.V, 5);
+  assert.equal(R.RP.V, 6);
   assert.deepEqual(R.validVote({ t: 'chikuma', d: 'up', m: 'cat', g: 80 }), { t: 'chikuma', d: 'up', m: 'cat', g: 80 });
   assert.ok(R.validVote({ t: 'chikuma', d: 'down', m: 'first', g: 50 }));
   const base = { v: 1, st: 'waiting', car: 'rally', col: 0 };
@@ -174,7 +173,7 @@ test('更新紀錄：2026-11-14 有千曲坂一條（中英文位置與條數相
 test('README 與 CLAUDE.md 的賽道清單含千曲坂（4 條）', () => {
   const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8'), claude = readFileSync(new URL('../CLAUDE.md', import.meta.url), 'utf8');
   assert.ok(readme.includes('4 條賽道') && readme.includes('千曲坂'));
-  assert.ok(claude.includes('四條賽道') && claude.includes('千曲坂') && claude.includes('RP.V = 5'));
+  assert.ok(claude.includes('四條賽道') && claude.includes('千曲坂') && claude.includes('RP.V = 6'));
 });
 
 test('授權：README 與遊戲內都註明路線取自 OpenStreetMap（© OpenStreetMap contributors，ODbL）', () => {
@@ -183,4 +182,63 @@ test('授權：README 與遊戲內都註明路線取自 OpenStreetMap（© OpenS
   assert.ok(html.includes('© OpenStreetMap contributors'), '遊戲內的標示');
   const cm = html.slice(html.indexOf('/* Chikuma Slope'), html.indexOf('const TRACKS = {'));
   assert.ok(cm.includes('OpenStreetMap') && cm.includes('ODbL'), '路點旁的來源註解');
+});
+
+/* ---------- 延長（終點後兩座橋）：新路段、橋、紀錄版本 ---------- */
+// 舊終點的 s（只由 OSM 路點算出，延長不影響）
+const oldFin = () => { const b = waypointPts(CHIKUMA_WP, CHIKUMA_PX); return { s: b.pts[b.pts.length - 20].s, i: b.pts.length - 20, pts: b.pts }; };
+// 一段 s 區間的轉角（度，+ = 左）與長度，以曲率積分
+const turnOf = (pts, s0, s1) => { let a = 0; for (let i = 1; i < pts.length; i++) if (pts[i].s > s0 && pts[i].s <= s1) a += wrap(pts[i].h - pts[i - 1].h); return a * 180 / Math.PI; };
+// 規格表的各路段：[起點離舊終點的距離, 終點離舊終點的距離, 轉角（度，+ 左）]
+const SEGS = [[0, 48.9, 70], [48.9, 111.7, -12], [111.7, 231.7, 0], [231.7, 271.7, 15], [271.7, 411.7, 0], [411.7, 531.7, -25], [531.7, 611.7, 20], [611.7, 651.7, -12], [651.7, 801.7, 0]];
+
+test('千曲坂延長：舊終點之前的路點與原本逐位元相同，延長從舊終點相切接上', () => {
+  const o = oldFin(), c = down();
+  for (let i = 0; i <= o.i; i++) for (const k of ['x', 'z', 'h', 's', 'k']) assert.equal(c.pts[i][k], o.pts[i][k], `pt ${i} ${k}`);
+  const a = c.pts[o.i], b = c.pts[o.i + 1];
+  assert.ok(Math.abs(wrap(Math.atan2(b.x - a.x, b.z - a.z) - a.h)) < 0.05, '切線連續');
+  assert.ok(Math.abs(c.pts[o.i + 1].s - o.s - DS) < 1e-9);
+});
+
+test('千曲坂延長：每段的轉角、方向與長度符合規格表（曲率積分）', () => {
+  const o = oldFin(), c = down();
+  for (const [a, b, deg] of SEGS) {
+    const t = turnOf(c.pts, o.s + a, o.s + b);
+    assert.ok(Math.abs(t - deg) <= (deg === 0 ? 2 : 3), `s+${a}..${b}：轉 ${t.toFixed(1)}°，規格 ${deg}°`);
+  }
+  // 新終點在最後的直線末端：最後一段直線 150 m，之後是停車空間
+  assert.ok(Math.abs(c.FINISH_S - (o.s + 801.7)) <= 2 * DS, `FINISH_S ${c.FINISH_S}`);
+  assert.ok(Math.abs(turnOf(c.pts, c.FINISH_S - 150, c.TOTAL)) < 2, '終點前 150 m 與終點後都是直線');
+});
+
+test('千曲坂延長：兩座橋（下坡 s 區間）涵蓋規格的路段，上坡版本反轉', () => {
+  const o = oldFin(), d = down(), u = up();
+  assert.equal(d.bridges.length, 2);
+  const want = [[48.9, 231.7], [271.7, 411.7]];
+  d.bridges.forEach((b, i) => { assert.ok(Math.abs(b.s0 - (o.s + want[i][0])) < 0.5 && Math.abs(b.s1 - (o.s + want[i][1])) < 0.5, `橋 ${i}：${JSON.stringify(b)}`); });
+  assert.ok(d.bridges[0].s1 < d.bridges[1].s0 && d.bridges[1].s1 < d.FINISH_S);
+  assert.equal(u.bridges.length, 2);
+  u.bridges.forEach((b, i) => { const r = d.bridges[1 - i]; assert.ok(Math.abs(b.s0 - (d.TOTAL - r.s1)) < 1e-6 && Math.abs(b.s1 - (d.TOTAL - r.s0)) < 1e-6, `上坡橋 ${i}`); assert.ok(b.s0 < b.s1); });
+  assert.ok(u.bridges[0].s1 < u.bridges[1].s0);
+  // 上坡版同一個位置：反轉後 s 對應的點與下坡橋面的中點是同一點
+  const mid = (c, b) => { const p = c.pts.find(q => q.s >= (b.s0 + b.s1) / 2); return [p.x, p.z]; };
+  const m1 = mid(d, d.bridges[0]), m2 = mid(u, u.bridges[1]);
+  assert.ok(Math.hypot(m1[0] - m2[0], m1[1] - m2[1]) < 2 * DS);
+  for (const id of ['kurosagi', 'seiran', 'hakuro', 'kurosagi_up', 'seiran_up', 'hakuro_up']) assert.deepEqual(buildCourse(id).bridges, [], id);
+});
+
+test('千曲坂延長：新路段與全路線不重疊（沿路相距 > 60 m 的間距夠寬）', () => {
+  const c = down(), need = 2 * c.hw + 4;
+  assert.ok(minClearance(c.pts) >= need, `最小間距 ${minClearance(c.pts)}`);
+});
+
+test('紀錄 key：只有千曲坂帶課程版本（-r2），其他賽道與 taKey 預設完全不變', () => {
+  for (const id of ['chikuma', 'chikuma_up']) assert.equal(bestKey(id), 'yatouge-best-' + id + '-r2');
+  assert.equal(taKey('chikuma', 'rally', false, '-r2'), 'yatouge-ta-best-chikuma-rally-r2');
+  assert.equal(taKey('chikuma_up', 'hatch', true, '-r2'), 'yatouge-ta-best-chikuma_up-hatch-up-r2');
+  assert.equal(bestKey('kurosagi'), 'yatouge-best'); assert.equal(bestKey('seiran'), 'yatouge-best-seiran'); assert.equal(bestKey('hakuro_up'), 'yatouge-best-hakuro_up');
+  assert.equal(TRACKS.chikuma.rev, 2);
+  for (const id of ['kurosagi', 'seiran', 'hakuro']) assert.equal(TRACKS[id].rev, undefined);
+  const parts = html.split('taKey(trackId').slice(1); // 所有讀寫紀錄處都要帶版本
+  assert.ok(parts.length >= 3 && parts.every(p => p.slice(0, 80).includes('revSuffix(trackId)')), 'taKey 呼叫處 ' + parts.length);
 });

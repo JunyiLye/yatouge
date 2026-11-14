@@ -814,12 +814,12 @@ const confirmKeys = (what, ta, sake) => what === 'lobby' ? { q: 'igLobbyAsk', ye
 // Player-facing release notes, newest first (at most 12 versions). Add today's version, or extend it, whenever a change the player can see goes out.
 const CHANGELOG = [
   { date: '2026-11-14',
-    zh: ['新賽道「千曲坂」：約 6.2 公里、二十五個髮夾彎，路線參考真實的山路，一層一層折返往下，對手是 RV-4 拉力四驅。下坡、上坡、計時賽和線上對戰都可以選。', '新車 RV-4 拉力四驅：90 年代雙門四驅渦輪房車，起步與出彎最猛，有自己的水平對臥引擎聲與車內視角。', '主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：按下「開始」後可以選「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式仍是下坡）。',
+    zh: ['新賽道「千曲坂」：約 7.0 公里、二十五個髮夾彎，路線參考真實的山路，一層一層折返往下，終點前還有兩座跨河谷的水泥橋，對手是 RV-4 拉力四驅。這條路變長了，千曲坂的最佳成績和幽靈車會重新開始記錄；舊的分頁要重新整理才能在線上對戰千曲坂。下坡、上坡、計時賽和線上對戰都可以選。', '新車 RV-4 拉力四驅：90 年代雙門四驅渦輪房車，起步與出彎最猛，有自己的水平對臥引擎聲與車內視角。', '主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：按下「開始」後可以選「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式仍是下坡）。',
     '主畫面的設定改成三個按鈕：「車輛設定」、「聲音設定」、「遊戲設定」，點開後在視窗裡選車與顏色、選背景音樂與開關音樂，以及調整震動、彎道提示、按鍵設定、查看更新內容，主畫面更簡潔。',
     '上坡或下坡改成按下「開始」後才選（接著選手排或自排）；送酒模式仍是下坡，結果畫面的「同一台再跑」沿用上一場的方向。',
     '線上對戰也可以上坡了：在房間點選賽道時選下坡或上坡，點選車子時選手排或自排，兩個都選好才能按「準備」。方向跟著賽道一起投票，兩人不同時一起抽籤，抽籤後不會再問變速箱。',
     '線上房間的聊天框移到右側，電腦上一進房間就看得到，不用再往下捲。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。', '修正：主畫面按 Enter 只有在「開始」鈕上、或焦點不在任何控制項上時才會開始比賽；在其他按鈕、選單上按 Enter 會照常操作它，方向鍵也能切換下拉選單與滑桿。', '修正：可以把 Ctrl 或 Alt 綁成降檔、鏡頭、聊天，綁了之後確實會作用。', '修正：關閉 KX-2 車門字樣後，離開車內視角不會再冒出來。', '修正：計時在整分、整十秒前後不再顯示成 0:60.00 之類的錯誤格式。', '修正：點選卡片後鍵盤焦點會留在原位；再點已選的車不會重設顏色。', '修正：回到主畫面時視角會恢復正常。', '修正：在遊戲內換語言後，主畫面的線上狀態也會跟著換語言。', '修正：壞掉的語言存檔不再讓文字壞掉。', '修正：AI 衝線後不會再停在終點讓你撞上。', '修正：起跑的 GO 消失後，大型與預告彎道提示才會出現。', '修正：線上對戰中對手在比賽時換車不再造成畫面卡頓；連線較忙時大廳會請你稍候。', '修正：線上對戰衝線後，兩台車不會再互撞。', '修正：線上對戰中，房間裡的其他人無法再冒用你的身分；舊版頁面需重新整理後才能進房。', '修正：計時賽中途才打開幽靈車，幽靈車不會再浮在路面上方。', '修正：和 AI 幾乎同時衝線時，勝負改用同一個時鐘判斷，不再固定偏向 AI。', '修正：在主畫面選了不能用的自選音樂檔，現在會在聲音設定視窗裡顯示提示，不會留到比賽倒數才出現。', '修正：按鍵設定把 Ctrl 綁定後，如果 W、T 或 N 也有綁按鍵，會提醒瀏覽器可能因此關閉或開新分頁。', '修正：使用右 Alt（AltGr）鍵盤配置時，綁在右 Alt 的降檔、鏡頭、聊天可以正常使用。', '修正：視窗失去焦點時按住的手把扳機，回來後不會失效。', '修正：重新開始後，倒數時引擎聲不會延續上一場的油門聲。', '修正：車內視角時，在設定裡開關車門字樣不會讓字樣單獨浮在車外。', '修正：結果畫面按「同一台再跑」再取消變速箱選擇，鍵盤焦點會回到該按鈕。', '修正：線上房間裡，對方離開後不會再被別人冒用他的代號而一直顯示在場；同一個分頁離開後再加入同一個房間，對方不會再看到你上一場停住的車。', '修正：對手離開後，結果畫面仍顯示對手的暱稱，不會變成「玩家」。', '修正：近距離視角下車尾不再前後抖動，畫面更順；重新開始後的順暢程度也會一致。', '修正：和對手車相撞不再扣分或重置連續甩尾；被夾在對手車與牆之間也不會再被推出牆外、拉回來並吃到撞牆懲罰。'],
-    en: ['New course, Chikuma Slope: about 6.2 km with twenty-five hairpins, its line modelled on a real mountain road that zig-zags down in layers, and the RV-4 Rally 4WD as your rival. Pick it downhill, uphill, in time attack and in online races.', 'New car, the RV-4 Rally 4WD: a 90s two-door all-wheel-drive turbo saloon that launches and exits corners hardest, with its own flat-four engine sound and cockpit view.', 'New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Corner warnings now have styles: Side, Centre, Next two, Sound or Off. Find them in settings.', 'Uphill runs: after pressing Start you can choose Downhill or Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run stays downhill).',
+    en: ['New course, Chikuma Slope: about 7.0 km with twenty-five hairpins, its line modelled on a real mountain road that zig-zags down in layers, then two concrete bridges over a river valley before the finish, and the RV-4 Rally 4WD as your rival. The course got longer, so the best times and ghosts for this course start fresh, and older open pages need a refresh to race it online. Pick it downhill, uphill, in time attack and in online races.', 'New car, the RV-4 Rally 4WD: a 90s two-door all-wheel-drive turbo saloon that launches and exits corners hardest, with its own flat-four engine sound and cockpit view.', 'New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Corner warnings now have styles: Side, Centre, Next two, Sound or Off. Find them in settings.', 'Uphill runs: after pressing Start you can choose Downhill or Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run stays downhill).',
     'The title-screen settings are now three buttons, Car settings, Sound settings and Game settings, that open windows for the car and colour, the music and its switch, and vibration, corner warnings, key settings and what\'s new. The title screen is much tidier.',
     'Uphill or downhill is now chosen after you press Start (followed by manual or automatic). Sake Run stays downhill, and Run again keeps the last direction.',
     'Online races can now be uphill: click a course in the room to choose downhill or uphill and click your car to choose a gearbox; you can only press Ready once both are chosen. The direction is voted together with the course and drawn if you differ, and the gearbox is no longer asked after the draw.',
@@ -954,7 +954,8 @@ const TA = { V: 1, DT: 0.1, MAX_SAMPLES: 6000, MAX_CHARS: 60000, HU: 4096 }; // 
 const TA_Q = [100, 10, 10, 10]; // t, s, x, z per unit: 0.01 s, 0.1 m
 const TA_ABC = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
 // up: the player's KX-2 has the Sake Run top-speed upgrade on; it keeps its own record (old keys stay as the plain KX-2 record), other cars ignore it
-const taKey = (track, car, up) => 'yatouge-ta-best-' + track + '-' + car + (up && car === 'hatch' ? '-up' : '');
+// rev: the course revision suffix ('' or '-r2'), so a record of an older layout is never read
+const taKey = (track, car, up, rev = '') => 'yatouge-ta-best-' + track + '-' + car + (up && car === 'hatch' ? '-up' : '') + rev;
 const taGhostOn = v => v !== '0'; // saved as '0' / '1'; a missing value means on
 const taWrap = a => a - 2 * Math.PI * Math.round(a / (2 * Math.PI));
 // p: { s, x, z, h }. s is kept as the furthest progress so far, so time-at-distance stays searchable. false = full (no ghost for this run).
@@ -1537,13 +1538,41 @@ function waypointPts(WP, PX) {
   }
   return { pts, hairpins };
 }
-const seiranPts = () => waypointPts(SEIRAN_WP, SEIRAN_PX), hakuroPts = () => waypointPts(HAKURO_WP, HAKURO_PX), chikumaPts = () => waypointPts(CHIKUMA_WP, CHIKUMA_PX);
+/* Chikuma Slope extension (original, NOT OpenStreetMap data): starts at the old finish, tangent to the old road, and runs two concrete bridges to the new finish.
+   deg > 0 = right turn, deg < 0 = left (same sign as the Kurosagi plan); the last straight is the 20-point run-out after the finish line. bridge: 1 / 2 marks the bridge decks. */
+const CHIKUMA_EXT = [
+  { deg: -70, r: 40 }, { deg: 12, r: 300, bridge: 1 }, { L: 120, bridge: 1 }, { deg: -15, r: 152.8 }, { L: 140, bridge: 2 },
+  { deg: 25, r: 275 }, { deg: -20, r: 229 }, { deg: 12, r: 191 }, { L: 150 }, { L: 20 * DS }
+];
+function chikumaPts() {
+  const base = waypointPts(CHIKUMA_WP, CHIKUMA_PX), F = base.pts.length - 20, pts = base.pts.slice(0, F + 1), f = pts[F];
+  let x = f.x, z = f.z, h = f.h, len = 0;
+  const dense = [[x, z]], bridges = [], STEP = 0.5;
+  for (const seg of CHIKUMA_EXT) {
+    const L = seg.L ?? Math.abs(seg.deg) * Math.PI / 180 * seg.r, n = Math.ceil(L / STEP), d = L / n, dh = seg.L ? 0 : -seg.deg * Math.PI / 180 / n;
+    if (seg.bridge) { const b = bridges[seg.bridge - 1] ||= { s0: f.s + len, s1: 0 }; b.s1 = f.s + len + L; }
+    for (let i = 0; i < n; i++) { h += dh / 2; x += Math.sin(h) * d; z += Math.cos(h) * d; h += dh / 2; dense.push([x, z]); }
+    len += L;
+  }
+  let s = f.s, carry = 0;
+  for (let i = 1; i < dense.length; i++) {
+    const a = dense[i - 1], b = dense[i], L = Math.hypot(b[0] - a[0], b[1] - a[1]);
+    let d = DS - carry;
+    for (; d <= L; d += DS) { s += DS; pts.push({ x: a[0] + (b[0] - a[0]) * d / L, z: a[1] + (b[1] - a[1]) * d / L, h: 0, s, k: 0 }); }
+    carry = L - (d - DS);
+  }
+  const N = pts.length;
+  for (let i = F + 1; i < N; i++) { const a = pts[i - 1], b = pts[Math.min(N - 1, i + 1)]; pts[i].h = Math.atan2(b.x - a.x, b.z - a.z); }
+  for (let i = F + 1; i < N; i++) pts[i].k = wrap(pts[i].h - pts[i - 1].h) / DS;
+  return { pts, hairpins: base.hairpins, bridges };
+}
+const seiranPts = () => waypointPts(SEIRAN_WP, SEIRAN_PX), hakuroPts = () => waypointPts(HAKURO_WP, HAKURO_PX);
 // hw = road half-width in metres (default HW); every wall / rail / road mesh / AI limit reads it from the current course
 const TRACKS = {
   kurosagi: { name: { zh: '黑鷺山', en: 'Mt. Kurosagi' }, gate: '黑鷺山 下坡起點 · START', pts: kurosagiPts },
   seiran: { name: { zh: '青嵐峠', en: 'Seiran Pass' }, gate: '青嵐峠 下坡起點 · START', pts: seiranPts, waypoints: SEIRAN_WP },
   hakuro: { name: { zh: '白狼峠', en: 'Hakuro Pass' }, gate: '白狼峠 下坡起點 · START', pts: hakuroPts, waypoints: HAKURO_WP, hw: 6.2 },
-  chikuma: { name: { zh: '千曲坂', en: 'Chikuma Slope' }, gate: '千曲坂 下坡起點 · START', pts: chikumaPts, waypoints: CHIKUMA_WP, hw: 4.2 }
+  chikuma: { name: { zh: '千曲坂', en: 'Chikuma Slope' }, gate: '千曲坂 下坡起點 · START', pts: chikumaPts, waypoints: CHIKUMA_WP, hw: 4.2, rev: 2 }
 };
 /* uphill variant of a course: the same road driven the other way. Each course is also built as "<id>_up". */
 const UP_SUFFIX = '_up', DIRS = ['down', 'up'];
@@ -1564,10 +1593,12 @@ function buildCourse(id) {
   const base = baseId(id), up = isUp(id);
   const gen = TRACKS[base].pts(), N = gen.pts.length;
   for (const p of gen.pts) p.y = 230 - p.s * 0.062 + 2.5 * Math.sin(p.s / 70);
-  const pts = up ? reversePts(gen.pts) : gen.pts, hairpins = gen.hairpins;
+  const pts = up ? reversePts(gen.pts) : gen.pts, hairpins = gen.hairpins, T = gen.pts[N - 1].s;
+  // bridges: s ranges given for the downhill direction; the uphill variant walks the same deck the other way round
+  const bridges = (gen.bridges || []).map(b => up ? { s0: T - b.s1, s1: T - b.s0 } : { s0: b.s0, s1: b.s1 }).sort((a, b) => a.s0 - b.s0);
   for (let i = 0; i < N; i++) { let a = 0, c = 0; for (let j = i - 8; j <= i + 8; j++) if (j >= 0 && j < N) { a += pts[j].k; c++; } pts[i].ks = a / c; }
   const FINISH_I = N - 20;
-  return { pts, N, TOTAL: pts[N - 1].s, FINISH_I, FINISH_S: pts[FINISH_I].s, hairpins, hw: TRACKS[base].hw ?? HW };
+  return { pts, N, TOTAL: pts[N - 1].s, FINISH_I, FINISH_S: pts[FINISH_I].s, hairpins, hw: TRACKS[base].hw ?? HW, bridges };
 }
 /* centre, bounding radius and lowest height of a course; the far ridgelines are placed relative to these */
 function courseBounds(pts) {
@@ -1581,7 +1612,9 @@ function courseBounds(pts) {
 // distance of a ridgeline cone's centre; the cone's foot (coneR) always stays 100 m outside every point of the course
 const ridgeDistance = (radius, coneR, r01) => radius + coneR + 100 + r01 * 250;
 // Mt. Kurosagi keeps the original key so existing personal bests survive
-const bestKey = id => id === 'kurosagi' ? 'yatouge-best' : 'yatouge-best-' + id;
+// a course whose layout changed carries rev > 1: its records get a -rN suffix, the old ones stay in storage unread
+const trackRev = id => TRACKS[baseId(id)].rev ?? 1, revSuffix = id => trackRev(id) > 1 ? '-r' + trackRev(id) : '';
+const bestKey = id => (id === 'kurosagi' ? 'yatouge-best' : 'yatouge-best-' + id) + revSuffix(id);
 /* Outer ground width (metres from the centreline) per point, [left, right]: normally hw+13. Where another stretch of road (more than 60 m away along the road) is close,
    (closer than 2*hw+15) the ground strip and the 1 m cliff skirt after it stop at about half the distance, so they never hang over the neighbouring leg; never below hw+1. */
 function groundWidths(pts, hw) {
@@ -1589,13 +1622,51 @@ function groundWidths(pts, hw) {
   for (let i = 0; i < N; i++) {
     const p = pts[i], c = Math.cos(p.h), sn = Math.sin(p.h), best = [Infinity, Infinity];
     for (let j = 0; j < N; j++) {
-      const q = pts[j]; if (Math.abs(q.s - p.s) <= 60) continue;
+      const q = pts[j]; if (Math.abs(q.s - p.s) <= 60 && Math.cos(q.h - p.h) > -0.5) continue; // within 60 m along the road counts only when it runs the opposite way (far side of a tight bend)
       const dx = q.x - p.x, dz = q.z - p.z, d2 = dx * dx + dz * dz; if (d2 > reach2) continue;
       const side = -dx * c + dz * sn > 0 ? 1 : 0; if (d2 < best[side] * best[side]) best[side] = Math.sqrt(d2);
     }
     for (let a = 0; a < 2; a++) if (best[a] < 2 * hw + 15) raw[a][i] = Math.max(hw + 1, Math.min(full, best[a] / 2 - 1.5));
   }
   return raw.map(r => r.map((_, i) => { let m = r[i]; for (let k = Math.max(0, i - 4); k <= Math.min(N - 1, i + 4); k++) m = Math.min(m, r[k]); return m; }));
+}
+/* Ground caps: where groundWidths narrowed the strips of two close stretches (the inside of a tight bend), a pit is left between the two grass edges.
+   A cap joins the two edges with ground, one quad per pair of neighbouring points: [a, b, c, d] of { x, y, z }, a and c on this stretch (points i, i+1), b and d on the facing one.
+   The edges are at most half the distance from their own road, so a cap lies between the two roads, never over one. */
+function groundCaps(pts, hw, gw) {
+  const N = pts.length, full = hw + 13 - 1e-3, reach2 = (2 * hw + 15) ** 2, caps = [];
+  const edge = (i, a) => { const p = pts[i], w = gw[a][i], o = a ? w : -w; return { x: p.x - Math.cos(p.h) * o, y: p.y - 0.08 - (w - hw - 0.35) / 12.65 * 1.12, z: p.z + Math.sin(p.h) * o }; };
+  const grid = new Map(), CELL = 20;
+  pts.forEach((p, i) => { const k = Math.floor(p.x / CELL) + ',' + Math.floor(p.z / CELL); if (!grid.has(k)) grid.set(k, []); grid.get(k).push(i); });
+  // a quad is kept only when a 5 x 5 sampling of it stays more than hw + 1.5 from every road centreline
+  const clear = q => {
+    for (let u = 0; u <= 4; u++) for (let v = 0; v <= 4; v++) {
+      const a = u / 4, b = v / 4, x = ((1 - a) * (1 - b) * q[0].x + (1 - a) * b * q[1].x + a * (1 - b) * q[2].x + a * b * q[3].x), z = ((1 - a) * (1 - b) * q[0].z + (1 - a) * b * q[1].z + a * (1 - b) * q[2].z + a * b * q[3].z), cx = Math.floor(x / CELL), cz = Math.floor(z / CELL);
+      for (let dx = -1; dx <= 1; dx++) for (let dz = -1; dz <= 1; dz++) for (const i of grid.get((cx + dx) + ',' + (cz + dz)) || []) if ((pts[i].x - x) ** 2 + (pts[i].z - z) ** 2 < (hw + 1.5) ** 2) return false;
+    }
+    return true;
+  };
+  const sideOf = (p, q) => -(q.x - p.x) * Math.cos(p.h) + (q.z - p.z) * Math.sin(p.h) > 0 ? 1 : 0; // which side of p the point q lies on
+  for (const a of [0, 1]) {
+    const F = new Array(N).fill(null);
+    for (let i = 0; i < N; i++) {
+      if (gw[a][i] >= full) continue;
+      const p = pts[i]; let bj = -1, bd = reach2;
+      for (let j = 0; j < N; j++) {
+        const q = pts[j]; if (Math.abs(q.s - p.s) <= 60 && Math.cos(q.h - p.h) > -0.5) continue;
+        const d2 = (q.x - p.x) ** 2 + (q.z - p.z) ** 2;
+        if (d2 < bd && sideOf(p, q) === a) { bd = d2; bj = j; }
+      }
+      if (bj >= 0) { const b = sideOf(pts[bj], p); if (gw[b][bj] < full) F[i] = { j: bj, b }; }
+    }
+    for (let i = 0; i < N - 1; i++) {
+      const f = F[i], g = F[i + 1];
+      if (!f || !g || f.b !== g.b || Math.abs(f.j - g.j) > 3) continue;
+      const q = [edge(i, a), edge(f.j, f.b), edge(i + 1, a), edge(g.j, g.b)];
+      if (clear(q)) caps.push(q);
+    }
+  }
+  return caps;
 }
 /* @course-geometry:end */
 /* @turn-signs:start */
@@ -2234,7 +2305,7 @@ const specViewKey = code => (typeof code === 'string' && Object.hasOwn(SPEC_KEYS
 /* Picking the course, mode and car inside the room (pure part). Each player votes { t: course, d: 'down' | 'up', m: mode, g: catch distance m } and
    picks a car / colour; the host draws between two different votes with a seed it publishes, so both sides get the same result.
    V: room states and lobby entries with room picks carry v 4 (the vote has d); older clients and this one never see each other's rooms. */
-const RP = { V: 5, DIRS: ['down', 'up'], MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4, rally: 4 } };
+const RP = { V: 6, DIRS: ['down', 'up'], MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4, rally: 4 } };
 const validSeed = v => Number.isInteger(v) && v >= 0 && v <= 0xffffffff;
 function validVote(x) {
   if (!x || typeof x !== 'object' || Array.isArray(x)) return null;
@@ -2618,18 +2689,18 @@ for (const id in TRACKS) { for (const cid of [id, upId(id)]) { COURSES[cid] = bu
 const SAKE_TRACK = 'seiran', SAKE_CAR = { car: 'hatch', color: 3 }; // Sake Run's fixed course and car (white KX-2); never written over the saved picks
 let trackDir = dirFrom(store.get('yatouge-dir')); // 'down' | 'up': the title's direction switch (Sake Run and online ignore it)
 let trackId = store.get('yatouge-mode') === 'sake' ? SAKE_TRACK : courseId(trackFrom(store.get('yatouge-track')), trackDir);
-let pts, N, TOTAL, FINISH_I, FINISH_S, hairpins, gutters;
+let pts, N, TOTAL, FINISH_I, FINISH_S, hairpins, gutters, bridges;
 let tsList = null, tsCur = '', tsKey = '', goUntil = 0, tsStyle = tsStyleFrom(store.get('yatouge-turn-style'), store.get('yatouge-turn-signs')); // turn signs: corner list of the current course (built lazily), index shown, last layout key (rect / --ts-pop recomputed only when it changes), time until which the GO text is up (set by the start countdown), display style (default side); read by resetRace / buildTrack at start-up
 
 const trackGroup = new THREE.Group(); scene.add(trackGroup); // everything that belongs to one course; rebuilt on course change
 const off = (p, o, dy) => [p.x - Math.cos(p.h) * o, p.y + dy, p.z + Math.sin(p.h) * o];
-function strip(cols, fn, mat) {
+function strip(cols, fn, mat, skip) { // skip(i) = true leaves out the quads that touch point i
   const pos = new Float32Array(N * cols * 3), uv = new Float32Array(N * cols * 2), idx = [];
   for (let i = 0; i < N; i++) for (let j = 0; j < cols; j++) {
     const r = fn(pts[i], j, i), k = i * cols + j;
     pos[k * 3] = r[0]; pos[k * 3 + 1] = r[1]; pos[k * 3 + 2] = r[2]; uv[k * 2] = r[3]; uv[k * 2 + 1] = r[4];
   }
-  for (let i = 0; i < N - 1; i++) for (let j = 0; j < cols - 1; j++) { const a = i * cols + j, b = a + 1, c = a + cols, d = c + 1; idx.push(a, c, b, b, c, d); }
+  for (let i = 0; i < N - 1; i++) for (let j = 0; j < cols - 1; j++) { if (skip && (skip(i) || skip(i + 1))) continue; const a = i * cols + j, b = a + 1, c = a + cols, d = c + 1; idx.push(a, c, b, b, c, d); }
   const geo = new THREE.BufferGeometry();
   geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   geo.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
@@ -2698,9 +2769,91 @@ function disposeTrack() {
   });
   trackGroup.clear();
 }
+/* Bridges (concrete girder decks): grass, cliff skirt, rails and trees are left out, a deck underside, parapets, piers, a wide valley below and a moonlit river are drawn instead.
+   The valley is a bowl across the road: its depth follows the position along the bridge (0 at the bridge ends, VALLEY_D m in the middle) and rises again towards the sides
+   (VALLEY_W m each side in the middle), so the ground meets the abutments and the surrounding ground without a trench or a void. */
+const BRIDGE = { VALLEY_D: 30, VALLEY_W: 80, RAMP: 45, PIER_GAP: 27.5, DECK: 0.95, GIRDER: 1.6, PARAPET: 0.85, ROW: 6 };
+function buildBridges(onBridge, gw) {
+  const conc = new THREE.MeshLambertMaterial({ color: 0x8b8f99, side: THREE.DoubleSide }), hw = roadHW, D = BRIDGE.DECK, G = BRIDGE.GIRDER, H = BRIDGE.PARAPET, smooth = r => r * r * (3 - 2 * r);
+  // one more point either side of each bridge: the deck and parapets start at the last ordinary point, where the grass strip and guard rail stop
+  const vmask = new Uint8Array(N);
+  for (let i = 0; i < N; i++) if (onBridge[i]) for (let k = i - 1; k <= i + 1; k++) if (k >= 0 && k < N) vmask[k] = 1;
+  const skipOff = i => !vmask[i];
+  // a point of the course at any s (position, height and heading interpolated, so nothing steps with the point spacing)
+  const ptAt = s => {
+    let lo = 0, hi = N - 1; while (hi - lo > 1) { const m = (lo + hi) >> 1; if (pts[m].s <= s) lo = m; else hi = m; }
+    const a = pts[lo], b = pts[hi], t = clamp((s - a.s) / ((b.s - a.s) || 1), 0, 1);
+    return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t, z: a.z + (b.z - a.z) * t, h: lerpAngle(a.h, b.h, t), s, i: t < 0.5 ? lo : hi };
+  };
+  const taper = (b, s) => smooth(clamp(Math.min(s - b.s0, b.s1 - s) / Math.min(BRIDGE.RAMP, (b.s1 - b.s0) / 3), 0, 1));
+  const valleyW = (t, w) => w + (BRIDGE.VALLEY_W - w) * t;
+  const depthAt = (t, o, W) => BRIDGE.VALLEY_D * t * (1 - smooth(clamp((Math.abs(o) - 6) / (W - 6), 0, 1)));
+  // ground height: the grass-strip profile minus the valley depth (a bit lower still under the deck, so it never touches the road surface)
+  const groundY = (p, o, depth) => p.y - 0.08 - clamp((Math.abs(o) - hw - 0.35) / 12.65, 0, 1) * 1.12 - depth - (Math.abs(o) < hw + 0.35 ? 0.3 : 0);
+  const latPos = (p, o, y) => [p.x - Math.cos(p.h) * o, y, p.z + Math.sin(p.h) * o];
+  const wOf = (p, side) => gw[side][p.i];
+  // deck: slab top, side faces and a girder underside, one continuous profile
+  const prof = [[-hw, 0], [-hw - D, 0], [-hw - D, -0.55], [-hw + 0.8, -G], [hw - 0.8, -G], [hw + D, -0.55], [hw + D, 0], [hw, 0]];
+  strip(8, (p, j) => [...off(p, prof[j][0], prof[j][1]), j, p.s / 6], conc, skipOff);
+  // low concrete parapet (the collision wall stays at hw + 0.3) and a metal top rail on posts
+  for (const sg of [-1, 1]) {
+    const o0 = sg * (hw + 0.3), o1 = sg * (hw + 0.75), pr = [[o0, 0], [o0, H], [o1, H], [o1, 0]];
+    strip(4, (p, j) => [...off(p, pr[j][0], pr[j][1]), j, p.s / 6], conc, skipOff);
+    strip(2, (p, j) => [...off(p, sg * (hw + 0.52), H + (j ? 0.55 : 0.5)), 0, 0], railMat, skipOff);
+  }
+  {
+    const post = new THREE.InstancedMesh(new THREE.BoxGeometry(0.07, 0.55, 0.07), new THREE.MeshLambertMaterial({ color: 0x8c93a3 }), N);
+    const m = new THREE.Matrix4(); let n = 0;
+    for (let i = 0; i < N; i += 2) if (vmask[i]) for (const sg of [-1, 1]) { const q = off(pts[i], sg * (hw + 0.52), H + 0.27); m.makeTranslation(q[0], q[1], q[2]); post.setMatrixAt(n++, m); }
+    post.count = n; trackGroup.add(post);
+  }
+  const river = new THREE.MeshPhongMaterial({ color: 0x1b3558, emissive: 0x0a1630, specular: 0xb4c8ff, shininess: 90, transparent: true, opacity: 0.92, side: THREE.DoubleSide });
+  const FR = [1, 0.9, 0.8, 0.7, 0.6, 0.5, 0.42, 0.35, 0.28, 0.22, 0.16, 0.11, 0.06], lats = [...FR.map(f => -f), 0, ...FR.slice().reverse()];
+  for (const b of bridges) {
+    const len = b.s1 - b.s0, n = Math.max(2, Math.round(len / BRIDGE.PIER_GAP));
+    // valley ground: rows every ROW metres from the last ordinary point before the bridge to the first one after it; the end rows are the grass strip's own profile
+    {
+      const ia = pts.findIndex(q => q.s >= b.s0), ib = pts.findLastIndex(q => q.s <= b.s1), sA = pts[Math.max(0, ia - 1)].s, sB = pts[Math.min(N - 1, ib + 1)].s, rows = Math.ceil((sB - sA) / BRIDGE.ROW), pos = [], idx = [], C = lats.length + 2;
+      for (let r = 0; r <= rows; r++) {
+        const s = sA + (sB - sA) * r / rows, p = ptAt(s), t = taper(b, s), W = [valleyW(t, wOf(p, 0)), valleyW(t, wOf(p, 1))];
+        const put = (o, W1, drop) => { const q = latPos(p, o, groundY(p, o, depthAt(t, o, W1)) - drop); pos.push(q[0], q[1], q[2]); };
+        put(-W[0] - 1, W[0], 54);
+        for (const f of lats) put(f * (f < 0 ? W[0] : W[1]), f < 0 ? W[0] : W[1], 0);
+        put(W[1] + 1, W[1], 54);
+        if (r < rows) for (let j = 0; j < C - 1; j++) { const a = r * C + j, c = a + C; idx.push(a, c, a + 1, a + 1, c, c + 1); }
+      }
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+      trackGroup.add(new THREE.Mesh(geo, grassMat));
+    }
+    // piers: two round columns and a cap beam under the girder, down to the valley ground
+    for (let k = 1; k < n; k++) {
+      const p = ptAt(b.s0 + len * k / n), t = taper(b, p.s), top = p.y - G, bottom = groundY(p, hw * 0.45, depthAt(t, hw * 0.45, valleyW(t, wOf(p, 1)))) - 0.5;
+      if (top - bottom < 3) continue;
+      for (const sg of [-1, 1]) {
+        const col = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 0.95, top - bottom, 10), conc), q = latPos(p, sg * hw * 0.45, 0);
+        col.position.set(q[0], (top + bottom) / 2, q[2]); trackGroup.add(col);
+      }
+      const beam = new THREE.Mesh(new THREE.BoxGeometry(hw * 0.9 + 2.2, 0.9, 1.8), conc);
+      beam.position.set(p.x, top - 0.45, p.z); beam.rotation.y = p.h; trackGroup.add(beam);
+    }
+    // river across the middle of the valley, as far as the bank is more than 2 m above the floor: a gentle S-bend that follows the ground and narrows to a point at both ends
+    {
+      const sc = (b.s0 + b.s1) / 2, pc = ptAt(sc), Wc = valleyW(1, Math.min(wOf(pc, 0), wOf(pc, 1)));
+      let Rw = 6; while (Rw < Wc && depthAt(1, Rw, Wc) >= 2) Rw += 1;
+      const M = 48, pos = [], idx = [];
+      for (let k = 0; k <= M; k++) {
+        const o = (k / M * 2 - 1) * Rw, mm = 6 * Math.sin(o / 9 + b.s0), half = (5 + 1.5 * Math.sin(o / 5 + 1)) * Math.sqrt(Math.sin(Math.PI * k / M));
+        for (const sgn of [-1, 1]) { const p = ptAt(sc + mm + sgn * half), q = latPos(p, o, groundY(p, o, depthAt(1, o, Wc)) + 0.35); pos.push(q[0], q[1], q[2]); }
+        if (k < M) idx.push(2 * k, 2 * k + 2, 2 * k + 1, 2 * k + 1, 2 * k + 2, 2 * k + 3);
+      }
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+      trackGroup.add(new THREE.Mesh(geo, river));
+    }
+  }
+}
 function buildTrack(id) {
   disposeTrack();
-  trackId = id; ({ pts, N, TOTAL, FINISH_I, FINISH_S, hairpins, gutters, hw: roadHW } = COURSES[id]); WALL_LAT = roadHW + 0.3; tsList = null; tsHide();
+  trackId = id; ({ pts, N, TOTAL, FINISH_I, FINISH_S, hairpins, gutters, bridges, hw: roadHW } = COURSES[id]); WALL_LAT = roadHW + 0.3; tsList = null; tsHide();
   const rand = rng(86420); // per-course stream, so a course always gets the same trees
   // gutter depth 0..1 per point and side (index 0 = left, 1 = right); eased in/out over the first/last GUTTER.RAMP metres of each section
   const GW = 0.7, GD = 0.12, gdepth = [new Float32Array(N), new Float32Array(N)];
@@ -2718,20 +2871,31 @@ function buildTrack(id) {
     }, gutterMat);
     strip(2, (p, j, i) => [...off(p, side * (roadHW - GW * d[i] - (j ? 0 : 0.18 * d[i])), 0.04 * d[i]), 0, 0], kerbMat);
   }
-  const gw = groundWidths(pts, roadHW);
+  const gw = groundWidths(pts, roadHW), onBridge = new Uint8Array(N);
+  for (const b of bridges) for (let i = 0; i < N; i++) if (pts[i].s >= b.s0 && pts[i].s <= b.s1) onBridge[i] = 1;
+  const offBridge = i => onBridge[i] === 1;
   for (const sg of [-1, 1]) {
     strip(3, (p, j, i) => {
       const w = gw[sg > 0 ? 1 : 0][i], o = [roadHW + 0.35, w, w + 1][j], dy = [-0.08, -0.08 - (w - roadHW - 0.35) / 12.65 * 1.12, -55][j];
       return [...off(p, sg * o, dy), j * 3, p.s / 6];
-    }, grassMat);
+    }, grassMat, offBridge);
   }
-  for (const sg of [-1, 1]) strip(2, (p, j) => [...off(p, sg * (roadHW + 0.3), j ? 1.0 : 0.45), 0, 0], railMat);
+  {
+    const caps = groundCaps(pts, roadHW, gw), pa = new Float32Array(caps.length * 12), ua = new Float32Array(caps.length * 8), idx = [];
+    caps.forEach((q, n) => { q.forEach((v, k) => { pa.set([v.x, v.y, v.z], n * 12 + k * 3); ua.set([v.x / 6, v.z / 6], n * 8 + k * 2); }); idx.push(n * 4, n * 4 + 2, n * 4 + 1, n * 4 + 1, n * 4 + 2, n * 4 + 3); });
+    if (caps.length) { // fills the pit between two narrowed grass strips (the inside of a tight bend)
+      const geo = new THREE.BufferGeometry();
+      geo.setAttribute('position', new THREE.BufferAttribute(pa, 3)); geo.setAttribute('uv', new THREE.BufferAttribute(ua, 2)); geo.setIndex(idx); geo.computeVertexNormals();
+      trackGroup.add(new THREE.Mesh(geo, grassMat));
+    }
+  }
+  for (const sg of [-1, 1]) strip(2, (p, j) => [...off(p, sg * (roadHW + 0.3), j ? 1.0 : 0.45), 0, 0], railMat, offBridge);
   {
     const geo = new THREE.BoxGeometry(0.12, 1.0, 0.12);
     const count = Math.ceil(N / 4) * 2;
     const im = new THREE.InstancedMesh(geo, new THREE.MeshLambertMaterial({ color: 0x8c93a3 }), count);
     const m = new THREE.Matrix4(); let n = 0;
-    for (let i = 0; i < N; i += 4) for (const sg of [-1, 1]) { const q = off(pts[i], sg * (roadHW + 0.42), 0.5); m.makeTranslation(q[0], q[1], q[2]); im.setMatrixAt(n++, m); }
+    for (let i = 0; i < N; i += 4) if (!onBridge[i]) for (const sg of [-1, 1]) { const q = off(pts[i], sg * (roadHW + 0.42), 0.5); m.makeTranslation(q[0], q[1], q[2]); im.setMatrixAt(n++, m); }
     im.count = n; trackGroup.add(im);
   }
   hash.clear();
@@ -2743,7 +2907,7 @@ function buildTrack(id) {
     let n = 0;
     for (let t = 0; t < 2200 && n < 1400; t++) {
       const idx = Math.floor(rand() * N), p = pts[idx], side = rand() < .5 ? -1 : 1, sg = side, o = roadHW + 3 + rand() * 9.5;
-      if (o > gw[side > 0 ? 1 : 0][idx] - 0.5) continue;
+      if (onBridge[idx] || o > gw[side > 0 ? 1 : 0][idx] - 0.5) continue;
       const dy = -0.08 - (o - roadHW - 0.35) / 12.65 * 1.12;
       const w = off(p, sg * o, dy);
       if (!clearOfRoad(w[0], w[2], w[1], roadHW + 3)) continue;
@@ -2758,13 +2922,14 @@ function buildTrack(id) {
     const poleMat = new THREE.MeshLambertMaterial({ color: 0x40444f });
     const headMat = new THREE.MeshBasicMaterial({ color: 0xffc27a });
     for (let i = 30, side = 1; i < N - 30; i += 60, side = -side) {
-      const p = pts[i], b = off(p, side * (roadHW + 1.3), 0), top = off(p, side * (roadHW - 0.6), 6.2);
+      const p = pts[i], b = onBridge[i] ? off(p, side * (roadHW + 0.52), BRIDGE.PARAPET) : off(p, side * (roadHW + 1.3), 0), top = off(p, side * (roadHW - 0.6), 6.2);
       const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.1, 6.4, 6), poleMat); pole.position.set(b[0], b[1] + 3.2, b[2]); trackGroup.add(pole);
       const head = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.14, 0.3), headMat); head.position.set(top[0], top[1], top[2]); trackGroup.add(head);
       const g = glow(0xff9a3c, 7); g.position.set(top[0], top[1] - 0.3, top[2]); trackGroup.add(g);
       const pool = glow(0xff8c2a, 9); pool.material.opacity = 0.35; const pp = off(p, side * (roadHW - 1.4), 0.05); pool.position.set(pp[0], pp[1] + 0.6, pp[2]); trackGroup.add(pool);
     }
   }
+  if (bridges.length) buildBridges(onBridge, gw);
   gate(14, gateLabel(id), '#ffa23a');
   gate(FINISH_I, '終點 · FINISH', '#eceef6');
   /* far ridgelines and ground, sized to the course so no mountain lands on the road */
@@ -5130,7 +5295,7 @@ function taSample(force) { const r = taRun; if (!r.full && !taRecord(r.buf, race
 function taBegin() {
   disposeGhost(); taRun = null;
   if (pvp || mode !== 'ta') return;
-  const rec = taParse(store.get(taKey(trackId, choice.car, kxUpActive()))), ghost = rec && rec.g ? taDecode(rec.g) : null;
+  const rec = taParse(store.get(taKey(trackId, choice.car, kxUpActive(), revSuffix(trackId)))), ghost = rec && rec.g ? taDecode(rec.g) : null;
   taRun = { best: rec ? rec.t : null, ghost, buf: [], full: false, gi: 0, gs: null, gpos: { x: 0, z: 0, idx: 8 } };
   if (ghost) ghostCar = makeGhost();
 }
@@ -5139,7 +5304,7 @@ function taEnd() { taRun = null; disposeGhost(); }
 function showTaResult() {
   const prev = taRun.best, nb = taIsNewBest(prev, playerFinishT);
   if (nb) {
-    const k = taKey(trackId, choice.car, kxUpActive()), g = taRun.full ? null : taEncode(taRun.buf);
+    const k = taKey(trackId, choice.car, kxUpActive(), revSuffix(trackId)), g = taRun.full ? null : taEncode(taRun.buf);
     if (!store.set(k, taSerialize(playerFinishT, g)) && g) store.set(k, taSerialize(playerFinishT, null)); // storage full: keep the time without the ghost
   }
   const t = $('#resTitle'); t.textContent = T(nb ? 'taNew' : 'taDone'); t.className = 'res-title' + (nb ? ' win' : '');
@@ -5329,7 +5494,7 @@ function syncCarBtn() {
 }
 // race / time attack cards; the time-attack card shows the best for the chosen course × car
 function renderModePicker() {
-  const keep = keepPickFocus(), el = $('#modePick'), best = taParse(store.get(taKey(trackId, choice.car, kxUpActive())));
+  const keep = keepPickFocus(), el = $('#modePick'), best = taParse(store.get(taKey(trackId, choice.car, kxUpActive(), revSuffix(trackId))));
   el.innerHTML = '';
   const sb = sakeParseBest(store.get(sakeKey));
   for (const m of ['race', 'ta', 'sake']) {
