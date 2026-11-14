@@ -38,6 +38,6 @@ test('rivalAdvance：未到末端與原本的 Math.min 完全相同；被末端�
 test('physics 與 rivalUpdate 都改用這兩個函式，衝線前的 carStep 呼叫文字與原本相同', () => {
   const ph = html.slice(html.indexOf('\nfunction physics('), html.indexOf('\nlet lastHit'));
   assert.ok(ph.includes("else if (!taRun && !sakeRun && carsMayCollide(rival.s, L.s, FINISH_S, state)) {"));
-  assert.ok(ph.includes("const cr = carStep(c, CAR_BOX[choice.car], { x: rp.x, z: rp.z, h: rp.h, vis: rival.vis, s: rival.s, lat: rival.lat, v: rival.v, latV: rival.latV }, CAR_BOX[rivalFor(baseId(trackId), choice.car).car], roadHW - 1, COLL);"));
+  assert.ok(ph.includes("const cr = carStep(c, CAR_BOX[choice.car], { x: rpos.x, z: rpos.z, h: rpos.h, vis: rival.vis, s: rival.s, lat: rival.lat, v: rival.v, latV: rival.latV }, CAR_BOX[rivalFor(baseId(trackId), choice.car).car], roadHW - 1, COLL);"));
   assert.ok(html.includes('({ s: r.s, v: r.v } = rivalAdvance(r.s, r.v, dt, pts[N - 3].s));'));
 });

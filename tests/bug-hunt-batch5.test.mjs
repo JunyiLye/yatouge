@@ -118,6 +118,9 @@ test('R3-2：resetRace 把 car.gas、car.brakeOn 設為 false（上一場的踩�
 });
 
 /* ---------- R3-3／R4-2 同時衝線 ---------- */
+// raceSteps 現在走 stepper（@interp 區塊）；acc 是起始累積時間
+const stp = acc => { const m = new Function('clamp', 'lerpAngle', `${block('interp')}
+return { makeStepper, PHYS_FIX };`)((v, a, b) => Math.min(b, Math.max(a, v)), null), s = m.makeStepper(m.PHYS_FIX); s.acc = acc; return s; };
 const FC = () => new Function(`${block('finish-clock')}\nreturn { playerFirst };`)();
 test('R3-3：playerFirst 以子步順序判斷；同一子步算平手，判玩家贏', () => {
   assert.equal(FC().playerFirst(100, null), true, 'AI 沒衝線');
@@ -127,12 +130,12 @@ test('R3-3：playerFirst 以子步順序判斷；同一子步算平手，判玩�
 });
 test('R3-3：raceSteps 記下玩家第一次過線的子步編號，只在 race 狀態記一次', () => {
   const car = { loc: { s: 0 } };
-  const vars = { acc: 5 / 120 + 0.001, FIX: 1 / 120, car, state: 'race', stepN: 0, playerCrossN: null, pvp: null, taRun: null, sakeRun: null, FINISH_S: 3, physics: () => { car.loc.s += 1; }, rivalUpdate: () => {} };
+  const vars = { stepper: stp(5 / 120 + 0.001), rp: { save() {} }, rpRead: () => ({}), FIX: 1 / 120, car, state: 'race', stepN: 0, playerCrossN: null, pvp: null, taRun: null, sakeRun: null, FINISH_S: 3, physics: () => { car.loc.s += 1; }, rivalUpdate: () => {} };
   const steps = expr(fn('raceSteps'), vars);
   steps();
   assert.equal(vars.stepN, 5); assert.equal(vars.playerCrossN, 3);
-  vars.acc = 2 / 120 + 0.001; steps(); assert.equal(vars.playerCrossN, 3, '不會被覆寫');
-  const v2 = { ...vars, acc: 2 / 120 + 0.001, state: 'done', playerCrossN: null, stepN: 0 };
+  vars.stepper.acc = 2 / 120 + 0.001; steps(); assert.equal(vars.playerCrossN, 3, '不會被覆寫');
+  const v2 = { ...vars, stepper: stp(2 / 120 + 0.001), state: 'done', playerCrossN: null, stepN: 0 };
   expr(fn('raceSteps'), v2)(); assert.equal(v2.playerCrossN, null, 'done 後不記');
 });
 test('R3-3：finishRace 的玩家時間仍是 raceT；勝負看子步順序（AI 同一幀較早過線仍會贏）', () => {
@@ -194,7 +197,7 @@ test('更新紀錄 2026-11-14：zh／en 數量一致，新增的修正都在（�
 test('R6：過線後在同一幀滑回線前，過線子步要清掉，重新過線時再記', () => {
   const car = { loc: { s: 0 } }, path = [2.5, 3.2, 2.9, 2.95, 3.1];
   let i = 0;
-  const vars = { acc: 5 / 120 + 0.001, FIX: 1 / 120, car, state: 'race', stepN: 0, playerCrossN: null, pvp: null, taRun: null, sakeRun: null, FINISH_S: 3, physics: () => { car.loc.s = path[i++]; }, rivalUpdate: () => {} };
+  const vars = { stepper: stp(5 / 120 + 0.001), rp: { save() {} }, rpRead: () => ({}), FIX: 1 / 120, car, state: 'race', stepN: 0, playerCrossN: null, pvp: null, taRun: null, sakeRun: null, FINISH_S: 3, physics: () => { car.loc.s = path[i++]; }, rivalUpdate: () => {} };
   expr(fn('raceSteps'), vars)();
   assert.equal(vars.playerCrossN, 5, '以最後一次過線的子步為準');
 });
