@@ -1618,7 +1618,8 @@ const GB = {
   K: [0.20, 0.34, 0.48, 0.62, 0.80, 1],
   BOOST: [0.20, 0.12, 0.07, 0.03, 0.01, 0],
   TORQUE: [[0, 0.15], [1000, 0.15], [2000, 0.4], [3000, 0.7], [4500, 1], [7000, 1], [8000, 0.9]], // rpm -> 扭力係數
-  CARS: { hatch: { redline: 8000, v6: 58, gain: 1.25 }, coupe: { redline: 8000, v6: 67, gain: 0.75 }, gtr: { redline: 7600, v6: 78, gain: 0.8 } }
+  CARS: { hatch: { redline: 8000, v6: 58, gain: 1.25 }, coupe: { redline: 8000, v6: 67, gain: 0.75 }, gtr: { redline: 7600, v6: 78, gain: 0.8 },
+    rally: { redline: 7500, v6: 64, gain: 0.8 } } // rally: v6 = 1.1 x maxV like the others; gain keeps the manual 0-100 advantage within 3-8%
 };
 const gbGear = g => Math.min(GB.TOP, Math.max(1, Math.round(Number(g)) || 1));
 const gbRedlineSpeed = (car, g) => GB.CARS[car].v6 * GB.K[gbGear(g) - 1];
@@ -1671,7 +1672,7 @@ const atMul = shiftT => shiftT > GB.SHIFT_CUT - GB.AT_CUT ? 0 : undefined; // un
 /* @collision:start */
 /* Wall and car-vs-car collision: oriented body boxes (hl = half length, hw = half width, a little inside the visible body).
    Frame matches locate(): forward (sin h, cos h), right (-cos h, sin h); lat > 0 is right of the centreline. */
-const CAR_BOX = { hatch: { hl: 2.15, hw: 0.83 }, coupe: { hl: 2.25, hw: 0.87 }, gtr: { hl: 2.22, hw: 0.85 } };
+const CAR_BOX = { hatch: { hl: 2.15, hw: 0.83 }, coupe: { hl: 2.25, hw: 0.87 }, gtr: { hl: 2.22, hw: 0.85 }, rally: { hl: 2.19, hw: 0.85 } };
 const COLL = { e: 0.3, mu: 0.2, m: 1, wMax: 3.5 };
 const fin = v => Number.isFinite(v) ? v : 0;
 const capW = (w, k) => Math.max(-k.wMax, Math.min(k.wMax, w));
@@ -1809,7 +1810,7 @@ function carStep(c, cbox, rv, rbox, latMax, k) {
 /* @netcode:start */
 /* Online 1v1 (pure part). Everything that arrives from another player is untrusted: validate before use, never trust a type. */
 const NET = {
-  V: 1, TRACKS: ['kurosagi', 'seiran', 'hakuro'], CARS: ['hatch', 'coupe', 'gtr'], STATES: ['waiting', 'ready', 'countdown', 'racing', 'finished'],
+  V: 1, TRACKS: ['kurosagi', 'seiran', 'hakuro'], CARS: ['hatch', 'coupe', 'gtr', 'rally'], STATES: ['waiting', 'ready', 'countdown', 'racing', 'finished'],
   MAX_SPEED: 100, MAX_W: 10, MAX_COL: 7, MAX_GO: 1e6, MAX_N: 1e9, MAX_TIME: 3600, MARGIN: 60,   // MAX_SPEED m/s, MAX_W rad/s, MARGIN m outside the course
   DELAY: 100, EXTRAP: 500, BUF: 32, LOBBY_TTL: 15000, MAX_ROOMS: 30                               // ms
 };
@@ -2018,7 +2019,7 @@ const specViewKey = code => (typeof code === 'string' && Object.hasOwn(SPEC_KEYS
 /* Picking the course, mode and car inside the room (pure part). Each player votes { t: course, m: mode, g: catch distance m } and
    picks a car / colour; the host draws between two different votes with a seed it publishes, so both sides get the same result.
    V: room states and lobby entries with room picks carry v 2; older clients (v 1) and this one never see each other's rooms. */
-const RP = { V: 3, MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4 } };
+const RP = { V: 3, MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4, rally: 4 } };
 const validSeed = v => Number.isInteger(v) && v >= 0 && v <= 0xffffffff;
 function validVote(x) {
   if (!x || typeof x !== 'object' || Array.isArray(x)) return null;
@@ -2608,6 +2609,14 @@ const CARS = {
     phys: { maxV: 70, engine: 18.5, lag: 1, grip: 6.5, gripLimit: 15.5, drift: 0.72, slide: 0.5, hb: 8 },
     ai: { top: 52, acc: 9, lat: 8.5, hill: 23 },
     colors: [{ n: { zh: '鐵灰', en: 'Gunmetal' }, top: 0x4a4e56 }, { n: { zh: '黑', en: 'Black' }, top: 0x17181c }, { n: { zh: '珍珠白', en: 'Pearl white' }, top: 0xdcdfe4 }, { n: { zh: '深藍', en: 'Deep blue' }, top: 0x1c3f8f }]
+  },
+  rally: {
+    name: { zh: 'RV-4 拉力四驅', en: 'RV-4 Rally 4WD' }, sub: { zh: '90 年代雙門四驅渦輪房車。起步與出彎最猛，但彎中推頭、不好甩尾', en: '90s two-door all-wheel-drive turbo saloon. Launches and exits hardest, but understeers mid-corner and is hard to drift' },
+    stats: [[STAT.acc, 4], [STAT.top, 3], [STAT.corner, 2], [STAT.exit, 5]],
+    // AWD exit king: no power lag (hardest launch), exitBoost = extra pull while on the gas with steering on, heavy (low gripLimit, understeers), drift follows the heading fast (hard to start and holds little), slide is low
+    phys: { maxV: 58, engine: 12.5, lag: 0, grip: 7.5, gripLimit: 17.4, drift: 1.35, slide: 0.4, hb: 8, exitBoost: 0.8 },
+    ai: { top: 47, acc: 8.5, lat: 9, hill: 29 }, // hill: uphill top-speed loss per unit grade, between KX-2 (33) and SR-7 (27) like its power
+    colors: [{ n: { zh: '拉力藍', en: 'Rally blue' }, top: 0x22429a, wheel: 0xc9a14a }, { n: { zh: '白', en: 'White' }, top: 0xeceef2, wheel: 0xc9a14a }, { n: { zh: '銀', en: 'Silver' }, top: 0xaeb3bc, wheel: 0xb9bec7 }, { n: { zh: '黑', en: 'Black' }, top: 0x15161a, wheel: 0xb9bec7 }]
   }
 };
 // Sake Run reward: the player's KX-2 gets a real top-speed upgrade (the AI's KX-2 does not: it uses CARS.hatch.ai)
@@ -2626,7 +2635,7 @@ const rivalFor = (trackId, myCar) => TRACK_RIVAL[trackId] || { car: rivalOf(myCa
 const sstep = (a, b, v) => { const t = clamp((v - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); };
 function widthK(S, y, z) {
   let k = 1;
-  if (S.tumble) k *= 1 - S.tumble * sstep(S.ty0, S.ty1, y);
+  if (S.tumble) k *= 1 - S.tumble * (S.lin ? clamp((y - S.ty0) / (S.ty1 - S.ty0), 0, 1) : sstep(S.ty0, S.ty1, y)); // lin: straight taper, so thin plates (4 vertices) stay flush with a shell that has many
   if (S.fa) k *= 1 - S.fa * sstep(S.f0, S.f1, z);
   if (S.ra) k *= 1 - S.ra * sstep(S.r0, S.r1, -z);
   return k;
@@ -2683,6 +2692,61 @@ function loftCaps(pos, idx, st, R) {
 const ARCH_Y = 0.32, ARCH_X = 0.6;
 // one station's +x half outline, bottom centre to top centre; rows 6..9 are the top surface the driver sees over the hood
 const loftHalf = ([, w, y0, yf, yc]) => { const h = yf - y0; return [[0, y0], [w * 0.78, y0], [w * 0.96, y0 + 0.03], [w, y0 + 0.25 * h], [w, y0 + 0.55 * h], [w * 0.985, y0 + 0.8 * h], [w * 0.9, yf - 0.015], [w * 0.64, yf], [w * 0.3, yc + (yf - yc) * 0.35], [0, yc]]; };
+// RV-4 section: flatter sides than the default, finely rounded: sill roll-in, vertical wall up to 85% of the height, then a tight shoulder (rows 5..9 are the wall;
+// rows 8..15 are the top surface the driver sees over the hood). Shared by the exterior body and the cockpit hood
+const rallyHalf = ([, w, y0, yf, yc]) => { const h = yf - y0; return [[0, y0], [w * 0.55, y0], [w * 0.8, y0], [w * 0.93, y0 + 0.012], [w * 0.985, y0 + 0.05], [w, y0 + 0.2 * h], [w, y0 + 0.5 * h], [w, y0 + 0.85 * h],
+  [w * 0.99, yf - 0.045], [w * 0.97, yf - 0.022], [w * 0.94, yf - 0.008], [w * 0.88, yf - 0.001], [w * 0.75, yf], [w * 0.5, yc + (yf - yc) * 0.4], [w * 0.25, yc + (yf - yc) * 0.1], [0, yc]]; };
+/* @rally-scoop:start */
+// RV-4 hood scoop shell as pure arrays (no THREE): a wedge standing on the hood centre, rising from y0 at z0 to y1 at z1, full width sc.w. The cross-section is a
+// rounded rectangle (corner radius r) with a gently crowned top, so the top, the corners and the side walls all face different ways and shade differently;
+// the open ring runs -x base, up the wall, over the top, down the +x wall to the base. Caps close the front (z1, flat, +z) and the back (z0, buried in the hood).
+function rallyScoopGeo(sc) {
+  const hw = sc.w / 2, r = 0.05, crown = 0.035, yb = 0.82, NZ = 12;
+  const ring = z => {
+    const t = sc.y0 + (sc.y1 - sc.y0) * (z - sc.z0) / (sc.z1 - sc.z0), p = [[hw, yb], [hw, t - r]];
+    for (let k = 1; k <= 4; k++) { const a = k * Math.PI / 8; p.push([hw - r + r * Math.cos(a), t - r + r * Math.sin(a)]); }
+    for (let k = 2; k >= 0; k--) p.push([(hw - r) * k / 3, t]);
+    const up = p.map(([x, y]) => [x, y + crown * (1 - (x / hw) * (x / hw))]);
+    return up.map(([x, y]) => [-x, y]).concat(up.slice(0, -1).reverse());
+  };
+  const pos = [], idx = [], N = ring(sc.z0).length;
+  for (let i = 0; i <= NZ; i++) { const z = sc.z0 + (sc.z1 - sc.z0) * i / NZ; for (const [x, y] of ring(z)) pos.push(x, y, z); }
+  for (let i = 0; i < NZ; i++) for (let j = 0; j < N - 1; j++) { const a = i * N + j; idx.push(a, a + N, a + 1, a + 1, a + N, a + N + 1); }
+  for (const [z, front] of [[sc.z1, true], [sc.z0, false]]) {
+    const rg = ring(z), c = pos.length / 3 + N;
+    for (const [x, y] of rg) pos.push(x, y, z);
+    pos.push(0, yb + 0.05, z);
+    for (let j = 0; j < N; j++) { const a = c - N + j, b = c - N + (j + 1) % N; if (front) idx.push(c, b, a); else idx.push(c, a, b); }
+  }
+  return { pos, idx, N };
+}
+// hood surface height at (x, z) from the body keys: station interpolation like loftBody, then rows 8..15 of rallyHalf (the top surface), linear in |x|
+function rallyHoodY(keys, x, z) {
+  const st = loftStations(keys); let i = 0; while (i < st.length - 2 && z < st[i + 1][0]) i++;
+  const a = st[i], b = st[i + 1], t = Math.min(Math.max((a[0] - z) / (a[0] - b[0]), 0), 1), h = rallyHalf(a.map((v, f) => v + (b[f] - v) * t)).slice(8), ax = Math.abs(x);
+  for (let k = 0; k < h.length - 1; k++) if (ax >= h[k + 1][0]) return h[k + 1][1] + (h[k][1] - h[k + 1][1]) * (ax - h[k + 1][0]) / (h[k][0] - h[k + 1][0]);
+  return h[h.length - 1][1];
+}
+/* @rally-scoop:end */
+// shell mesh with smooth normals (caps are separate vertices, so the front face stays flat), plus a thin dark shut line where it meets the hood:
+// hoodY(x, z) gives the hood height, seamMat the line's material
+function rallyScoop(parent, sc, mat, hoodY, seamMat) {
+  const { pos, idx } = rallyScoopGeo(sc), geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+  const m = new THREE.Mesh(geo, mat); parent.add(m);
+  const hw = sc.w / 2 + 0.006, hf = 0.007, sp = [], si = [], path = [];
+  for (let i = 0; i <= 8; i++) path.push([-hw, sc.z0 + (sc.z1 - sc.z0) * i / 8]);
+  for (let i = 1; i <= 8; i++) path.push([-hw + 2 * hw * i / 8, sc.z1 + 0.006]);
+  for (let i = 8; i >= 0; i--) path.push([hw, sc.z0 + (sc.z1 - sc.z0) * i / 8]);
+  path.forEach(([x, z], i) => {
+    const dx = i < path.length - 1 ? path[i + 1][0] - x : x - path[i - 1][0], dz = i < path.length - 1 ? path[i + 1][1] - z : z - path[i - 1][1], l = Math.hypot(dx, dz), nx = -dz / l * hf, nz = dx / l * hf;
+    for (const s of [-1, 1]) { const px = x + s * nx, pz = z + s * nz; sp.push(px, hoodY(px, pz) + 0.003, pz); }
+    if (i) si.push(i * 2 - 2, i * 2 - 1, i * 2, i * 2, i * 2 - 1, i * 2 + 1);
+  });
+  const sg = new THREE.BufferGeometry(); sg.setAttribute('position', new THREE.Float32BufferAttribute(sp, 3)); sg.setIndex(si);
+  parent.add(new THREE.Mesh(sg, seamMat));
+  return m;
+}
 // halfOf: station -> +x half outline (default loftHalf); side = [first, last] outline rows of the side wall the arch liner follows
 function loftBody(keys, hex, parent, wells = [], halfOf = loftHalf, side = [3, 7]) {
   const st = loftStations(keys), pos = [], idx = [];
@@ -2965,6 +3029,23 @@ function tougeNameplateTex() {
   }));
 }
 // GT-32 trunk badge (own name, no real marque): created once, shared by every GT-32 on screen
+let rallyMeshTex = null;
+// RV-4 hexagon-mesh grille: flat-top hexagons, light lines on black; one tile = 2 x 1 hexagons (RALLY_MESH_TILE metres of grille), shared by every RV-4
+const RALLY_MESH_TILE = 0.04;
+function rallyMeshTexture() {
+  if (rallyMeshTex) return rallyMeshTex;
+  rallyMeshTex = canvasTex(48, 28, (g, w, h) => {
+    g.fillStyle = '#08090b'; g.fillRect(0, 0, w, h); g.strokeStyle = '#6c717b'; g.lineWidth = 2;
+    for (let c = -1; c <= 2; c++) for (let r = -1; r <= 2; r++) {
+      const cx = c * 24, cy = r * 28 + (c & 1) * 14;
+      g.beginPath();
+      for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3; g[k ? 'lineTo' : 'moveTo'](cx + 16 * Math.cos(a), cy + 16 * Math.sin(a)); }
+      g.closePath(); g.stroke();
+    }
+  });
+  rallyMeshTex.wrapS = rallyMeshTex.wrapT = THREE.RepeatWrapping; rallyMeshTex.anisotropy = 4;
+  return rallyMeshTex;
+}
 let badgeTex = null;
 function gtBadgeTex() {
   return badgeTex || (badgeTex = canvasTex(128, 64, (g, w, h) => {
@@ -3016,7 +3097,38 @@ const CAB = {
     aPil: [0.57, 0.86, 1.75], glassY: 0.845, belt: [0.875, 0.025, -0.8], winTop: 1.18, winRear: [-0.3, 0.885, 0.45, 0.29], hatch: [-0.72, -1.6],
     glass: [[0.697, 0.845], [-0.068, 1.225]], // windscreen glass base and top on the centreline: where the cabin roof line crosses glassY and the A-pillar line
   },
+  // RV-4: 90s two-door all-wheel-drive turbo saloon (own design, no marks). Real size: length 4.35, width 1.69, height 1.40, wheelbase 2.52 (axles z +-1.26).
+  // Lofted body (loftHalf stations [z, halfWidth, yBottom, yFenderCrown, yCentreline]) with the lamp band leaning back over a bumper that sticks out in front, and a
+  // near-vertical tail face; the body-colour greenhouse and black frames / glass skins sit on it like the GT-32's. Two-door: door glass, a 8 cm black pillar, a small quarter glass
+  rally: {
+    axleZ: 1.26, wheelR: 0.31, roof: 1.4,
+    S: { ty0: 0.9, ty1: 1.4, tumble: 0.22, lin: true }, // lin from the shell's lowest point: side plates and the shell taper identically
+    // nose: flat bumper shelf (y 0.55 to 0.58) that sticks out 8 cm past a near-vertical lamp band (y 0.58 to 0.72); tail: crisp near-vertical face
+    body: [[2.175, 0.62, 0.3, 0.55, 0.55], [2.172, 0.69, 0.28, 0.557, 0.557], [2.168, 0.73, 0.26, 0.565, 0.565], [2.159, 0.77, 0.245, 0.57, 0.57], [2.15, 0.795, 0.23, 0.575, 0.575], [2.115, 0.825, 0.22, 0.58, 0.58], [2.095, 0.83, 0.22, 0.72, 0.725], [2.06, 0.835, 0.22, 0.745, 0.755],
+      [1.85, 0.84, 0.24, 0.775, 0.79], [1.5, 0.845, 0.24, 0.83, 0.845], [1.1, 0.845, 0.24, 0.88, 0.895], [0.8, 0.845, 0.24, 0.92, 0.935],
+      [0.4, 0.845, 0.24, 0.965, 0.965], [-0.2, 0.845, 0.24, 0.975, 0.975], [-0.8, 0.845, 0.24, 0.98, 0.98], [-1.3, 0.845, 0.24, 0.985, 0.99],
+      [-1.58, 0.84, 0.25, 0.99, 0.995], [-1.8, 0.838, 0.26, 0.99, 0.998], [-1.95, 0.835, 0.27, 0.982, 0.99], [-2.03, 0.83, 0.28, 0.96, 0.97], [-2.07, 0.825, 0.285, 0.925, 0.93],
+      [-2.092, 0.818, 0.29, 0.87, 0.875], [-2.103, 0.812, 0.295, 0.805, 0.805], [-2.108, 0.808, 0.3, 0.74, 0.74], [-2.13, 0.8, 0.31, 0.73, 0.73], [-2.155, 0.78, 0.32, 0.722, 0.722],
+      [-2.167, 0.73, 0.335, 0.715, 0.715], [-2.175, 0.66, 0.345, 0.7, 0.7]], // tail: the boot lid rolls down (convex) to a short near-vertical lamp face (z -2.108), then a separate chunky bumper sticks out 7 cm (top shelf y 0.72)
+    // body-colour greenhouse: raked windscreen (about 29 deg), a short flat roof that rounds over into a rear glass of about 30 deg down to the short boot
+    house: [[0.97, 0.9], [0.08, 1.395], ['Q', -0.02, 1.405, -0.2, 1.4], [-0.55, 1.395], ['Q', -0.85, 1.385, -1, 1.33], [-1.58, 0.99], [-1.58, 0.9]], houseW: 1.48,
+    frame: [[0.935, 0.931], [0.145, 1.37]], frameW: 1.44, // black frame round the windscreen (on the house edge, 1 cm proud)
+    glass: [[0.924, 0.946], [0.219, 1.338]], glassW: 1.33, // windscreen glass skin (on the edge, 1.8 cm proud): base and top on the centreline
+    rearFrame: [[-1.035, 1.321], [-1.555, 1.016]], rearFrameW: 1.38, rearGlass: [[-1.079, 1.305], [-1.509, 1.053]], rearGlassW: 1.25,
+    sideFrame: [[0.8, 0.975], [0, 1.388], [-0.55, 1.388], [-0.85, 1.362], [-1, 1.3], [-1.55, 0.985], [-1.55, 0.975]], sideFrameW: 1.484, // black window surround; no frame bar at the B-pillar
+    side: [[[0.726, 0.985], [0.01, 1.355], [-0.66, 1.355], [-0.66, 0.985]], [[-0.74, 0.985], [-0.74, 1.335], [-0.875, 1.335], [-1.5, 0.985]]], sideW: 1.488,
+    // hood scoop: wedge standing on the hood centre, open at the front [z, y top] from the cowl to the opening, full width
+    scoop: { z0: 0.85, z1: 1.44, y0: 0.935, y1: 0.965, w: 0.56 },
+    // tail lamp (each side): x0 inner (next to the boot lid) to x1 at the body corner; red from split outward, amber over white inboard
+    // wedge lamp per side, lofted on the body: u runs from the boot-lid gap (x0) round the corner (phi1 = angle about the boot, past the corner) to a rounded end; bottom edge level at yb,
+    // height grows from h0 to h1 (top edge slopes down toward the centre); the lower clearV of the height is the clear reverse lamp, the rest red with an amber band
+    tail: { x0: 0.24, x1: 0.8, phi1: 1.08, yb: 0.755, h0: 0.1, h1: 0.15, clearV: 0.38, amber: { u0: 0.04, u1: 0.5, v0: 0.5, v1: 0.76 } },
+    // tall arched wing on two posts: centre height y, ends rise by 'rise', end plates plateH high; chord along z
+    wing: { z: -1.98, chord: 0.3, y: 1.26, rise: 0.045, halfW: 0.76, postX: 0.5, plateH: 0.16 },
+  },
 };
+// RV-4 tail lamp edge at u (0 inboard .. 1 outboard end) -> [yBottom, yTop]; the outer 12% rounds the end off
+const rallyLampEdge = (T, u) => { const H = T.h0 + (T.h1 - T.h0) * u, r = u < 0.88 ? 1 : Math.sqrt(Math.max(0, 1 - ((u - 0.88) / 0.12) ** 2)), yc = T.yb + H / 2; return [yc - H / 2 * r, yc + H / 2 * r]; };
 // a CAB outline ([z, y] points, or ['Q', cz, cy, z, y] curves) as part() commands
 const cabCmds = pts => pts.map((p, i) => p[0] === 'Q' ? p : [i ? 'L' : 'M', p[0], p[1]]);
 /* @cabin-shape:end */
@@ -3187,6 +3299,144 @@ function makeCar(style, colorIdx) {
     add(new THREE.CircleGeometry(0.045, 14), black, -0.45, 0.24, -2.211).rotation.y = Math.PI;
     heads = [[-0.62, 0.81, 2.0], [0.62, 0.81, 2.0], [-0.57, 0.43, 2.19], [0.57, 0.43, 2.19]]; tailsPos = [[-0.58, 0.72, -2.15], [0.58, 0.72, -2.15]];
     W = { x: 0.78, zf: 1.24, zr: -1.24, r: 0.32, arch: 0.355, half: 0.875 };
+  } else if (style === 'rally') {
+    // 90s two-door all-wheel-drive turbo saloon (own design, no marks): raked windscreen, flat roof, short boot; hood with a centre scoop and two vent pairs;
+    // lamp band leaning back over a bumper that sticks out (rectangular lamps with a round projector, hexagon-mesh grille, blank round emblem, round fog covers,
+    // amber corner indicators); two-door glass with a black pillar and no B-pillar frame; wide tail lamps, tall arched wing on two posts, one exhaust, blank plates
+    const K = CAB.rally, ax = K.axleZ, LY = 0.652;
+    const D = (color, basic = true) => new THREE[basic ? 'MeshBasicMaterial' : 'MeshLambertMaterial']({ color, side: THREE.DoubleSide, polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2 });
+    const blackD = D(0x060608), amberD = D(0xe08a1c), whiteD = D(0xf2f4f8), plateD = D(0xc9ccd2, false), gapD = D(0x14161a);
+    const seam = new THREE.MeshLambertMaterial({ color: new THREE.Color(col.top).multiplyScalar(0.32) }); // shut lines: a darker shade of the paint, low contrast
+    const chromeM = new THREE.MeshPhongMaterial({ color: 0xb4bac4, specular: 0xffffff, shininess: 50, side: THREE.DoubleSide }), reflM = new THREE.MeshPhongMaterial({ color: 0x2c3138, specular: 0x3a3f48, shininess: 20 });
+    const lensM = new THREE.MeshPhongMaterial({ color: 0xc8d2e0, specular: 0xb8c0cc, shininess: 90, transparent: true, opacity: 0.16, depthWrite: false });
+    const silver = new THREE.MeshLambertMaterial({ color: 0x8a8d94 }), fin = new THREE.MeshLambertMaterial({ color: 0x3a3d44 });
+    const emblem = new THREE.MeshPhongMaterial({ color: 0x8c929c, specular: 0xffffff, shininess: 60 }), projM = new THREE.MeshPhongMaterial({ color: 0x1a1e26, specular: 0xffffff, shininess: 90 });
+    const body = loftBody(K.body, col.top, g, [[ax, 0.36], [-ax, 0.36]], rallyHalf, [5, 9]), sideX = body.userData.sideX;
+    body.updateMatrixWorld();
+    const dec = (outline, axis, dir, mat, off = 0.004, k = 2) => wrapDecal(body, outline, axis, dir, off, mat, g, k);
+    const rc = new THREE.Raycaster(), V3 = (x, y, z) => new THREE.Vector3(x, y, z);
+    const shoot = (o, d) => { rc.set(o, d); const h = rc.intersectObject(body)[0]; return h ? h.point : o.clone(); };
+    const surf = (x, y) => shoot(V3(x, y, 3), V3(0, 0, -1)), topY = (x, z) => shoot(V3(x, 2, z), V3(0, -1, 0)).y;
+    const onNose = (geo, mat, x, y, off) => { // mesh at the nose point (x, y), `off` out along the surface normal, facing along it
+      const d = 0.012, p = surf(x, y), n = surf(x + d, y).sub(surf(x - d, y)).cross(surf(x, y + d).sub(surf(x, y - d))).normalize();
+      const m = add(geo, mat, 0, 0, 0); m.position.copy(p).addScaledVector(n, off); m.rotation.set(-Math.asin(n.y), Math.atan2(n.x, n.z), 0, 'YXZ'); return m;
+    };
+    const xr = (sx, a, b) => [Math.min(sx * a, sx * b), Math.max(sx * a, sx * b)];
+    // greenhouse: body-colour shell, black-framed glass skins, door glass + quarter glass on one black surround
+    S = K.S;
+    part(cabCmds(K.house), K.houseW, paint, S, g, 0.008); // bevelled: rounded roof edge
+    part(skin(K.frame, 0.012), K.frameW, black, S, g);
+    part(skin(K.glass, 0.018), K.glassW, glass, S, g);
+    part(skin(K.rearFrame, 0.012), K.rearFrameW, black, S, g);
+    part(skin(K.rearGlass, 0.018), K.rearGlassW, glass, S, g);
+    part(poly(K.sideFrame), K.sideFrameW, black, S, g);
+    for (const s of K.side) part(poly(s), K.sideW, glass, S, g);
+    // hood: centre scoop (wedge open at the front) with a grille, and a vent pair (two slanted slots) on each side
+    { const sc = K.scoop, zf = sc.z1 + 0.0075, gy0 = topY(0, sc.z1) + 0.004, gy1 = sc.y1 - 0.012, gh = gy1 - gy0, gy = (gy0 + gy1) / 2;
+      rallyScoop(g, sc, paint, topY, seam); // rounded, crowned scoop shell with a shut line
+      add(box(sc.w - 0.07, gh, 0.01), black, 0, gy, zf); // dark front opening, slats across it
+      for (let i = -2; i <= 2; i++) add(box(0.008, gh, 0.012), fin, i * 0.09, gy, zf + 0.004);
+      for (const sx of [-1, 1]) for (const dz of [-0.07, 0.07]) {
+        const z = 1.6 + dz, v = add(box(0.15, 0.02, 0.05), black, sx * 0.55, topY(sx * 0.55, z) - 0.002, z);
+        v.rotation.set(0.156, sx * 0.3, 0, 'YXZ');
+      }
+    }
+    // nose: hexagon-mesh grille set behind a raised dark surround, with a blank round emblem standing proud; bumper opening and blank plate
+    const meshGeo = new THREE.PlaneGeometry(0.5, 0.075), mu = meshGeo.attributes.uv;
+    for (let i = 0; i < mu.count; i++) mu.setXY(i, mu.getX(i) * 0.5 / RALLY_MESH_TILE, mu.getY(i) * 0.075 / RALLY_MESH_TILE);
+    const gr = onNose(box(0.54, 0.095, 0.004), black, 0, LY, 0);
+    for (const [w, hh, x, y] of [[0.54, 0.012, 0, 0.0415], [0.54, 0.012, 0, -0.0415], [0.012, 0.095, 0.264, 0], [0.012, 0.095, -0.264, 0]]) add(box(w, hh, 0.03), dark, x, y, 0.004, gr);
+    add(meshGeo, new THREE.MeshBasicMaterial({ map: rallyMeshTexture() }), 0, 0, 0.006, gr);
+    add(new THREE.CylinderGeometry(0.036, 0.036, 0.008, 18).rotateX(Math.PI / 2), black, 0, 0.003, 0.01, gr);
+    add(new THREE.CylinderGeometry(0.029, 0.031, 0.012, 18).rotateX(Math.PI / 2), emblem, 0, 0.003, 0.014, gr);
+    dec(stad(-0.3, 0.3, 0.325, 0.465, 10), 'z', 1, blackD, 0.004, 3); // bumper opening
+    dec(rectO(-0.165, 0.345, 0.165, 0.455, 3), 'z', 1, plateD, 0.012, 3); // blank plate
+    // lamp units like the GT-32's: dark tub, reflector, chrome bowl outboard, projector inboard, clear bulged lens
+    const lensGeo = new THREE.PlaneGeometry(0.395, 0.08, 8, 2), lv = lensGeo.attributes.position;
+    for (let i = 0; i < lv.count; i++) { const u = lv.getX(i) / 0.197, v = lv.getY(i) / 0.04; lv.setZ(i, 0.012 * (1 - u * u) * (1 - 0.6 * v * v)); }
+    lensGeo.computeVertexNormals();
+    const bowlGeo = new THREE.SphereGeometry(0.034, 10, 4, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(-Math.PI / 2); // opening forward
+    const fogGeo = new THREE.SphereGeometry(0.083, 14, 6, 0, Math.PI * 2, 0, Math.PI / 2).rotateX(Math.PI / 2);
+    // front lip under the bumper: gives the bumper depth and a visible forward step
+    { const lipHalf = [[2.195, 0], [2.19, 0.5], [2.175, 0.63], [2.145, 0.73], [2.1, 0.795], [1.98, 0.82]], ls = new THREE.Shape();
+      ls.moveTo(lipHalf[0][1], lipHalf[0][0]);
+      for (const p of lipHalf.slice(1)) ls.lineTo(p[1], p[0]);
+      for (const p of lipHalf.slice().reverse()) ls.lineTo(-p[1], p[0]);
+      add(new THREE.ExtrudeGeometry(ls, { depth: 0.03, bevelEnabled: false }), dark, 0, 0.255, 0).rotation.x = Math.PI / 2; }
+    for (const sx of [-1, 1]) {
+      const [p, q] = xr(sx, 0.55, 0.7);
+      const L = onNose(box(0.4, 0.085, 0.004), black, sx * 0.49, LY, 0);
+      for (const [w, hh, x, y] of [[0.4, 0.009, 0, 0.038], [0.4, 0.009, 0, -0.038], [0.009, 0.085, 0.196, 0], [0.009, 0.085, -0.196, 0]]) add(box(w, hh, 0.036), black, x, y, 0.004, L);
+      add(box(0.37, 0.062, 0.003), reflM, 0, 0, 0.002, L);
+      add(bowlGeo, chromeM, sx * 0.07, 0, 0.02, L).scale.set(1.5, 0.9, 1);
+      add(new THREE.CircleGeometry(0.011, 10), headMat, sx * 0.07, 0, 0.004, L);
+      add(new THREE.CylinderGeometry(0.028, 0.031, 0.016, 14, 1, true), chromeM, -sx * 0.12, 0, 0.01, L).rotation.x = Math.PI / 2;
+      add(new THREE.CircleGeometry(0.025, 14), projM, -sx * 0.12, 0, 0.017, L);
+      add(new THREE.CircleGeometry(0.01, 10), headMat, -sx * 0.12, 0, 0.0175, L);
+      add(lensGeo, lensM, 0, 0, 0.021, L);
+      dec(ell(sx * 0.47, 0.41, 0.089, 0.089, 18), 'z', 1, gapD, 0.004, 3); // fog-lamp cover: thin shadow gap, then a shallow body-colour dome, blank
+      onNose(fogGeo, paint, sx * 0.47, 0.41, 0.002).scale.set(1, 1, 0.22);
+      dec(ell(sx * 0.665, 0.375, 0.05, 0.042, 14), 'z', 1, blackD, 0.004, 3); // corner air intake
+      dec(rectO(p, 0.482, q, 0.53, 2), 'z', 1, amberD, 0.006, 3); // amber corner indicator
+      // sides: sill skirt, door cut lines, waist and sill lines, handle, mirror on a base
+      const bar = (y, hh, z0, z1, dx = 0.002) => add(box(0.004, hh, z0 - z1), seam, sx * (sideX((z0 + z1) / 2, y) + dx), y, (z0 + z1) / 2);
+      add(box(0.024, 0.09, 1.7), paint, sx * 0.843, 0.285, 0);
+      bar(0.63, 0.66, 0.622, 0.618); bar(0.63, 0.66, -0.618, -0.622); // door cut lines, about 4 mm
+      bar(0.72, 0.004, 0.62, -0.62); bar(0.325, 0.004, 0.62, -0.62); // waist crease and sill line
+      add(box(0.008, 0.022, 0.1), seam, sx * (sideX(-0.45, 0.86) + 0.004), 0.86, -0.45);
+      // mirror: body-colour rounded housing on a short arm, glass face turned back
+      add(box(0.09, 0.025, 0.05), paint, sx * 0.79, 0.995, 0.77);
+      add(new THREE.SphereGeometry(1, 14, 10), paint, sx * 0.865, 1.035, 0.76).scale.set(0.042, 0.052, 0.095);
+      { const mg = add(new THREE.CircleGeometry(1, 12), glass, sx * 0.865, 1.035, 0.683); mg.scale.set(0.025, 0.031, 1); mg.rotation.y = Math.PI; }
+      // wing: swept end plate (same height as the blade's raised end, trailing edge higher) and a body-colour post
+      { const Wg = K.wing, yE = Wg.y + Wg.rise, c = Wg.chord / 2;
+        part(poly([[Wg.z + c, yE - 0.09], [Wg.z + c, yE + 0.03], [Wg.z - c, yE + 0.07], [Wg.z - c, yE - 0.09]]), 0.025, paint, null, g, 0.006).position.x = sx * Wg.halfW;
+        part(poly([[Wg.z + 0.13, 0.955], [Wg.z - 0.13, 0.955], [Wg.z - 0.07, 1.27], [Wg.z + 0.07, 1.27]]), 0.07, paint, null, g, 0.008).position.x = sx * Wg.postX; } // wide flattened post blending into the lid
+    }
+    tailMat.side = THREE.DoubleSide; tailMat.polygonOffset = true; tailMat.polygonOffsetFactor = -4; tailMat.polygonOffsetUnits = -4;
+    // rear: separate bumper below a thin shut line, recessed blank plate, lower lip; wedge tail lamps lofted onto the body by radial rays from the boot (so they
+    // follow the rounded corner and wrap onto the quarter panel): upper red (tailMat, lit on braking), amber band inside it, clear reverse lamp below
+    dec(rectO(-0.76, 0.738, 0.76, 0.744, 24), 'z', -1, D(new THREE.Color(col.top).multiplyScalar(0.32).getHex(), false), 0.003, 2);
+    dec(rectO(-0.235, 0.4, 0.235, 0.62, 6), 'z', -1, gapD, 0.004, 3);
+    dec(rectO(-0.165, 0.45, 0.165, 0.57, 3), 'z', -1, plateD, 0.012, 3); // blank rear plate
+    { const lh = [[-2.215, 0], [-2.215, 0.55], [-2.19, 0.68], [-2.135, 0.77], [-2.06, 0.82], [-1.95, 0.83]], ls = new THREE.Shape();
+      ls.moveTo(lh[0][1], lh[0][0]);
+      for (const p of lh.slice(1)) ls.lineTo(p[1], p[0]);
+      for (const p of lh.slice().reverse()) ls.lineTo(-p[1], p[0]);
+      add(new THREE.ExtrudeGeometry(ls, { depth: 0.035, bevelEnabled: false }), paint, 0, 0.375, 0).rotation.x = Math.PI / 2; } // lower lip / diffuser
+    const T = K.tail, phi0 = Math.atan2(T.x0, 0.6), A = T.amber;
+    const clearM = new THREE.MeshPhongMaterial({ color: 0xdfe3ea, specular: 0xffffff, shininess: 60, side: THREE.DoubleSide }), ambL = new THREE.MeshBasicMaterial({ color: 0xd8801c, side: THREE.DoubleSide });
+    const lampPt = (sx, u, v, off) => {
+      const [yb, yt] = rallyLampEdge(T, u), y = yb + (yt - yb) * v, phi = phi0 + (T.phi1 - phi0) * u, d = V3(Math.sin(phi), 0, -Math.cos(phi));
+      const p = shoot(V3(0, y, -1.5).addScaledVector(d, 3), d.clone().negate()), o = off + 0.012 * Math.sqrt(Math.sin(Math.PI * Math.min(1, u * 1.05))) * Math.sqrt(Math.sin(Math.PI * v)); // bulged lens
+      return [sx * (p.x + d.x * o), p.y, p.z + d.z * o];
+    };
+    const lampPatch = (sx, u0, u1, v0, v1, mat, off, nu = 18, nv = 4) => {
+      const pos = [], idx = [];
+      for (let i = 0; i <= nu; i++) for (let j = 0; j <= nv; j++) pos.push(...lampPt(sx, u0 + (u1 - u0) * i / nu, v0 + (v1 - v0) * j / nv, off));
+      for (let i = 0; i < nu; i++) for (let j = 0; j < nv; j++) { const a = i * (nv + 1) + j, c = a + nv + 1; idx.push(a, c, a + 1, a + 1, c, c + 1); }
+      const lg = new THREE.BufferGeometry(); lg.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); lg.setIndex(idx); lg.computeVertexNormals();
+      g.add(new THREE.Mesh(lg, mat));
+    };
+    const glowAt = [];
+    for (const sx of [-1, 1]) {
+      lampPatch(sx, 0, 1, 0, T.clearV, clearM, 0.006);
+      lampPatch(sx, 0, 1, T.clearV, 1, tailMat, 0.006);
+      lampPatch(sx, A.u0, A.u1, A.v0, A.v1, ambL, 0.0085, 10, 2);
+      glowAt.push(lampPt(sx, 0.5, T.clearV + (1 - T.clearV) * 0.5, 0.03));
+    }
+    // wing: one arched blade across the boot
+    { const Wg = K.wing, N = 12, top = [], bot = [];
+      for (let i = 0; i <= N; i++) { const x = -Wg.halfW + 2 * Wg.halfW * i / N, y = Wg.rise * (x / Wg.halfW) ** 2; top.push([x, y + 0.02]); bot.push([x, y - 0.015]); }
+      const sh = new THREE.Shape(); sh.moveTo(top[0][0], top[0][1]); for (const p of top.slice(1)) sh.lineTo(p[0], p[1]); for (const p of bot.reverse()) sh.lineTo(p[0], p[1]);
+      add(new THREE.ExtrudeGeometry(sh, { depth: Wg.chord - 0.012, bevelEnabled: true, bevelThickness: 0.006, bevelSize: 0.006, bevelSegments: 2 }).translate(0, 0, -(Wg.chord - 0.012) / 2), paint, 0, Wg.y, Wg.z);
+    }
+    // third brake light: a thin red strip on the blade's rear edge, centre (the same tailMat, so it lights with the lamps)
+    add(rrect(0.46, 0.016, 0.006, 0.006, 0.002), tailMat, 0, K.wing.y + 0.002, K.wing.z - (K.wing.chord - 0.012) / 2 - 0.0075);
+    const ex = add(new THREE.CylinderGeometry(0.04, 0.036, 0.14, 12), silver, 0.42, 0.295, -2.24); ex.rotation.x = Math.PI / 2; // single exhaust under the lip, car's left (+x)
+    add(new THREE.CircleGeometry(0.03, 12), black, 0.42, 0.295, -2.3115).rotation.y = Math.PI;
+    heads = [[-0.5, LY, 2.17], [0.5, LY, 2.17]]; tailsPos = glowAt;
+    W = { x: 0.735, zf: ax, zr: -ax, r: K.wheelR, arch: 0.36, half: 0.845 };
   } else {
     const W0 = { x: 0.76, zf: 1.3, zr: -1.3, r: 0.32, arch: 0.4, half: 0.86 };
     // boxy early-90s twin-turbo coupe: flat hood, slim wide lamps over a big intercooler intake, angular greenhouse with black frames,
@@ -3302,7 +3552,7 @@ function makeCar(style, colorIdx) {
   }
   for (const p of heads) { const hg = glow(0xfff3dc, style === 'hatch' ? 1.1 : 0.75); hg.position.set(p[0], p[1], p[2]); g.add(hg); }
   const tails = tailsPos.map(p => { const tg = glow(0xff2a36, 0.9); tg.position.set(p[0], p[1], p[2]); g.add(tg); return tg; });
-  const tireMat = new THREE.MeshLambertMaterial({ color: 0x0d0e11 }), rimMat = style === 'coupe' ? new THREE.MeshPhongMaterial({ color: 0x5a4329, specular: 0x8a6a40, shininess: 38 }) : new THREE.MeshLambertMaterial({ color: style === 'gtr' ? 0x4c5058 : 0x2c2f36 });
+  const tireMat = new THREE.MeshLambertMaterial({ color: 0x0d0e11 }), rimMat = style === 'rally' ? new THREE.MeshPhongMaterial({ color: col.wheel, specular: 0x8a7a50, shininess: 45 }) : style === 'coupe' ? new THREE.MeshPhongMaterial({ color: 0x5a4329, specular: 0x8a6a40, shininess: 38 }) : new THREE.MeshLambertMaterial({ color: style === 'gtr' ? 0x4c5058 : 0x2c2f36 });
   const barrelMat = style === 'coupe' ? new THREE.MeshLambertMaterial({ color: 0x241b12 }) : dark; // SR-7: dark-bronze barrel behind the spokes, so the wheel face reads against the tyre
   const spin = [], steer = [];
   for (const [x, z] of [[-W.x, W.zf], [W.x, W.zf], [-W.x, W.zr], [W.x, W.zr]]) {
@@ -3312,7 +3562,7 @@ function makeCar(style, colorIdx) {
     const cp = style !== 'hatch'; // coupe / gtr: larger rim (thin sidewall), wide spokes, rim lip and hub
     const rim = add(new THREE.CylinderGeometry(W.r * (cp ? 0.8 : 0.68), W.r * (cp ? 0.8 : 0.68), 0.01, 18), barrelMat, Math.sign(x) * 0.111, 0, 0, sp); rim.rotation.z = Math.PI / 2;
     if (style === 'coupe') for (let k = 0; k < 6; k++) { const a = k * Math.PI / 3, s = add(box(0.034, W.r * 0.6, 0.12), rimMat, Math.sign(x) * 0.116, Math.cos(a) * W.r * 0.42, Math.sin(a) * W.r * 0.42, sp); s.rotation.x = a; } // six wide dark-bronze spokes
-    else if (style === 'gtr') for (let k = 0; k < 5; k++) { const a = k * Math.PI * 2 / 5, s = add(box(0.024, W.r * 0.68, 0.07), rimMat, Math.sign(x) * 0.118, Math.cos(a) * W.r * 0.4, Math.sin(a) * W.r * 0.4, sp); s.rotation.x = a; } // five wide spokes
+    else if (style === 'gtr' || style === 'rally') for (let k = 0; k < 5; k++) { const a = k * Math.PI * 2 / 5, s = add(box(0.024, W.r * 0.68, 0.07), rimMat, Math.sign(x) * 0.118, Math.cos(a) * W.r * 0.4, Math.sin(a) * W.r * 0.4, sp); s.rotation.x = a; } // five wide spokes
     else for (let k = 0; k < 3; k++) { const s = add(box(0.02, W.r * 1.3, 0.065), rimMat, Math.sign(x) * 0.118, 0, 0, sp); s.rotation.x = k * Math.PI / 3; }
     if (cp) {
       add(new THREE.TorusGeometry(W.r * 0.8, 0.02, 4, 18), rimMat, Math.sign(x) * 0.118, 0, 0, sp).rotation.y = Math.PI / 2;
@@ -3494,6 +3744,9 @@ function driftFollow(diff, s, gas, counter, Pdrift) {
 /* @vehicle:start */
 // Pure motion core of physics(), split in two so the gutter logic can run between them. c: { steer, h, w, vx, vz, drift, penalty }
 // u: { sIn, gas, brake, hb, hold }; loc: { grade, h } of the road under the car. Mutates c; no DOM / globals besides clamp, wrap, engineForce, driftFollow.
+// exitBoost (RV-4 AWD pull out of slow corners): full at forward speed <= EXIT_FULL_V, fading linearly to nothing at EXIT_ZERO_V, so it cannot prop up speed mid-corner; saturates at |steer| 0.4
+const EXIT_FULL_V = 15, EXIT_ZERO_V = 25;
+const exitBoostFactor = (boost, steer, vf) => 1 + boost * Math.min(1, Math.abs(steer) / 0.4) * clamp((EXIT_ZERO_V - vf) / (EXIT_ZERO_V - EXIT_FULL_V), 0, 1);
 function vehicleAccel(c, P, u, loc, dt) {
   const rate = u.analog ? 14 : (u.sIn === 0 || Math.sign(u.sIn) !== Math.sign(c.steer)) ? 7 : 4.5; // a finger is already smooth: follow it closely
   c.steer += clamp(u.sIn - c.steer, -rate * dt, rate * dt);
@@ -3502,7 +3755,7 @@ function vehicleAccel(c, P, u, loc, dt) {
   // lag = 1: power builds with speed (strong on straights, slow out of corners)
   const lagF = P.lag ? clamp(0.42 + Math.max(0, vf) / 36, 0.42, 1.15) : 1;
   const pen = c.penalty > 0 ? 0.1 : 1;
-  if (u.gas && vf < P.maxV) a += engineForce(P.engine, lagF, vf, P.maxV, pen) * (u.mul ?? 1); // u.mul: manual-gearbox multiplier (gbMul); absent = automatic
+  if (u.gas && vf < P.maxV) a += engineForce(P.engine, lagF, vf, P.maxV, pen) * (u.mul ?? 1) * (P.exitBoost ? exitBoostFactor(P.exitBoost, c.steer, vf) : 1); // u.mul: manual-gearbox multiplier (gbMul); absent = automatic
   if (u.brake) { if (vf > 0.5) a -= P.brake; else if (!u.gas && vf > -6) a -= 5; }
   if (u.hb) a -= Math.sign(vf) * P.hb;
   a -= P.drag * vf * Math.abs(vf) + (Math.abs(vf) > 0.3 ? Math.sign(vf) * P.roll : 0);
@@ -3685,17 +3938,26 @@ function shiftEvent(prevGear, gear, vf) {
   return gear > prevGear ? 'up' : 'down';
 }
 // spool: target follows rpm under throttle, boost climbs slowly (lag) and bleeds fast off throttle
-function boostStep(boost, gas, rpm, dt) {
+function boostStep(boost, gas, rpm, dt, rate = 1.1) { // rate: spool-up speed per second (RV-4 spools slower)
   const target = gas ? clamp((rpm - 2500) / 5000, 0, 1) : 0;
-  return boost < target ? Math.min(target, boost + dt * 1.1) : Math.max(target, boost - dt * 3);
+  return boost < target ? Math.min(target, boost + dt * rate) : Math.max(target, boost - dt * 3);
 }
 const cooldownStep = (cd, dt) => Math.max(0, cd - dt);
 /* @turbo-sfx:end */
+/* @rally-sfx:start */
+// RV-4 flat-four turbo: unequal-length headers give a lumpy burble at half the firing frequency (f = rpm/30), deep at low rpm and smoothing out as it revs.
+const RALLY_SPOOL = 0.8; // boost climbs slower than the GT-32 (1.1/s): turbo lag
+function rallySfx(rpm, boost) {
+  const b = clamp(boost, 0, 1);
+  return { lpHz: 600 + rpm * 0.5, wobbleHz: rpm / 60, wobbleDepth: clamp(0.36 - (rpm - 1000) / 6000 * 0.26, 0.08, 0.36),
+    whineHz: 1700 + b * 2600 + rpm * 0.08, whineGain: b * b * 0.018, airGain: b * 0.04 };
+}
+/* @rally-sfx:end */
 function buildEngine(type) {
   const out = ac.createGain(); out.gain.value = 0; out.connect(master);
   const pre = ac.createGain(); pre.gain.value = 0.6;
-  const sh = ac.createWaveShaper(); sh.curve = shaperCurve(type === 'hatch' ? 2.2 : type === 'gtr' ? 3 : 4.5);
-  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = type === 'hatch' ? 4 : type === 'gtr' ? 2 : 1.5;
+  const sh = ac.createWaveShaper(); sh.curve = shaperCurve(type === 'hatch' ? 2.2 : type === 'gtr' ? 3 : type === 'rally' ? 3.6 : 4.5);
+  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = type === 'hatch' ? 4 : type === 'gtr' ? 2 : type === 'rally' ? 1.8 : 1.5;
   pre.connect(sh).connect(lp).connect(out);
   const e = { type, out, lp, oscs: [], boost: 0, gasWas: false };
   const osc = (wave, mult, g, det) => { const o = ac.createOscillator(); o.type = wave; if (det) o.detune.value = det; const gg = ac.createGain(); gg.gain.value = g; o.connect(gg).connect(pre); o.start(); e.oscs.push([o, mult]); return gg; };
@@ -3712,6 +3974,16 @@ function buildEngine(type) {
     e.air = ac.createBiquadFilter(); e.air.type = 'bandpass'; e.air.Q.value = 14; e.airG = ac.createGain(); e.airG.gain.value = 0;
     air.connect(e.air).connect(e.airG).connect(master); air.start();
     e.bovCd = 0; e.gear = 0;
+  } else if (type === 'rally') {
+    osc('sawtooth', 1, 0.36); osc('sawtooth', 1, 0.28, 11); osc('square', 0.5, 0.2); // two detuned saws beat against each other; the half-order square is the uneven thump
+    const lfo = ac.createOscillator(); lfo.type = 'sine';
+    const lg = ac.createGain(); lg.gain.value = 0.3; lfo.connect(lg).connect(pre.gain); lfo.start(); e.lfo = lfo; e.lfoG = lg;
+    e.whine = ac.createOscillator(); e.whine.type = 'sine'; e.whineG = ac.createGain(); e.whineG.gain.value = 0;
+    e.whine.connect(e.whineG).connect(master); e.whine.start();
+    const air = ac.createBufferSource(); air.buffer = noiseBuf; air.loop = true;
+    e.air = ac.createBiquadFilter(); e.air.type = 'bandpass'; e.air.Q.value = 10; e.airG = ac.createGain(); e.airG.gain.value = 0;
+    air.connect(e.air).connect(e.airG).connect(master); air.start();
+    e.bovCd = 0;
   } else {
     osc('square', 1, 0.38); osc('square', 1, 0.32, 16); osc('sawtooth', 0.5, 0.18);
     const lfo = ac.createOscillator(); lfo.type = 'square';
@@ -3730,7 +4002,7 @@ function initAudio() {
   musicGain = ac.createGain(); musicGain.gain.value = musicLevel(musicOn, musicVol); musicGain.connect(outG);
   noiseBuf = ac.createBuffer(1, ac.sampleRate, ac.sampleRate);
   const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-  engines = { hatch: buildEngine('hatch'), coupe: buildEngine('coupe'), gtr: buildEngine('gtr') };
+  engines = { hatch: buildEngine('hatch'), coupe: buildEngine('coupe'), gtr: buildEngine('gtr'), rally: buildEngine('rally') };
   const gr = ac.createBufferSource(); gr.buffer = noiseBuf; gr.loop = true; // low rumble while hooked into a gutter
   const grF = ac.createBiquadFilter(); grF.type = 'lowpass'; grF.frequency.value = 160;
   gutG = ac.createGain(); gutG.gain.value = 0; gr.connect(grF).connect(gutG).connect(master); gr.start();
@@ -3933,6 +4205,15 @@ function updateEngineAudio(dt) {
       const wf = 2000 + e.boost * 3000 + car.rpm * 0.1;
       e.whine.frequency.setTargetAtTime(wf, t, 0.05); e.whineG.gain.setTargetAtTime(e.boost * e.boost * 0.02, t, 0.05);
       e.air.frequency.setTargetAtTime(wf * 1.1, t, 0.05); e.airG.gain.setTargetAtTime(e.boost * 0.05, t, 0.05);
+    } else if (k === 'rally') {
+      const gas = car.gas && state !== 'title', brake = car.brakeOn && spd > 15 && state !== 'title', S = rallySfx(car.rpm, e.boost);
+      e.bovCd = cooldownStep(e.bovCd, dt);
+      if (bovTrigger(e.gasWas, gas, brake, e.boost, e.bovCd, e.brakeWas)) { sfxBov(t); e.bovCd = BOV_COOLDOWN; e.boost *= 0.2; }
+      e.brakeWas = brake; e.gasWas = gas; e.boost = boostStep(e.boost, gas, car.rpm, dt, RALLY_SPOOL);
+      e.lp.frequency.setTargetAtTime(S.lpHz, t, 0.05);
+      e.lfo.frequency.setTargetAtTime(S.wobbleHz, t, 0.05); e.lfoG.gain.setTargetAtTime(S.wobbleDepth, t, 0.1);
+      e.whine.frequency.setTargetAtTime(S.whineHz, t, 0.05); e.whineG.gain.setTargetAtTime(S.whineGain, t, 0.05);
+      e.air.frequency.setTargetAtTime(S.whineHz * 1.1, t, 0.05); e.airG.gain.setTargetAtTime(S.airGain, t, 0.05);
     } else {
       e.lp.frequency.setTargetAtTime(650 + car.rpm * 0.6, t, 0.05);
       e.lfo.frequency.setTargetAtTime(f * 0.25, t, 0.05);
@@ -4208,6 +4489,10 @@ const COCKPIT_CARS = {
   gtr: { eye: { fwd: -0.12, right: 0.34, up: 1.06 }, fov: 76, dashTop: 0.88, clusterY: 0.78, dashZ: 1.0, layout: 'box', gauges: 'twinAux',
     wheel: { r: 0.175, tube: 0.019, y: 0.72, z: 0.48, spokes: [0, Math.PI / 2, Math.PI, -Math.PI / 2] }, mirrorX: 0.82,
     col: { dash: 0x25272d, trim: 0x34373e, roof: 0x16171b } },
+  // RV-4: low seat in a low-roofed saloon (glass top is above the view, so no header); big centre tach with a speedo and a small boost gauge; small three-spoke wheel; red trim for the seats' stitching
+  rally: { eye: { fwd: -0.1, right: 0.34, up: 1.13 }, fov: 76, dashTop: 0.88, clusterY: 0.85, dashZ: 1.0, layout: 'box', gauges: 'bigTach',
+    wheel: { r: 0.172, tube: 0.02, y: 0.7, z: 0.48, spokes: [Math.PI + 0.25, -0.25, -Math.PI / 2] }, mirrorX: 0.8,
+    col: { dash: 0x26282d, trim: 0x6e1f26, roof: 0x1a1b1f } },
 };
 // 儀表群中心高度（預設在儀表板頂面上方 3 cm；clusterY 可覆寫，讓大型錶不擋住引擎蓋線以上的視野）
 const clusterY = P => P.clusterY ?? P.dashTop + 0.03;
@@ -4385,7 +4670,7 @@ function makeInterior(style, paintHex, carbonOn) {
     const mPod = lam(0x121317), mLens = new THREE.MeshBasicMaterial({ color: 0xf2f6ff });
     for (const sx of [-1, 1]) fdPod(grp, sx, mPod, mPaint, mLens);
   } else {
-    // KX-2 / GT-32: the real body is hidden in cockpit view, so the greenhouse and the hood are rebuilt here from the body's own numbers (CAB):
+    // KX-2 / GT-32 / RV-4: the real body is hidden in cockpit view, so the greenhouse and the hood are rebuilt here from the body's own numbers (CAB):
     // windscreen frame, A-pillars, side-window openings and roof line sit exactly where they are on the outside
     const ds = c => new THREE.MeshLambertMaterial({ color: c, side: THREE.DoubleSide });
     const taper = (geo, S) => { if (S) { const q = geo.attributes.position; for (let i = 0; i < q.count; i++) q.setX(i, q.getX(i) * widthK(S, q.getY(i), q.getZ(i))); } geo.computeVertexNormals(); return geo; };
@@ -4398,7 +4683,7 @@ function makeInterior(style, paintHex, carbonOn) {
     };
     const along = (a, b, n) => Array.from({ length: n + 1 }, (_, i) => [a[0] + (b[0] - a[0]) * i / n, a[1] + (b[1] - a[1]) * i / n]);
     const hdr = K.glass[1];
-    const S = K.S, hH = K.houseW / 2, hG = K.glassW / 2, mPil = ds(style === 'gtr' ? 0x0b0c0f : P.col.dash), mHead = ds(P.col.roof);
+    const S = K.S, hH = K.houseW / 2, hG = K.glassW / 2, mPil = ds(style === 'hatch' ? P.col.dash : 0x0b0c0f), mHead = ds(P.col.roof);
     // side walls: the greenhouse outline with the side windows cut out, on the body's side face
     const wall = profile(cabCmds(K.house)); wall.holes = K.side.map(w => profile(poly(w)));
     for (const sx of [1, -1]) {
@@ -4432,6 +4717,16 @@ function makeInterior(style, paintHex, carbonOn) {
       if (mCarbon) carbonHood(grp, K, K.S, mCarbon, carbonEdgeMat());
       kxHoodPanel(grp, mCarbon || mPaint, mCarbon ? CARBON_THICK : 0);
       for (const sx of [-1, 1]) kxPod(grp, sx, mBlack, lam(0x121317), mPaint);
+    } else if (style === 'rally') {
+      // rows 7..15 of the body section (top of the wall, shoulder, hood top, centre line) and back down the -x side, then the centre scoop standing on it
+      const st = loftStations(K.body).filter(q => q[0] >= K.glass[0][0] - 0.3), pos = [], idx = [], R = 17;
+      // the hood under the cowl is shaded darker (vertex colours, 0.6 up to z 0.95, easing to the paint colour by z 1.6), so it doesn't read as a flat bright band
+      const hc = [], mHood = new THREE.MeshLambertMaterial({ color: paintHex, side: THREE.DoubleSide, vertexColors: true });
+      for (const q of st) { const h = rallyHalf(q).slice(7), f = 0.6 + 0.4 * sstep(0.95, 1.6, q[0]); for (const v of h.concat(h.slice(0, -1).reverse().map(v => [-v[0], v[1]]))) { pos.push(v[0], v[1], q[0]); hc.push(f, f, f); } }
+      for (let i = 0; i < st.length - 1; i++) for (let j = 0; j < R - 1; j++) { const a = i * R + j; idx.push(a, a + R, a + 1, a + 1, a + R, a + R + 1); }
+      const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setAttribute('color', new THREE.Float32BufferAttribute(hc, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+      add(geo, mHood, 0, 0, 0);
+      rallyScoop(grp, K.scoop, mPaint, (x, z) => rallyHoodY(K.body, x, z), new THREE.MeshLambertMaterial({ color: new THREE.Color(paintHex).multiplyScalar(0.32) })); // same Lambert paint colour as the exterior's
     } else {
       const st = loftStations(K.body).filter(q => q[0] >= K.glass[0][0] - 0.3), pos = [], idx = [];
       for (const q of st) { const h = loftHalf(q).slice(6); for (const v of h.concat(h.slice(0, -1).reverse().map(v => [-v[0], v[1]]))) pos.push(v[0], v[1], q[0]); } // rows 6..9 and back down the -x side
@@ -5388,7 +5683,7 @@ function courseBox(id) {
   return boxCache[id];
 }
 // free the GPU side of a car we are done with (the shared glow / badge textures stay)
-function disposeCar(c) { disposeTree(c.g, new Set([glowTex, badgeTex, carbonTex, tougeTex, doorTex[true], doorTex[false], trimTex[true], trimTex[false]])); }
+function disposeCar(c) { disposeTree(c.g, new Set([glowTex, badgeTex, carbonTex, tougeTex, rallyMeshTex, doorTex[true], doorTex[false], trimTex[true], trimTex[false]])); }
 const pvpCheck = pres => catState(pres, courseBox(pres && NET.TRACKS.includes(pres.trk) ? pres.trk : trackId));
 function pvpPublish(extra) {
   const p = pvp; if (!p) return;
