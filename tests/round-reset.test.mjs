@@ -26,7 +26,7 @@ function setup() {
     const performance = { now: () => env.now };
     let playerFinishT = 60, startLat = 0, startS = 0;
     const catOn = () => false, showCatResult = () => {}, resNames = () => {}, rpResolve = () => {}, catBegin = () => {}, catStart = () => 0, catMe = () => 0;
-    const pvpPublish = () => {}, advertise = () => {}, startRace = () => {};
+    const pvpPublish = () => {}, advertise = () => {}, startRace = () => {}, closeRoomDialogs = () => {};
     ${fn('pvpResultTick')}
     ${fn('beginCountdown')}
     return { tick: pvpResultTick, begin: beginCountdown, setFt: t => { playerFinishT = t; } };

@@ -35,7 +35,7 @@
 | 車內視角 | `cockpit`（`COCKPIT_CARS`）、`lean`（慣性前傾）、`camera-modes` |
 | 模式 | `timeattack`（幽靈車壓縮）、`sake`（送酒模式）、`kx-chime`、`changelog`（更新紀錄資料與是否顯示的判斷） |
 | 線上 | `netcode`、`supa`、`sign`、`onlinestatus`、`spectate`、`roompick`（房間投票）、`catmouse`、`chat` |
-| 輸入與介面 | `keybind`、`gamepad`（含震動 `shiftBuzz`）、`touch`、`tilt`、`tapguard`、`ingame-menu`、`own-music`、`turbo-sfx` |
+| 輸入與介面 | `title-modals`（主畫面設定視窗、開始時問方向、房間準備條件）、`keybind`、`gamepad`（含震動 `shiftBuzz`）、`touch`、`tilt`、`tapguard`、`ingame-menu`、`own-music`、`turbo-sfx` |
 
 ### 車輛模型
 - `makeCar` 依車型分支建模：`hatch`（KX-2，AE86 風格，白色版本用於送酒模式）、`coupe`（SR-7，FD 風格）、`gtr`（GT-32，R32 風格）。

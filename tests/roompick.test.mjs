@@ -15,7 +15,7 @@ return { NET, RP, CARS, validatePeerState, lobbyRooms, chooseOpp, validVote, roo
 const { NET, RP, CARS, validatePeerState, lobbyRooms, chooseOpp, validVote, roomState, resolveVote, roomPhase, pickSig, cancelReady, specTrackSwitch } = M;
 
 const BOUNDS = { x0: -100, x1: 100, z0: -500, z1: 100, s1: 4000 };
-const VOTE = (o = {}) => ({ t: 'seiran', m: 'first', g: 50, ...o });
+const VOTE = (o = {}) => ({ t: 'seiran', d: 'down', m: 'first', g: 50, ...o });
 const R = (o = {}) => ({ v: RP.V, st: 'waiting', car: 'coupe', col: 2, trk: 'kurosagi', go: 0, nk: 'Bob', vote: VOTE(), gb: 0, ...o });
 
 /* ---------- 常數 ---------- */
@@ -29,11 +29,11 @@ test('RP：模式、距離與預設值；顏色數與 CARS 一致', () => {
 });
 
 /* ---------- validVote ---------- */
-test('validVote：只接受已知賽道、模式與距離，回傳乾淨的副本', () => {
-  assert.deepEqual(validVote({ t: 'hakuro', m: 'cat', g: 80, evil: '<b>' }), { t: 'hakuro', m: 'cat', g: 80 });
-  for (const t of NET.TRACKS) for (const m of RP.MODES) for (const g of RP.GAPS) assert.deepEqual(validVote({ t, m, g }), { t, m, g });
+test('validVote：只接受已知賽道、方向、模式與距離，回傳乾淨的副本', () => {
+  assert.deepEqual(validVote({ t: 'hakuro', d: 'up', m: 'cat', g: 80, evil: '<b>' }), { t: 'hakuro', d: 'up', m: 'cat', g: 80 });
+  for (const t of NET.TRACKS) for (const d of RP.DIRS) for (const m of RP.MODES) for (const g of RP.GAPS) assert.deepEqual(validVote({ t, d, m, g }), { t, d, m, g });
   for (const bad of [null, undefined, 1, 'x', [], [VOTE()], VOTE({ t: 'Seiran' }), VOTE({ t: '../x' }), VOTE({ t: undefined }), VOTE({ m: 'race' }), VOTE({ m: 'CAT' }),
-    VOTE({ m: undefined }), VOTE({ g: 45 }), VOTE({ g: '50' }), VOTE({ g: 50.5 }), VOTE({ g: NaN }), VOTE({ g: 0 }), VOTE({ g: 110 }), VOTE({ g: undefined })])
+    VOTE({ m: undefined }), VOTE({ g: 45 }), VOTE({ g: '50' }), VOTE({ g: 50.5 }), VOTE({ g: NaN }), VOTE({ g: 0 }), VOTE({ g: 110 }), VOTE({ g: undefined }), VOTE({ d: undefined }), VOTE({ d: 'sideways' }), VOTE({ d: 'UP' })])
     assert.equal(validVote(bad), null, JSON.stringify(bad));
 });
 
@@ -92,8 +92,8 @@ test('chooseOpp + roomState：房主不會把舊版本的玩家當成對手', ()
 /* ---------- resolveVote ---------- */
 test('resolveVote：兩票相同直接採用，不是抽籤', () => {
   for (let seed = 0; seed < 50; seed++) {
-    assert.deepEqual(resolveVote(VOTE(), VOTE(), seed), { t: 'seiran', m: 'first', g: null, dt: false, dm: false, dg: false });
-    assert.deepEqual(resolveVote(VOTE({ m: 'cat', g: 70 }), VOTE({ m: 'cat', g: 70 }), seed), { t: 'seiran', m: 'cat', g: 70, dt: false, dm: false, dg: false });
+    assert.deepEqual(resolveVote(VOTE(), VOTE(), seed), { t: 'seiran', d: 'down', m: 'first', g: null, dt: false, dm: false, dg: false });
+    assert.deepEqual(resolveVote(VOTE({ m: 'cat', g: 70 }), VOTE({ m: 'cat', g: 70 }), seed), { t: 'seiran', d: 'down', m: 'cat', g: 70, dt: false, dm: false, dg: false });
   }
 });
 
@@ -154,7 +154,7 @@ test('roomPhase：準備 → 房主產生 seed → 雙方問 AT/MT → 都選好
 test('pickSig / cancelReady：車、顏色、任一票改變就取消準備；第一次收到不算改變', () => {
   const s = pickSig({ car: 'coupe', col: 2, vote: VOTE() });
   assert.equal(s, pickSig({ car: 'coupe', col: 2, vote: VOTE() }));
-  for (const o of [{ car: 'gtr' }, { col: 1 }, { vote: VOTE({ t: 'hakuro' }) }, { vote: VOTE({ m: 'cat' }) }, { vote: VOTE({ g: 60 }) }])
+  for (const o of [{ car: 'gtr' }, { col: 1 }, { vote: VOTE({ t: 'hakuro' }) }, { vote: VOTE({ d: 'up' }) }, { vote: VOTE({ m: 'cat' }) }, { vote: VOTE({ g: 60 }) }])
     assert.notEqual(pickSig({ car: 'coupe', col: 2, vote: VOTE(), ...o }), s, JSON.stringify(o));
   assert.equal(cancelReady('ready', s, s), 'ready');
   assert.equal(cancelReady('ready', s, s + 'x'), 'waiting');

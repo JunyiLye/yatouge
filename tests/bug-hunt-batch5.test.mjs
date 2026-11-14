@@ -79,11 +79,11 @@ test('R1-2：警告列在頁面、kbRender 會顯示，zh／en 文字都有', ()
 });
 
 /* ---------- R1-3 取消變速箱詢問後焦點回到「同一台再跑」 ---------- */
-test('R1-3：btnAgain 的單機分支呼叫 askTrans(startRace, "#btnAgain")', () => {
+test('R1-3：btnAgain 的單機分支呼叫 askStart(startRace, "#btnAgain", true)（再跑一次沿用方向，只問 AT／MT；askStart 內部走 askTrans）', () => {
   const { $, els } = dom(); const calls = [], startRace = () => {};
-  stmt(line("$('#btnAgain').addEventListener('click'"), { $, pvp: null, startRace, askTrans: (...a) => calls.push(a) });
+  stmt(line("$('#btnAgain').addEventListener('click'"), { $, pvp: null, startRace, askStart: (...a) => calls.push(a) });
   els['#btnAgain'].on.click();
-  assert.deepEqual(calls, [[startRace, '#btnAgain']]);
+  assert.deepEqual(calls, [[startRace, '#btnAgain', true]]);
 });
 
 /* ---------- R1-4 AltGr ---------- */

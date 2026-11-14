@@ -69,7 +69,7 @@ test('A1 原始碼的 Enter 處理：在線上對戰鈕不開始、在開始鈕�
   const run = (target, st = 'title', online = false) => {
     let started = 0, prevented = 0;
     const e = { code: 'Enter', repeat: false, target, preventDefault: () => prevented++ };
-    new Function('e', 'state', 'onlineUI', 'enterStartsRace', 'askTrans', 'startRace', line)(e, st, online, H.enterStartsRace, f => { if (f === 'S') started++; }, 'S');
+    new Function('e', 'state', 'onlineUI', 'enterStartsRace', 'askStart', 'startRace', 'tmOpen', 'dirOpen', line)(e, st, online, H.enterStartsRace, f => { if (f === 'S') started++; }, 'S', null, false);
     return { started, prevented };
   };
   const title = el('div', { id: 'title' });
@@ -169,10 +169,10 @@ test('A5 滑鼠或觸控點選不還原焦點（維持點卡片後按 Enter 開�
   assert.ok(focused);
   assert.ok(html.includes("addEventListener('pointerdown', () => { pickByPointer = true; }, true)"));
   assert.ok(html.includes("addEventListener('keydown', () => { pickByPointer = false; }, true)"));
-  assert.ok(html.includes('document.activeElement, pickByPointer)'));
+  assert.ok(html.includes('document.activeElement, pickByPointer && !tmOpen)'));
 });
-test('A5 四個卡片重繪函式都保留焦點', () => {
-  for (const fn of ['renderPicker', 'renderModePicker', 'renderTrackPicker', 'renderDirPicker']) {
+test('A5 三個卡片重繪函式都保留焦點（方向卡片已改成開始時的視窗，不再是主畫面的重繪列）', () => {
+  for (const fn of ['renderPicker', 'renderModePicker', 'renderTrackPicker']) {
     const m = html.match(new RegExp(`function ${fn}\\(\\) \\{[\\s\\S]*?\\n\\}\\n`));
     assert.ok(m, fn);
     assert.match(m[0], /keepPickFocus\(\)/, fn);

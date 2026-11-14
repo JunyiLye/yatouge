@@ -123,7 +123,19 @@ body.gp :is(button, input, select):focus { outline: 2px solid var(--sodium); out
 .m-tilt #shiftPad, .m-zones #shiftPad { bottom: auto; top: calc(108px + env(safe-area-inset-top, 0px)); right: calc(12px + env(safe-area-inset-right, 0px)); }
 #shiftPad button { pointer-events: auto; touch-action: none; width: 56px; height: 44px; padding: 0; font-size: 20px; border-radius: 10px; border: 1px solid var(--line); background: rgba(9,12,26,.55); }
 #shiftPad button.on { background: rgba(255,162,58,.4); border-color: var(--sodium); }
-#trans { background: rgba(5,7,15,.97); }
+#trans, #dirq { background: rgba(5,7,15,.97); }
+/* title: three buttons that open the settings windows; the windows share the in-game menu's sheet */
+.setrow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
+.setbtn { text-align: left; background: rgba(255,255,255,.03); border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; display: grid; gap: 4px; align-content: start; min-width: 0; }
+.setbtn:hover { border-color: var(--sodium); }
+.setbtn b { font-size: 14px; }
+.setbtn small { display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 12px; color: var(--dim); }
+.setbtn small span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cdot { flex: none; width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(255,255,255,.3); }
+.tmodal { z-index: 6; background: rgba(5,7,15,.94); }
+.igsheet.tmsheet { width: min(520px, 100%); }
+.tmdone { width: 100%; margin-top: 18px; padding: 12px 16px; font-size: 16px; }
+@media (max-width: 400px) { .setrow { grid-template-columns: 1fr; } }
 .transopts { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .transbtn { text-align: left; background: rgba(9,12,26,.55); border: 1px solid var(--line); border-radius: 6px; padding: 16px 18px; }
 .transbtn:hover { border-color: var(--sodium); } .transbtn.sel { border-color: var(--sodium); background: rgba(255,162,58,.16); }
@@ -228,14 +240,21 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
 .rpseg .swatch { min-height: 38px; margin: 0; }
 .rpseg .swatch:disabled { opacity: .45; cursor: not-allowed; }
 #rpOpp { margin-top: 2px; }
-.transmatch { margin: 6px 0 0; font-size: 16px; color: var(--sodium); }
-.transmatch[hidden] { display: none; }
 @media (orientation: landscape) and (max-height: 500px) {
   .sheet.roomsheet { width: min(860px, 100%); display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); grid-template-areas: "picks head" "picks side"; column-gap: 22px; align-items: start; }
-  .roomsheet .rhead { grid-area: head; } .roomsheet .rpicks { grid-area: picks; margin: 0; gap: 6px; } .roomsheet .rside { grid-area: side; }
+  .sheet.roomsheet { grid-template-areas: "picks head" "picks side" "picks chat"; }
+  .roomsheet .rhead { grid-area: head; } .roomsheet .rpicks { grid-area: picks; margin: 0; gap: 6px; } .roomsheet .rside { grid-area: side; } .roomsheet .chatbox { grid-area: chat; margin-top: 10px; }
   .roomsheet .plrows { margin: 0 0 10px; } .roomsheet .plrow { padding: 6px 10px; }
   .rpseg .rpbtn, .rpseg .swatch { min-height: 36px; padding-top: 4px; padding-bottom: 4px; }
 }
+/* room chat: the right-hand column on a wide screen (as tall as the room, the list scrolls inside it); under the Ready button on a phone */
+@media (min-width: 900px) and (min-height: 501px) {
+  .sheet.roomsheet { width: min(1100px, 100%); display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr) minmax(260px, 340px); grid-template-areas: "head head chat" "picks side chat"; column-gap: 24px; align-items: start; }
+  .roomsheet .rhead { grid-area: head; } .roomsheet .rpicks { grid-area: picks; margin: 0; } .roomsheet .rside { grid-area: side; }
+  .roomsheet .chatbox { grid-area: chat; align-self: stretch; margin-top: 0; display: flex; flex-direction: column; min-height: 0; }
+  .roomsheet .chatlog { flex: 1 1 auto; height: 0; min-height: 220px; max-height: none; }
+}
+@media (max-width: 899px) and (orientation: portrait) { #roomChat .chatlog { max-height: min(100px, 14vh); } }
 /* Sake Run HUD: one cup per wall contact still allowed, then the sake level */
 .sakehud { display: flex; align-items: center; gap: 10px; font-size: 13px; margin-top: 4px; font-variant-numeric: tabular-nums; }
 .sakehud[hidden] { display: none; }
@@ -479,11 +498,49 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
     <p id="tSake" class="note" data-i18n="sakeLocked" hidden></p>
     <div class="lbl" style="margin-top:16px" data-i18n="pickTrack">選擇賽道</div>
     <div class="pick" id="trackPick" role="radiogroup" data-i18n-aria="pickTrackAria" aria-label="選擇賽道"></div>
-    <div class="lbl" style="margin-top:16px" data-i18n="dirLbl">行駛方向</div>
-    <div class="pick" id="dirPick" role="radiogroup" data-i18n-aria="dirAria" aria-label="選擇行駛方向"></div>
-    <div class="lbl" style="margin-top:16px" data-i18n="pick">選擇你的車</div>
+    <div class="setrow" role="group" data-i18n-aria="setAria" aria-label="設定">
+      <button id="btnCarSet" class="setbtn" type="button" aria-haspopup="dialog"><b data-i18n="carSet">車輛設定</b><small><i id="carDot" class="cdot"></i><span id="carSetTxt"></span></small></button>
+      <button id="btnSndSet" class="setbtn" type="button" aria-haspopup="dialog"><b data-i18n="sndSet">聲音設定</b></button>
+      <button id="btnGameSet" class="setbtn" type="button" aria-haspopup="dialog"><b data-i18n="gameSet">遊戲設定</b></button>
+    </div>
+    <div class="keys">
+      <span id="kGasK"><kbd>↑</kbd> <kbd>W</kbd></span><span data-i18n="kGas">油門</span>
+      <span id="kBrakeK"><kbd>↓</kbd> <kbd>S</kbd></span><span data-i18n="kBrake">煞車／倒車</span>
+      <span id="kSteerK"><kbd>←</kbd> <kbd>→</kbd></span><span data-i18n="kSteer">轉向</span>
+      <span id="kHbK"><kbd>Space</kbd></span><span data-i18n="kHb">手煞車，轉彎時拉一下讓車尾滑出去</span>
+      <span id="kMiscK"><kbd>R</kbd> <kbd>M</kbd></span><span data-i18n="kMisc">回到路面／音樂開關</span>
+      <span id="kCamK"><kbd>C</kbd></span><span data-i18n="kCam">切換鏡頭（追蹤／近距離／車內）</span>
+      <span id="kShiftK"><kbd>Shift</kbd> <kbd>Z</kbd></span><span data-i18n="kShift">手排：升檔／降檔</span>
+      <span id="kPadK"><kbd>RT</kbd> <kbd>LT</kbd></span><span id="kPadTxt">手把：左搖桿轉向、RT 油門、LT 煞車、Y 手煞車、LB／RB 降／升檔、十字鍵上 鏡頭、Menu 選單</span>
+    </div>
+    <button class="go" id="btnStart" type="button" data-i18n="start">開始</button><button class="ghost" id="btnOnline" type="button" data-i18n="pvpOnline" aria-disabled="true">線上對戰</button><div class="onl-info"><span id="onlineNote" role="status"></span><button class="ghost" id="btnOnlineAct" type="button" hidden></button></div>
+    <p class="note" data-i18n="note">不拉手煞車時輪胎會抓地，轉太快只會推頭。入彎先減速，轉向的同時點一下手煞就能甩起來，反打方向盤可以收住車尾。手機上用畫面下方的按鈕操作。</p>
+  </div>
+</div>
+
+<div id="mCar" class="screen tmodal" role="dialog" aria-modal="true" aria-labelledby="mCarT" hidden>
+  <div class="sheet igsheet tmsheet">
+    <h2 id="mCarT" class="igh" data-i18n="carSet">車輛設定</h2>
+    <div class="stripe"></div>
+    <div class="lbl" data-i18n="pick">選擇你的車</div>
     <div class="pick" id="pick" role="radiogroup" data-i18n-aria="pickAria" aria-label="選擇車輛"></div>
     <div class="swatches" id="swatches" role="radiogroup" data-i18n-aria="paintAria" aria-label="車色"></div>
+    <div id="tKx" class="tctl" hidden>
+      <div class="igrow"><span id="tKxChimeL" data-i18n="kxChime">時速警示音</span><button id="tKxChime" type="button" role="switch" aria-labelledby="tKxChimeL" aria-checked="true"></button></div>
+      <div class="igrow"><span id="tKxLetterL" data-i18n="kxLetter">車門字樣</span><button id="tKxLetter" type="button" role="switch" aria-labelledby="tKxLetterL" aria-checked="true"></button></div>
+      <div class="igrow" id="tKxUpRow" hidden><span id="tKxUpL" data-i18n="kxUp">極速升級</span><button id="tKxUp" type="button" role="switch" aria-labelledby="tKxUpL" aria-checked="true"></button></div>
+    </div>
+    <button class="go tmdone" id="mCarDone" type="button" data-i18n="tmDone">完成</button>
+  </div>
+</div>
+
+<div id="mSnd" class="screen tmodal" role="dialog" aria-modal="true" aria-labelledby="mSndT" hidden>
+  <div class="sheet igsheet tmsheet">
+    <h2 id="mSndT" class="igh" data-i18n="sndSet">聲音設定</h2>
+    <div class="stripe"></div>
+    <div class="tctl">
+      <div class="igrow"><span id="tMusicL" data-i18n="sndMusic">音樂</span><button id="tMusic" type="button" role="switch" aria-labelledby="tMusicL" aria-checked="true"></button></div>
+    </div>
     <div class="lbl" style="margin-top:16px" id="bgmLbl" data-i18n="bgmLbl">背景音樂</div>
     <div class="music" role="group" aria-labelledby="bgmLbl">
       <button id="btnBgm" class="musicsel" type="button">原創</button>
@@ -492,11 +549,14 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <input id="ownFile" type="file" accept="audio/*" hidden tabindex="-1" aria-hidden="true">
     </div>
     <p id="ownMsg" class="kbnote" role="status"></p>
-    <div id="tKx" class="tctl" hidden>
-      <div class="igrow"><span id="tKxChimeL" data-i18n="kxChime">時速警示音</span><button id="tKxChime" type="button" role="switch" aria-labelledby="tKxChimeL" aria-checked="true"></button></div>
-      <div class="igrow"><span id="tKxLetterL" data-i18n="kxLetter">車門字樣</span><button id="tKxLetter" type="button" role="switch" aria-labelledby="tKxLetterL" aria-checked="true"></button></div>
-      <div class="igrow" id="tKxUpRow" hidden><span id="tKxUpL" data-i18n="kxUp">極速升級</span><button id="tKxUp" type="button" role="switch" aria-labelledby="tKxUpL" aria-checked="true"></button></div>
-    </div>
+    <button class="go tmdone" id="mSndDone" type="button" data-i18n="tmDone">完成</button>
+  </div>
+</div>
+
+<div id="mGame" class="screen tmodal" role="dialog" aria-modal="true" aria-labelledby="mGameT" hidden>
+  <div class="sheet igsheet tmsheet">
+    <h2 id="mGameT" class="igh" data-i18n="gameSet">遊戲設定</h2>
+    <div class="stripe"></div>
     <div class="tctl">
       <div class="igrow"><span id="tVibeL" data-i18n="vibe">震動</span><button id="tVibe" type="button" role="switch" aria-labelledby="tVibeL" aria-checked="true"></button></div>
       <div class="igrow"><label for="tTurn" data-i18n="turnSigns">彎道提示</label><select id="tTurn"></select></div>
@@ -509,18 +569,7 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
       <div class="igrow" id="tTiltRow" hidden><label for="tTiltSens" data-i18n="igTiltSens">傾斜靈敏度</label><output id="tTiltOut" for="tTiltSens"></output><input id="tTiltSens" type="range" min="0" max="100" step="5"></div>
       <p class="igq" id="tTiltNote" role="status" hidden></p>
     </div>
-    <div class="keys">
-      <span id="kGasK"><kbd>↑</kbd> <kbd>W</kbd></span><span data-i18n="kGas">油門</span>
-      <span id="kBrakeK"><kbd>↓</kbd> <kbd>S</kbd></span><span data-i18n="kBrake">煞車／倒車</span>
-      <span id="kSteerK"><kbd>←</kbd> <kbd>→</kbd></span><span data-i18n="kSteer">轉向</span>
-      <span id="kHbK"><kbd>Space</kbd></span><span data-i18n="kHb">手煞車，轉彎時拉一下讓車尾滑出去</span>
-      <span id="kMiscK"><kbd>R</kbd> <kbd>M</kbd></span><span data-i18n="kMisc">回到路面／音樂開關</span>
-      <span id="kCamK"><kbd>C</kbd></span><span data-i18n="kCam">切換鏡頭（追蹤／近距離／車內）</span>
-      <span id="kShiftK"><kbd>Shift</kbd> <kbd>Z</kbd></span><span data-i18n="kShift">手排：升檔／降檔</span>
-      <span id="kPadK"><kbd>RT</kbd> <kbd>LT</kbd></span><span id="kPadTxt">手把：左搖桿轉向、RT 油門、LT 煞車、Y 手煞車、LB／RB 降／升檔、十字鍵上 鏡頭、Menu 選單</span>
-    </div>
-    <button class="go" id="btnStart" type="button" data-i18n="start">開始下坡</button><button class="ghost" id="btnOnline" type="button" data-i18n="pvpOnline" aria-disabled="true">線上對戰</button><div class="onl-info"><span id="onlineNote" role="status"></span><button class="ghost" id="btnOnlineAct" type="button" hidden></button></div>
-    <p class="note" data-i18n="note">不拉手煞車時輪胎會抓地，轉太快只會推頭。入彎先減速，轉向的同時點一下手煞就能甩起來，反打方向盤可以收住車尾。手機上用畫面下方的按鈕操作。</p>
+    <button class="go tmdone" id="mGameDone" type="button" data-i18n="tmDone">完成</button>
   </div>
 </div>
 
@@ -590,13 +639,14 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
         <div class="plrow" id="plOpp"><b></b><small></small><span class="plst"></span></div>
       </div>
       <div class="actions"><button class="go" id="btnReady" type="button">準備</button><button class="ghost" id="btnRoomLeave" type="button" data-i18n="pvpLeaveRoom">離開房間</button></div>
+      <p id="rpNeed" class="note" role="status"></p>
       <p id="roomNote" class="note" role="status"></p>
-      <div class="chatbox" id="roomChat">
-        <div class="chathead"><span class="lbl" id="roomChatL" data-i18n="chatLbl">聊天</span><div class="igrow"><span id="roomChatOnL" data-i18n="chatMsgs">聊天訊息</span><button id="roomChatOn" class="chatsw" type="button" role="switch" aria-labelledby="roomChatOnL" aria-checked="true"></button></div></div>
-        <ol id="roomChatLog" class="chatlog" aria-live="polite" aria-labelledby="roomChatL"></ol>
-        <form id="roomChatForm" class="chatrow" autocomplete="off"><input id="roomChatIn" class="chatin" type="text" maxlength="80" enterkeyhint="send" autocomplete="off" spellcheck="false" aria-labelledby="roomChatL"><button class="chatsend" type="submit" data-i18n="chatSend">送出</button></form>
-        <p id="roomChatHint" class="chathint" role="status"></p>
-      </div>
+    </div>
+    <div class="chatbox" id="roomChat">
+      <div class="chathead"><span class="lbl" id="roomChatL" data-i18n="chatLbl">聊天</span><div class="igrow"><span id="roomChatOnL" data-i18n="chatMsgs">聊天訊息</span><button id="roomChatOn" class="chatsw" type="button" role="switch" aria-labelledby="roomChatOnL" aria-checked="true"></button></div></div>
+      <ol id="roomChatLog" class="chatlog" aria-live="polite" aria-labelledby="roomChatL"></ol>
+      <form id="roomChatForm" class="chatrow" autocomplete="off"><input id="roomChatIn" class="chatin" type="text" maxlength="80" enterkeyhint="send" autocomplete="off" spellcheck="false" aria-labelledby="roomChatL"><button class="chatsend" type="submit" data-i18n="chatSend">送出</button></form>
+      <p id="roomChatHint" class="chathint" role="status"></p>
     </div>
   </div>
 </div>
@@ -672,10 +722,22 @@ kbd { font-family: var(--mono); font-size: 12px; color: var(--ink); border: 1px 
   </div>
 </div>
 
+<div id="dirq" class="screen" role="dialog" aria-modal="true" aria-labelledby="dirqTitle" hidden>
+  <div class="sheet">
+    <h2 id="dirqTitle" class="pvp-h" data-i18n="dirQTitle">選擇方向</h2>
+    <div class="stripe"></div>
+    <div class="transopts">
+      <button class="transbtn" id="dirDown" type="button" data-d="down"><b data-i18n="dirDown">下坡</b><small data-i18n="dirDownD">從山頂開到山腳</small></button>
+      <button class="transbtn" id="dirUp" type="button" data-d="up"><b data-i18n="dirUp">上坡</b><small data-i18n="dirUpD">從山腳開到山頂，要頂著重力往上爬</small></button>
+    </div>
+    <p class="note nokb" data-i18n="transKeys">Enter 或點一下確認，Esc 取消。</p>
+    <div class="actions" style="margin-top:12px"><button class="ghost" id="dirCancel" type="button" data-i18n="nickCancel">取消</button></div>
+  </div>
+</div>
+
 <div id="trans" class="screen" role="dialog" aria-modal="true" aria-labelledby="transTitle" hidden>
   <div class="sheet">
     <h2 id="transTitle" class="pvp-h" data-i18n="transTitle">選擇變速箱</h2>
-    <p id="transMatch" class="transmatch" hidden></p>
     <div class="stripe"></div>
     <div class="transopts">
       <button class="transbtn" id="transAT" type="button" data-t="auto"><b data-i18n="transAT">自排 AT</b><small data-i18n="transATd">自動換檔，專心過彎。</small></button>
@@ -749,8 +811,16 @@ const confirmKeys = (what, ta, sake) => what === 'lobby' ? { q: 'igLobbyAsk', ye
 // Player-facing release notes, newest first (at most 12 versions). Add today's version, or extend it, whenever a change the player can see goes out.
 const CHANGELOG = [
   { date: '2026-11-14',
-    zh: ['新車 RV-4 拉力四驅：90 年代雙門四驅渦輪房車，起步與出彎最猛，有自己的水平對臥引擎聲與車內視角。', '主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：主畫面選好賽道後可以切換「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式與線上對戰仍是下坡）。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。', '修正：主畫面按 Enter 只有在「開始」鈕上、或焦點不在任何控制項上時才會開始比賽；在其他按鈕、選單上按 Enter 會照常操作它，方向鍵也能切換下拉選單與滑桿。', '修正：可以把 Ctrl 或 Alt 綁成降檔、鏡頭、聊天，綁了之後確實會作用。', '修正：關閉 KX-2 車門字樣後，離開車內視角不會再冒出來。', '修正：計時在整分、整十秒前後不再顯示成 0:60.00 之類的錯誤格式。', '修正：點選卡片後鍵盤焦點會留在原位；再點已選的車不會重設顏色。', '修正：回到主畫面時視角會恢復正常。', '修正：在遊戲內換語言後，主畫面的線上狀態也會跟著換語言。', '修正：壞掉的語言存檔不再讓文字壞掉。', '修正：AI 衝線後不會再停在終點讓你撞上。', '修正：起跑的 GO 消失後，大型與預告彎道提示才會出現。', '修正：線上對戰中對手在比賽時換車不再造成畫面卡頓；連線較忙時大廳會請你稍候。', '修正：線上對戰衝線後，兩台車不會再互撞。', '修正：線上對戰中，房間裡的其他人無法再冒用你的身分；舊版頁面需重新整理後才能進房。', '修正：計時賽中途才打開幽靈車，幽靈車不會再浮在路面上方。', '修正：和 AI 幾乎同時衝線時，勝負改用同一個時鐘判斷，不再固定偏向 AI。', '修正：在主畫面選了不能用的自選音樂檔，現在會在音樂按鈕下方顯示提示，不會留到比賽倒數才出現。', '修正：按鍵設定把 Ctrl 綁定後，如果 W、T 或 N 也有綁按鍵，會提醒瀏覽器可能因此關閉或開新分頁。', '修正：使用右 Alt（AltGr）鍵盤配置時，綁在右 Alt 的降檔、鏡頭、聊天可以正常使用。', '修正：視窗失去焦點時按住的手把扳機，回來後不會失效。', '修正：重新開始後，倒數時引擎聲不會延續上一場的油門聲。', '修正：車內視角時，在設定裡開關車門字樣不會讓字樣單獨浮在車外。', '修正：結果畫面按「同一台再跑」再取消變速箱選擇，鍵盤焦點會回到該按鈕。', '修正：線上房間裡，對方離開後不會再被別人冒用他的代號而一直顯示在場；同一個分頁離開後再加入同一個房間，對方不會再看到你上一場停住的車。', '修正：對手離開後，結果畫面仍顯示對手的暱稱，不會變成「玩家」。'],
-    en: ['New car, the RV-4 Rally 4WD: a 90s two-door all-wheel-drive turbo saloon that launches and exits corners hardest, with its own flat-four engine sound and cockpit view.', 'New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after picking a course on the title screen you can switch between Downhill and Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run and online matches stay downhill).', 'Fix: a turn sign no longer disappears and reappears when you brake after it shows up.', 'Fix: if the car is sliding backwards when you cross the line, the auto-brake no longer sends it flying.', 'Fix: in a room with several rounds, later rounds no longer always show a win.', 'Fix: the lobby list now updates right away when someone leaves or closes a room.', 'Fix: a join that finishes after you went back from the lobby no longer pulls you into a room.', 'Fix: on the title screen Enter starts the race only from the Start button or when focus is not on any control; on other buttons and menus it works that control, and the arrow keys now change dropdowns and sliders.', 'Fix: Ctrl or Alt can be bound to downshift, camera or chat and now really work.', 'Fix: with the KX-2 door lettering turned off it no longer pops back when you leave the cockpit view.', 'Fix: timers around full minutes and ten-second marks no longer show formats like 0:60.00.', 'Fix: keyboard focus stays in place after choosing a card, and clicking the car you already picked no longer resets its colour.', 'Fix: the view returns to normal when you are back on the title screen.', 'Fix: switching language in-game also updates the title-screen online status.', 'Fix: a corrupted language save no longer breaks the text.', 'Fix: the AI no longer stops at the finish line for you to crash into.', 'Fix: the large and preview turn signs now appear only after the start GO has gone.', 'Fix: an opponent changing cars during an online race no longer makes the game stutter; the lobby asks you to wait when the connection is busy.', 'Fix: in online races the two cars no longer bump into each other after finishing.', 'Fix: other people in an online room can no longer pretend to be you; older pages need a refresh to join a room.', 'Fix: opening the ghost car in the middle of a time attack run no longer leaves it floating above the road.', 'Fix: when you and the AI cross the line almost together, the winner is now judged on one shared clock instead of always favouring the AI.', 'Fix: choosing an unusable own-music file on the title screen now shows a message under the music buttons instead of showing up during the next countdown.', 'Fix: in key settings, binding Ctrl while W, T or N is also bound now shows a warning that the browser may close or open a tab.', 'Fix: on AltGr keyboard layouts, downshift, camera and chat bound to the right Alt now work.', 'Fix: a controller trigger held while the window lost focus no longer stops working when you return.', 'Fix: after a restart the engine no longer keeps the throttle sound of the previous run during the countdown.', 'Fix: in cockpit view, toggling the door lettering in settings no longer leaves it floating outside the car.', 'Fix: cancelling the gearbox choice after pressing Run again on the result screen returns keyboard focus to that button.', 'Fix: in an online room a player who left is no longer kept on the roster by someone using their id, and when you leave and rejoin the same room from one tab the other player no longer sees your car frozen where the last match left it.', 'Fix: after the opponent leaves, the result screen still shows their nickname instead of "Player".'] },
+    zh: ['新車 RV-4 拉力四驅：90 年代雙門四驅渦輪房車，起步與出彎最猛，有自己的水平對臥引擎聲與車內視角。', '主畫面新增「更新內容」：有新版本時進入遊戲會自動顯示重點，也可以隨時按按鈕再看一次。', '彎道提示可以選顯示方式：側邊（原本的樣子）、大型置中、預告列（同時看到接下來兩個彎）、只有聲音，或關閉。在設定裡的「彎道提示」更改。', '新增上坡玩法：按下「開始」後可以選「下坡／上坡」，從山腳往山頂開，感受重力的差別。上坡有自己的最佳紀錄與幽靈車（送酒模式仍是下坡）。',
+    '主畫面的設定改成三個按鈕：「車輛設定」、「聲音設定」、「遊戲設定」，點開後在視窗裡選車與顏色、選背景音樂與開關音樂，以及調整震動、彎道提示、按鍵設定、查看更新內容，主畫面更簡潔。',
+    '上坡或下坡改成按下「開始」後才選（接著選手排或自排）；送酒模式仍是下坡，結果畫面的「同一台再跑」沿用上一場的方向。',
+    '線上對戰也可以上坡了：在房間點選賽道時選下坡或上坡，點選車子時選手排或自排，兩個都選好才能按「準備」。方向跟著賽道一起投票，兩人不同時一起抽籤，抽籤後不會再問變速箱。',
+    '線上房間的聊天框移到右側，電腦上一進房間就看得到，不用再往下捲。', '修正：彎道提示出現後不會因為煞車而消失又重新出現。', '修正：衝線時車子倒著甩尾，自動煞車不會再讓車子暴衝。', '修正：線上對戰同一個房間打多回合，之後的回合不再一律顯示勝利。', '修正：有人離開或關閉房間後，大廳列表會立刻更新。', '修正：在大廳按了返回之後，才完成的加入不會再把你拉進房間。', '修正：主畫面按 Enter 只有在「開始」鈕上、或焦點不在任何控制項上時才會開始比賽；在其他按鈕、選單上按 Enter 會照常操作它，方向鍵也能切換下拉選單與滑桿。', '修正：可以把 Ctrl 或 Alt 綁成降檔、鏡頭、聊天，綁了之後確實會作用。', '修正：關閉 KX-2 車門字樣後，離開車內視角不會再冒出來。', '修正：計時在整分、整十秒前後不再顯示成 0:60.00 之類的錯誤格式。', '修正：點選卡片後鍵盤焦點會留在原位；再點已選的車不會重設顏色。', '修正：回到主畫面時視角會恢復正常。', '修正：在遊戲內換語言後，主畫面的線上狀態也會跟著換語言。', '修正：壞掉的語言存檔不再讓文字壞掉。', '修正：AI 衝線後不會再停在終點讓你撞上。', '修正：起跑的 GO 消失後，大型與預告彎道提示才會出現。', '修正：線上對戰中對手在比賽時換車不再造成畫面卡頓；連線較忙時大廳會請你稍候。', '修正：線上對戰衝線後，兩台車不會再互撞。', '修正：線上對戰中，房間裡的其他人無法再冒用你的身分；舊版頁面需重新整理後才能進房。', '修正：計時賽中途才打開幽靈車，幽靈車不會再浮在路面上方。', '修正：和 AI 幾乎同時衝線時，勝負改用同一個時鐘判斷，不再固定偏向 AI。', '修正：在主畫面選了不能用的自選音樂檔，現在會在聲音設定視窗裡顯示提示，不會留到比賽倒數才出現。', '修正：按鍵設定把 Ctrl 綁定後，如果 W、T 或 N 也有綁按鍵，會提醒瀏覽器可能因此關閉或開新分頁。', '修正：使用右 Alt（AltGr）鍵盤配置時，綁在右 Alt 的降檔、鏡頭、聊天可以正常使用。', '修正：視窗失去焦點時按住的手把扳機，回來後不會失效。', '修正：重新開始後，倒數時引擎聲不會延續上一場的油門聲。', '修正：車內視角時，在設定裡開關車門字樣不會讓字樣單獨浮在車外。', '修正：結果畫面按「同一台再跑」再取消變速箱選擇，鍵盤焦點會回到該按鈕。', '修正：線上房間裡，對方離開後不會再被別人冒用他的代號而一直顯示在場；同一個分頁離開後再加入同一個房間，對方不會再看到你上一場停住的車。', '修正：對手離開後，結果畫面仍顯示對手的暱稱，不會變成「玩家」。'],
+    en: ['New car, the RV-4 Rally 4WD: a 90s two-door all-wheel-drive turbo saloon that launches and exits corners hardest, with its own flat-four engine sound and cockpit view.', 'New "What\'s new" window: when there is a new version it shows the highlights as you enter the game, and you can reopen it any time from the title screen.', 'Turn signs now have display styles: side (as before), large and centred, a preview bar showing the next two corners, sound only, or off. Change it under "Turn signs" in settings.', 'Uphill runs: after pressing Start you can choose Downhill or Uphill and drive from the foot to the summit, feeling the gravity. Uphill has its own best times and ghosts (Sake Run stays downhill).',
+    'The title-screen settings are now three buttons, Car settings, Sound settings and Game settings, that open windows for the car and colour, the music and its switch, and vibration, turn signs, key settings and what\'s new. The title screen is much tidier.',
+    'Uphill or downhill is now chosen after you press Start (followed by manual or automatic). Sake Run stays downhill, and Run again keeps the last direction.',
+    'Online races can now be uphill: click a course in the room to choose downhill or uphill and click your car to choose a gearbox; you can only press Ready once both are chosen. The direction is voted together with the course and drawn if you differ, and the gearbox is no longer asked after the draw.',
+    'The online room chat now sits on the right on a wide screen, so you can see it as soon as you enter, without scrolling.', 'Fix: a turn sign no longer disappears and reappears when you brake after it shows up.', 'Fix: if the car is sliding backwards when you cross the line, the auto-brake no longer sends it flying.', 'Fix: in a room with several rounds, later rounds no longer always show a win.', 'Fix: the lobby list now updates right away when someone leaves or closes a room.', 'Fix: a join that finishes after you went back from the lobby no longer pulls you into a room.', 'Fix: on the title screen Enter starts the race only from the Start button or when focus is not on any control; on other buttons and menus it works that control, and the arrow keys now change dropdowns and sliders.', 'Fix: Ctrl or Alt can be bound to downshift, camera or chat and now really work.', 'Fix: with the KX-2 door lettering turned off it no longer pops back when you leave the cockpit view.', 'Fix: timers around full minutes and ten-second marks no longer show formats like 0:60.00.', 'Fix: keyboard focus stays in place after choosing a card, and clicking the car you already picked no longer resets its colour.', 'Fix: the view returns to normal when you are back on the title screen.', 'Fix: switching language in-game also updates the title-screen online status.', 'Fix: a corrupted language save no longer breaks the text.', 'Fix: the AI no longer stops at the finish line for you to crash into.', 'Fix: the large and preview turn signs now appear only after the start GO has gone.', 'Fix: an opponent changing cars during an online race no longer makes the game stutter; the lobby asks you to wait when the connection is busy.', 'Fix: in online races the two cars no longer bump into each other after finishing.', 'Fix: other people in an online room can no longer pretend to be you; older pages need a refresh to join a room.', 'Fix: opening the ghost car in the middle of a time attack run no longer leaves it floating above the road.', 'Fix: when you and the AI cross the line almost together, the winner is now judged on one shared clock instead of always favouring the AI.', 'Fix: choosing an unusable own-music file on the title screen now shows a message in the sound settings window instead of showing up during the next countdown.', 'Fix: in key settings, binding Ctrl while W, T or N is also bound now shows a warning that the browser may close or open a tab.', 'Fix: on AltGr keyboard layouts, downshift, camera and chat bound to the right Alt now work.', 'Fix: a controller trigger held while the window lost focus no longer stops working when you return.', 'Fix: after a restart the engine no longer keeps the throttle sound of the previous run during the countdown.', 'Fix: in cockpit view, toggling the door lettering in settings no longer leaves it floating outside the car.', 'Fix: cancelling the gearbox choice after pressing Run again on the result screen returns keyboard focus to that button.', 'Fix: in an online room a player who left is no longer kept on the roster by someone using their id, and when you leave and rejoin the same room from one tab the other player no longer sees your car frozen where the last match left it.', 'Fix: after the opponent leaves, the result screen still shows their nickname instead of "Player".'] },
   { date: '2026-11-13',
     zh: ['彎道前會出現提示圖示，可以在設定裡關掉。', '送酒模式通關有獎勵：KX-2 的極速升級開關，以及白色碳纖維引擎蓋塗裝。', '遊戲內選單新增「重新開始」與「回到大廳」。', '比賽結束後車子不會再倒退。', 'SR-7 新增引擎蓋與尾燈細節。', '手機車內視角：後照鏡縮小，KX-2 與 GT-32 的儀表降低，視野更開闊。', '鍵盤與手把的按鍵都可以自己設定。', '線上房間可以聊天、玩貓捉老鼠，也能在房間裡選賽道和車。', '三台車的外型都依真車照片重新製作。'],
     en: ['Turn signs now appear before corners; you can switch them off in settings.', 'Sake Run rewards: a top-speed upgrade switch for the KX-2 and a white carbon-fibre hood paint.', 'The in-game menu now has Restart and Back to lobby.', 'The car no longer rolls backwards after the race ends.', 'New hood and tail-light details on the SR-7.', 'Phone cockpit view: smaller rear-view mirror, and lower dashboards on the KX-2 and GT-32 for a clearer view.', 'Keyboard and controller buttons can be rebound.', 'Online rooms now have chat and Cat and Mouse, and you can pick the course and car inside the room.', 'All three cars were rebuilt from photos of the real cars.'] },
@@ -1024,9 +1094,9 @@ const I18N = {
     steerZone: '轉向：左右拖曳', rotate: '請將手機轉為橫向', hb: '手煞', brake: '煞車', gas: '油門',
     course: (name, km, n, up) => `${name} · ${up ? '上坡' : '下坡'} ${km} km${n ? ` · ${n} 個髮夾彎` : ''}`, trackSub: (km, n) => `${km} km${n ? ` · ${n} 個髮夾彎` : ''}`, logo2: '下坡',
     lead: (name, up) => `凌晨兩點的${name}，路上只剩你和前面那台對手車。跟緊它，在彎道甩尾超車，先衝到${up ? '山頂' : '山腳'}的人贏。`,
-    pickTrack: '選擇賽道', pickTrackAria: '選擇賽道', dirLbl: '行駛方向', dirAria: '選擇行駛方向', dirDown: '下坡', dirUp: '上坡', dirDownD: '從山頂開到山腳', dirUpD: '從山腳開到山頂，要頂著重力往上爬', pick: '選擇你的車', pickAria: '選擇車輛', paintAria: '車色',
+    pickTrack: '選擇賽道', pickTrackAria: '選擇賽道', dirQTitle: '選擇方向', setAria: '設定', carSet: '車輛設定', sndSet: '聲音設定', gameSet: '遊戲設定', tmDone: '完成', sndMusic: '音樂', rpNeed: a => '還需要：' + a.join('、'), rpNeedDir: '選擇賽道方向（點一下賽道）', rpNeedGb: '選擇變速箱（點一下你的車）', dirDown: '下坡', dirUp: '上坡', dirDownD: '從山頂開到山腳', dirUpD: '從山腳開到山頂，要頂著重力往上爬', pick: '選擇你的車', pickAria: '選擇車輛', paintAria: '車色',
     kGas: '油門', kBrake: '煞車／倒車', kSteer: '轉向', kHb: '手煞車，轉彎時拉一下讓車尾滑出去', kMisc: '回到路面／音樂開關',
-    start: (name, up) => up ? '開始上坡' : '開始下坡',
+    start: '開始',
     note: '不拉手煞車時輪胎會抓地，轉太快只會推頭。入彎先減速，轉向的同時點一下手煞就能甩起來，反打方向盤可以收住車尾。手機請橫著握：左手在左下角左右拖曳轉向，右手按油門、煞車、手煞。',
     resEyebrow: (name, up) => up ? '山頂終點' : '山腳終點', win: '你贏了', lose: '被甩開了', resTime: '完賽時間', resGap: '與對手差距', resScore: '甩尾分數', resBest: '個人最佳',
     menu: '回主畫面選車', again: '同一台再跑', lang: 'English',
@@ -1057,7 +1127,7 @@ const I18N = {
     catOutD: gap => `平手（差 ${gap} m）`, catOutL: (n, gap) => `${n} 甩開獲勝（差 ${gap} m）`, catOutF: n => `${n} 超車獲勝`,
     catNextLbl: '下一回合判定距離', catReady: '準備下一回合', catUnready: '取消準備', catOppNext: (g, ok) => `對手投：${g} m${ok ? '・已準備' : ''}`,
     catSpecLine: (r, a, b, g) => `貓捉老鼠・第 ${r} 回合\n${a} 領先・${b} 追擊・判定 ${g} m`,
-    rpOppVote: d => `對手投：${d}`, rpChanged: '選擇有變更，請重新準備。', rpWaitTrans: '等待對手選擇變速箱…', rpWaitSeed: '等待房主抽籤…',
+    rpOppVote: d => `對手投：${d}`, rpChanged: '選擇有變更，請重新準備。', rpWaitTrans: '等待對手…', rpWaitSeed: '等待房主抽籤…',
     pvpLine: '衝線！', pvpOppDone: '對手已完賽', pvpWaitOpp: '等待對手衝線…', pvpTie: '平手', pvpDnf: '對手未完賽',
     pvpOppTime: '對手完賽時間', pvpBackRoom: '回房間再來一場', pvpLeaveEnd: '離開並回主畫面',
     clTitle: '更新內容', clBtn: '更新內容', clView: '查看', clOk: '知道了', clAria: '各版本的更新重點',
@@ -1095,9 +1165,9 @@ const I18N = {
     steerZone: 'Steering: drag left or right', rotate: 'Rotate your phone to landscape', hb: 'E-brake', brake: 'Brake', gas: 'Gas',
     course: (name, km, n, up) => `${name} · ${up ? 'Uphill' : 'Downhill'} ${km} km${n ? ` · ${n} hairpins` : ''}`, trackSub: (km, n) => `${km} km${n ? ` · ${n} hairpins` : ''}`, logo2: 'Downhill',
     lead: (name, up) => `2 a.m. on ${name}. The road is empty except for you and the rival car ahead. Stay on its tail, drift past it in the corners, and be first to the ${up ? 'top' : 'bottom'}.`,
-    pickTrack: 'Choose a course', pickTrackAria: 'Choose a course', dirLbl: 'Direction', dirAria: 'Choose the direction', dirDown: 'Downhill', dirUp: 'Uphill', dirDownD: 'From the summit to the foot', dirUpD: 'From the foot to the summit, fighting gravity all the way', pick: 'Choose your car', pickAria: 'Choose your car', paintAria: 'Paint',
+    pickTrack: 'Choose a course', pickTrackAria: 'Choose a course', dirQTitle: 'Choose a direction', setAria: 'Settings', carSet: 'Car settings', sndSet: 'Sound settings', gameSet: 'Game settings', tmDone: 'Done', sndMusic: 'Music', rpNeed: a => 'Still needed: ' + a.join(', '), rpNeedDir: 'choose a direction (click a course)', rpNeedGb: 'choose a gearbox (click your car)', dirDown: 'Downhill', dirUp: 'Uphill', dirDownD: 'From the summit to the foot', dirUpD: 'From the foot to the summit, fighting gravity all the way', pick: 'Choose your car', pickAria: 'Choose your car', paintAria: 'Paint',
     kGas: 'Throttle', kBrake: 'Brake / reverse', kSteer: 'Steer', kHb: 'Handbrake: tap it in a corner to kick the tail out', kMisc: 'Back on road / music on-off',
-    start: (name, up) => up ? 'Start the climb' : 'Start the run',
+    start: 'Start',
     note: 'Without the handbrake the tyres grip, and turning too hard just pushes the nose wide. Slow down before the corner, tap the handbrake as you turn in to start a drift, and counter-steer to catch the tail. On a phone, hold it sideways: drag left or right in the bottom-left corner to steer, and use the pedals on the right.',
     resEyebrow: (name, up) => up ? 'Finish at the summit' : 'Finish at the foot of the mountain', win: 'You win', lose: 'Left behind', resTime: 'Finish time', resGap: 'Gap to rival', resScore: 'Drift score', resBest: 'Personal best',
     menu: 'Back to car select', again: 'Race again', lang: '中文',
@@ -1128,7 +1198,7 @@ const I18N = {
     catOutD: gap => `draw (${gap} m)`, catOutL: (n, gap) => `${n} got away and won (${gap} m)`, catOutF: n => `${n} passed and won`,
     catNextLbl: 'Next round: catch distance', catReady: 'Ready for the next round', catUnready: 'Not ready', catOppNext: (g, ok) => `Opponent votes ${g} m${ok ? ' · ready' : ''}`,
     catSpecLine: (r, a, b, g) => `Cat and mouse · Round ${r}\n${a} leads · ${b} chases · ${g} m`,
-    rpOppVote: d => `Opponent votes: ${d}`, rpChanged: 'A pick changed. Ready up again.', rpWaitTrans: 'Waiting for your opponent to pick a gearbox…', rpWaitSeed: 'Waiting for the host to draw…',
+    rpOppVote: d => `Opponent votes: ${d}`, rpChanged: 'A pick changed. Ready up again.', rpWaitTrans: 'Waiting for your opponent…', rpWaitSeed: 'Waiting for the host to draw…',
     pvpLine: 'Across the line!', pvpOppDone: 'Opponent finished', pvpWaitOpp: 'Waiting for your opponent…', pvpTie: 'Tie', pvpDnf: 'Opponent did not finish',
     pvpOppTime: "Opponent's time", pvpBackRoom: 'Back to the room', pvpLeaveEnd: 'Leave and go to title',
     clTitle: 'What\'s new', clBtn: 'What\'s new', clView: 'View', clOk: 'Got it', clAria: 'Highlights by version',
@@ -1171,7 +1241,8 @@ const validLang = (v, tbl) => typeof v === 'string' && Object.hasOwn(tbl, v);
 const fmtT = t => { const c = Math.round(t * 100), m = Math.floor(c / 6000), s = (c - m * 6000) / 100; return m + ':' + (s < 10 ? '0' : '') + s.toFixed(2); };
 // Enter starts the race from the Start button or from anywhere that is not a control; on any other control it activates that control
 const ENTER_OWN = 'button, select, input, textarea, a, summary, .music, #tKx, #tTa, #tKeys, #tLog';
-const enterStartsRace = el => !el || el.id === 'btnStart' || !el.closest(ENTER_OWN);
+// blocked: a settings window or the direction question is open, so Enter belongs to it
+const enterStartsRace = (el, blocked = false) => !blocked && (!el || el.id === 'btnStart' || !el.closest(ENTER_OWN));
 // on the title screen Space and the arrow keys on a menu or slider keep their native action (they are also driving keys)
 const keepNativeKey = (state, code, el) => state === 'title' && (code === 'Space' || (/^Arrow/.test(code) && !!el && (el.tagName === 'SELECT' || el.tagName === 'INPUT')));
 // is another modifier held? A key that is itself Ctrl, Alt or Meta carries its own flag, which must not count (AltRight also sets ctrlKey on Windows AltGr layouts)
@@ -1191,6 +1262,23 @@ function focusKeep(rows, active, byPointer) {
   return () => { const b = r >= 0 && rows[r].children[i]; if (b && !b.disabled) b.focus(); };
 }
 /* @ui-fixes:end */
+/* @title-modals:start */
+// Title-screen settings windows, the start-time direction question and the room's Ready rule (pure part; tests/title-modals.test.mjs).
+// next focus index for Tab / Shift+Tab inside a dialog: wraps round; nothing focused yet -> the first (or the last going back)
+// a backdrop click closes a window only when the press also started on the backdrop (dragging out of a control and releasing there must not)
+const backdropHit = (down, up, el) => down === el && up === el;
+const focusStep = (i, n, back) => (n <= 0 ? -1 : i < 0 ? (back ? n - 1 : 0) : (i + (back ? n - 1 : 1)) % n);
+// what the title's "car settings" button shows: the car, the colour name and the swatch background of that colour
+function carSummary(def, idx, lz) {
+  const c = def.colors[Number.isInteger(idx) && idx >= 0 && idx < def.colors.length ? idx : 0], hex = n => '#' + n.toString(16).padStart(6, '0');
+  return { name: lz(def.name), color: lz(c.n), css: c.low !== undefined && c.low !== c.top ? `linear-gradient(180deg, ${hex(c.top)} 50%, ${hex(c.low)} 50%)` : hex(c.top) };
+}
+// Start asks the direction first, except in Sake Run (downhill only) and when running the same setup again (keeps the last direction)
+const startAsksDir = (mode, again) => mode !== 'sake' && !again;
+// Ready needs an opponent, and in the room a chosen direction (course vote) and gearbox (car pick); an already ready player can always cancel
+const rpReadyOk = ({ opp, dirOk, gbOk, st }) => !!opp && (st === 'ready' || (!!dirOk && !!gbOk));
+const rpMissing = ({ dirOk, gbOk }) => [...(dirOk ? [] : ['dir']), ...(gbOk ? [] : ['gb'])];
+/* @title-modals:end */
 let lang = store.get('yatouge-lang') || ((navigator.language || '').toLowerCase().startsWith('zh') ? 'zh' : 'en');
 if (!validLang(lang, I18N)) lang = 'zh';
 const T = (k, ...a) => { const v = I18N[lang][k]; return typeof v === 'function' ? v(...a) : v; };
@@ -1814,6 +1902,8 @@ const NET = {
   MAX_SPEED: 100, MAX_W: 10, MAX_COL: 7, MAX_GO: 1e6, MAX_N: 1e9, MAX_TIME: 3600, MARGIN: 60,   // MAX_SPEED m/s, MAX_W rad/s, MARGIN m outside the course
   DELAY: 100, EXTRAP: 500, BUF: 32, LOBBY_TTL: 15000, MAX_ROOMS: 30                               // ms
 };
+// a course id on the wire: one of NET.TRACKS, optionally the uphill variant ('<id>_up'); the lobby only ever lists the plain ids
+const netTrack = t => typeof t === 'string' && NET.TRACKS.includes(t.endsWith('_up') ? t.slice(0, -3) : t);
 const isNum = v => typeof v === 'number' && Number.isFinite(v);
 const inRange = (v, a, b) => isNum(v) && v >= a && v <= b;
 const isNat = (v, max) => Number.isInteger(v) && v >= 0 && v <= max;
@@ -1834,7 +1924,7 @@ function cleanNick(s) {
 function validatePeerState(p, bounds, v = NET.V) { // v: the protocol version expected (room picks use RP.V)
   if (!p || typeof p !== 'object' || Array.isArray(p) || p.v !== v) return null;
   if (p.role !== undefined) return null; // a spectator (or any other role) never drives a car or the race
-  if (!NET.STATES.includes(p.st) || !NET.CARS.includes(p.car) || !NET.TRACKS.includes(p.trk) || !isNat(p.col, NET.MAX_COL)) return null;
+  if (!NET.STATES.includes(p.st) || !NET.CARS.includes(p.car) || !netTrack(p.trk) || !isNat(p.col, NET.MAX_COL)) return null;
   const go = p.go ?? 0, n = p.n ?? 0, opp = p.opp ?? null;
   if (!isNat(go, NET.MAX_GO) || !isNat(n, NET.MAX_N) || (opp !== null && !validPeerId(opp))) return null;
   const hasFt = p.ft !== undefined && p.ft !== null;
@@ -2016,14 +2106,14 @@ const SPEC_KEYS = { Digit1: 'a', Numpad1: 'a', Digit2: 'b', Numpad2: 'b', Digit3
 const specViewKey = code => (typeof code === 'string' && Object.hasOwn(SPEC_KEYS, code) ? SPEC_KEYS[code] : null);
 /* @spectate:end */
 /* @roompick:start */
-/* Picking the course, mode and car inside the room (pure part). Each player votes { t: course, m: mode, g: catch distance m } and
+/* Picking the course, mode and car inside the room (pure part). Each player votes { t: course, d: 'down' | 'up', m: mode, g: catch distance m } and
    picks a car / colour; the host draws between two different votes with a seed it publishes, so both sides get the same result.
-   V: room states and lobby entries with room picks carry v 2; older clients (v 1) and this one never see each other's rooms. */
-const RP = { V: 3, MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4, rally: 4 } };
+   V: room states and lobby entries with room picks carry v 4 (the vote has d); older clients and this one never see each other's rooms. */
+const RP = { V: 4, DIRS: ['down', 'up'], MODES: ['first', 'cat'], GAPS: [30, 40, 50, 60, 70, 80, 90, 100], GAP: 50, COLS: { hatch: 5, coupe: 4, gtr: 4, rally: 4 } };
 const validSeed = v => Number.isInteger(v) && v >= 0 && v <= 0xffffffff;
 function validVote(x) {
   if (!x || typeof x !== 'object' || Array.isArray(x)) return null;
-  return NET.TRACKS.includes(x.t) && RP.MODES.includes(x.m) && RP.GAPS.includes(x.g) ? { t: x.t, m: x.m, g: x.g } : null;
+  return NET.TRACKS.includes(x.t) && RP.MODES.includes(x.m) && RP.GAPS.includes(x.g) && RP.DIRS.includes(x.d) ? { t: x.t, d: x.d, m: x.m, g: x.g } : null;
 }
 // a room-pick player state: validatePeerState (v 2) plus the vote, gb (gearbox chosen for this draw), sd (the host's seed) and a colour the car has
 function roomState(p, bounds) {
@@ -2038,13 +2128,15 @@ function rpRand(seed) {
   return () => { a = (a + 0x6d2b79f5) >>> 0; let t = Math.imul(a ^ (a >>> 15), a | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
 }
 // host vote a, guest vote b (always in this order on both sides). Same vote = used (d false); different = drawn with the seed.
-// The distance only counts for a cat-and-mouse result, and only from the players who voted for it. -> { t, m, g, dt, dm, dg } | null
+// The course and its direction are one vote (a drawn result keeps both from the same vote; dt = they were drawn). The distance only counts for a
+// cat-and-mouse result, and only from the players who voted for it. -> { t, d, m, g, dt, dm, dg } | null
 function resolveVote(a, b, seed) {
   const A = validVote(a), B = validVote(b); if (!A || !B || !validSeed(seed)) return null;
   const r = rpRand(seed), pick = (x, y) => (x === y ? { v: x, d: false } : { v: r() < 0.5 ? x : y, d: true });
-  const t = pick(A.t, B.t), m = pick(A.m, B.m), gs = [A, B].filter(x => x.m === 'cat').map(x => x.g);
+  const t = pick(A.t + ':' + A.d, B.t + ':' + B.d), m = pick(A.m, B.m), gs = [A, B].filter(x => x.m === 'cat').map(x => x.g);
   const g = m.v !== 'cat' ? { v: null, d: false } : gs.length === 2 ? pick(gs[0], gs[1]) : { v: gs[0], d: false };
-  return { t: t.v, m: m.v, g: g.v, dt: t.d, dm: m.d, dg: g.d };
+  const [tv, dv] = t.v.split(':');
+  return { t: tv, d: dv, m: m.v, g: g.v, dt: t.d, dm: m.d, dg: g.d };
 }
 // Where the room stands. me / other: { st, gb, sd }. pick: still choosing; seed: the host must draw; trans: the result is known, ask
 // AT / MT; wait: for the other side (or for the host's seed / countdown); go: the host starts the countdown; race: a round is on.
@@ -2059,7 +2151,7 @@ function roomPhase({ host, me, other }) {
   if (!other.gb) return 'wait';
   return host ? 'go' : 'wait';
 }
-const pickSig = v => `${v.car}:${v.col}:${v.vote.t}:${v.vote.m}:${v.vote.g}`;
+const pickSig = v => `${v.car}:${v.col}:${v.vote.t}:${v.vote.d}:${v.vote.m}:${v.vote.g}`;
 // any change of a pick (ours or theirs; not their first state) takes a ready player back to waiting
 const cancelReady = (st, before, after) => (st === 'ready' && before !== null && before !== after ? 'waiting' : st);
 // a spectator follows the host onto the course of a new round
@@ -2107,7 +2199,7 @@ function catNext(c, g, dg) {
 }
 // the next round's distance: host vote first, the same rule as the room (resolveVote, with the host's new seed)
 function catNextGap(hostG, guestG, seed) {
-  const r = resolveVote({ t: NET.TRACKS[0], m: 'cat', g: hostG }, { t: NET.TRACKS[0], m: 'cat', g: guestG }, seed);
+  const r = resolveVote({ t: NET.TRACKS[0], d: 'down', m: 'cat', g: hostG }, { t: NET.TRACKS[0], d: 'down', m: 'cat', g: guestG }, seed);
   return r ? { g: r.g, dg: r.dg } : null;
 }
 const validGapVote = v => (RP.GAPS.includes(v) ? v : null);
@@ -3699,6 +3791,7 @@ let menuOpen = false, menuView = 'main'; // in-game menu (never pauses the race)
 let confirmFor = 'forfeit', confirmFrom = '#igForfeit'; // what the menu confirm view asks (forfeit / lobby), and the button to refocus when it closes; read by syncMenuUI at start-up
 let steerMode = 'drag', tiltSens = TILT.SENS_DEF, tiltNoteKey = '', steerTok = 0; // 'drag' | 'tilt' | 'zones'; the touch-control code is in the controls section
 let trans = store.get('yatouge-trans') === 'manual' ? 'manual' : 'auto', transOpen = false; // 'auto' | 'manual': the last choice, asked again before every race; gear / shift-cut state lives on `car`
+let tmOpen = null, tmOpener = null, dirOpen = false; // the title's settings window (the selector #mCar / #mSnd / #mGame) and the button to give the focus back to; the direction question
 let pvp = null, startLat = 2.2, startS = 0, onlineUI = false; // pvp: the online match in progress (null = single player); startLat: grid slot, + right of the centreline; startS: m ahead of it (cat-and-mouse leader)
 
 function locate(o) {
@@ -4075,6 +4168,7 @@ function ownFail() { if (bgm === 'own') { bgm = 'synth'; store.set('yatouge-bgm'
 function ownRelabel() {
   $('#btnBgm').textContent = bgm === 'own' ? T('bgmOwn', ownLabel(ownName)) : T('bgmSynth');
   $('#btnOwnClear').hidden = !ownBlob;
+  syncMusicSw();
 }
 function applyBgm() {
   ownRelabel();
@@ -4124,8 +4218,9 @@ function playStep(st, t) {
   if (s === 0) for (const n of ch) tone('triangle', midi(n), t, STEP * 15, 0.035, 1800);
   if (!intro && Math.floor(st / 64) % 2 === 1) for (const [ms, n, len] of MEL[bar]) if (ms === s) { tone('square', midi(n), t, STEP * len, 0.06, 2600, null, -8); tone('sawtooth', midi(n), t, STEP * len, 0.04, 2600, null, 8); }
 }
+function syncMusicSw() { const b = $('#tMusic'); b.setAttribute('aria-checked', String(musicOn)); b.textContent = T(musicOn ? 'igOn' : 'igOff'); } // the sound window's switch: the same state as M and the in-game menu
 function setMusic(on) {
-  musicOn = on; $('#btnMusic').textContent = T(on ? 'musicOn' : 'musicOff');
+  musicOn = on; $('#btnMusic').textContent = T(on ? 'musicOn' : 'musicOff'); syncMusicSw();
   if (musicGain) musicGain.gain.setTargetAtTime(musicLevel(on, musicVol), ac.currentTime, 0.1);
 }
 function setVolume(kind, v) {
@@ -5045,7 +5140,7 @@ function showResult() {
 let pickByPointer = false; // last input was a mouse or touch press, not a key
 window.addEventListener('pointerdown', () => { pickByPointer = true; }, true);
 window.addEventListener('keydown', () => { pickByPointer = false; }, true);
-const keepPickFocus = () => focusKeep(['#pick', '#swatches', '#modePick', '#trackPick', '#dirPick'].map($), document.activeElement, pickByPointer);
+const keepPickFocus = () => focusKeep(['#pick', '#swatches', '#modePick', '#trackPick'].map($), document.activeElement, pickByPointer && !tmOpen); // inside a settings window the focus stays on the picked control (Enter cannot start a race there)
 function renderPicker() {
   const pick = $('#pick'), sw = $('#swatches'), keep = keepPickFocus();
   pick.innerHTML = ''; sw.innerHTML = '';
@@ -5067,7 +5162,12 @@ function renderPicker() {
     b.addEventListener('click', () => { if (mode === 'sake') return; choice = { car: choice.car, color: i }; chosen(); });
     sw.append(b);
   });
-  syncKxUI(); renderModePicker(); keep();
+  syncCarBtn(); syncKxUI(); renderModePicker(); keep();
+}
+// the title's car-settings button: the picked car and colour at a glance (also the forced car in Sake Run)
+function syncCarBtn() {
+  const s = carSummary(CARS[choice.car], choice.color, Lz);
+  $('#carSetTxt').textContent = s.name + '・' + s.color; $('#carDot').style.background = s.css;
 }
 // race / time attack cards; the time-attack card shows the best for the chosen course × car
 function renderModePicker() {
@@ -5140,19 +5240,7 @@ function setTrack(id) {
   if (state !== 'title' || cid === trackId || mode === 'sake') return;
   store.set('yatouge-track', id); buildTrack(cid); buildCars(); resetRace(); applyLang(); // the rival belongs to the track
 }
-// downhill / uphill switch under the course cards; the saved course stays a plain id, the direction is stored apart. Sake Run is always downhill.
-function renderDirPicker() {
-  const keep = keepPickFocus(), el = $('#dirPick'); el.innerHTML = '';
-  for (const d of DIRS) {
-    const b = document.createElement('button'); b.type = 'button'; b.className = 'carcard'; b.setAttribute('role', 'radio'); b.setAttribute('aria-checked', String(d === (mode === 'sake' ? 'down' : trackDir)));
-    b.innerHTML = '<b></b><small></small>';
-    b.querySelector('b').textContent = T(d === 'up' ? 'dirUp' : 'dirDown'); b.querySelector('small').textContent = T(d === 'up' ? 'dirUpD' : 'dirDownD');
-    b.disabled = mode === 'sake';
-    b.addEventListener('click', () => setDir(d));
-    el.append(b);
-  }
-  keep();
-}
+// the direction is asked after Start (askStart); the saved course stays a plain id, the direction is stored apart. Sake Run is always downhill.
 function setDir(d) {
   if (state !== 'title' || d === trackDir || mode === 'sake') return;
   trackDir = d; store.set('yatouge-dir', d);
@@ -5172,7 +5260,7 @@ function applyLang() {
   $('#langBtn').textContent = T('lang');
   $('#btnMusic').textContent = T(musicOn ? 'musicOn' : 'musicOff');
   ownRelabel();
-  renderTrackPicker(); renderDirPicker(); renderPicker();
+  renderTrackPicker(); renderPicker();
   menuRelabel();
   kbRelabel();
   if (clOpen) clRender();
@@ -5669,7 +5757,7 @@ async function joinRoom(r) {
 }
 
 /* ---------- online 1v1: match ---------- */
-/* Room presence of each player: { v: RP.V, st, car, col, trk, go, opp, ft, nk, vote: { t, m, g }, gb, sd, n, c: {x, z, h, vx, vz, w, s, lat, sr, dr, bk} }.
+/* Room presence of each player: { v: RP.V, st, car, col, trk (the course id, '<id>_up' when uphill), go, opp, ft, nk, vote: { t, d, m, g }, gb, sd, n, c: {x, z, h, vx, vz, w, s, lat, sr, dr, bk} }.
    car / col / vote are the room picks (see @roompick); gb = gearbox chosen for this draw; sd = the host's draw seed (null from the guest).
    Both carry nk (the nickname, the only identity). Lobby presence (v RP.V): host { lobby: { v, room, track, open, hb, nk } }, guest { lobby: { v, in: room } }. Own car is simulated locally;
    the other car is interpolated from received samples and acts as an obstacle for our car only. */
@@ -5684,7 +5772,7 @@ function courseBox(id) {
 }
 // free the GPU side of a car we are done with (the shared glow / badge textures stay)
 function disposeCar(c) { disposeTree(c.g, new Set([glowTex, badgeTex, carbonTex, tougeTex, rallyMeshTex, doorTex[true], doorTex[false], trimTex[true], trimTex[false]])); }
-const pvpCheck = pres => catState(pres, courseBox(pres && NET.TRACKS.includes(pres.trk) ? pres.trk : trackId));
+const pvpCheck = pres => catState(pres, courseBox(pres && netTrack(pres.trk) ? pres.trk : trackId));
 function pvpPublish(extra) {
   const p = pvp; if (!p) return;
   p.rm.presence({ v: RP.V, st: p.st, car: choice.car, col: choice.color, trk: p.track, go: p.go, opp: p.oppPeer, ft: p.ft, nk: nick, vote: p.pick.vote, gb: p.gb, sd: p.host ? p.sd : null, cm: p.host && p.cat ? catMsg(p.cat) : null, cg: p.ck ? p.ck.cg : null, ...extra }).catch(roomFail);
@@ -5692,31 +5780,37 @@ function pvpPublish(extra) {
 function advertise(p) {
   if (!p.host || p !== pvp || p.code) return;
   const open = (p.st === 'waiting' || p.st === 'ready') && !catOn(p) ? 1 : 0; // race: a round is on (or a cat-and-mouse match, also between rounds), so the lobby lists the room for watching
-  room.presence({ lobby: { v: RP.V, room: p.name, track: p.track, open, race: open ? 0 : 1, hb: ++p.hb, nk: nick } }).catch(netFail);
+  room.presence({ lobby: { v: RP.V, room: p.name, track: baseId(p.track), open, race: open ? 0 : 1, hb: ++p.hb, nk: nick } }).catch(netFail);
+}
+// a direction / gearbox question opened from the room must not outlive the picking phase (countdown, race, back to the room, opponent gone); its callback is dropped
+function closeRoomDialogs() {
+  if (dirOpen) closeDir();
+  if (transOpen) closeTrans();
 }
 function pvpSetSt(st) {
   const p = pvp; p.st = st;
+  if (st !== 'waiting' && st !== 'ready') closeRoomDialogs();
   if (st === 'waiting') rpReset(p); // back to choosing: the draw and the gearbox answer are void
   pvpPublish(); advertise(p); renderRoom();
 }
-// the draw of this round is void (somebody un-readied or changed a pick, or the round is over); a gearbox question still open goes away
+// the draw of this round is void (somebody un-readied or changed a pick, or the round is over)
 function rpReset(p) {
   Object.assign(p, { gb: 0, sd: null, match: null });
-  if (p.asking) { p.asking = false; if (transOpen) { closeTrans(); if (!$('#room').hidden) focusRoom(); } }
 }
 function pvpSetTrack(id) { if (id === trackId) return; buildTrack(id); resetRace(); } // a match never touches the saved course choice
 function startMatch(o) {
   clearInterval(lobbyT);
   // the room starts from the last picks of this session, else from the title's car and course (a copy: the saved ones are never written)
   const col0 = Number.isInteger(choice.color) && choice.color >= 0 && choice.color < RP.COLS[choice.car] ? choice.color : 0;
-  const down = baseId(trackId); // online is downhill only; leaving puts the title's own course (maybe uphill) back
-  const pick = rpLast || { car: choice.car, col: col0, vote: { t: down, m: 'first', g: RP.GAP } };
+  const down = baseId(trackId); // the room starts on the plain course; the drawn direction is built after the draw; leaving puts the title's own course back
+  const pick = rpLast || { car: choice.car, col: col0, vote: { t: down, d: dirFrom(trackDir), m: 'first', g: RP.GAP } };
   const p = pvp = {
     rm: o.rm, name: o.name, code: o.code || null, host: o.host, hostPeer: o.hostPeer, track: down, prevTrack: trackId, prevChoice: choice, st: 'waiting', go: 0, n: carSeq, hb: 0, ft: null,
     opp: null, oppNk: null, oppPeer: null, oppFt: null, oppLeft: false, seen: false, joinedAt: performance.now(), buf: [], pose: null,
     lastPres: null, oppKey: '', goAt: 0, sentAt: 0, tickAt: 0, finishAt: 0, note: '', unsub: null, unsubConn: null, hbT: 0,
     missingSince: null, dnfLocked: false, watch: 0,
-    pick: { car: pick.car, col: pick.col, vote: { ...pick.vote } }, oppSig: null, gb: 0, sd: null, match: null, asking: false, phase: 'pick',
+    pick: { car: pick.car, col: pick.col, vote: { ...pick.vote } }, oppSig: null, gb: 0, sd: null, match: null, phase: 'pick',
+    dirOk: false, gbOk: false, // the direction (a course vote) and the gearbox (a car pick) must be chosen again in every new room before Ready
     cat: null, ck: null // cat and mouse: the round state (see @catmouse) and this side's own part of it (catBegin)
   };
   rpLast = p.pick; chatReset();
@@ -5746,20 +5840,24 @@ function renderRoom() {
   const opp = p.opp && p.oppPeer ? p.opp : null;
   if (opp) fill('#plOpp', nickOf(opp.nk), opp.car, opp.st); else fill('#plOpp', T('pvpWaitJoin'), null, '');
   for (const [sel, c] of [['#plMe', { car: p.pick.car, col: p.pick.col }], ['#plOpp', opp]]) if (c) $(sel).querySelector('small').textContent = Lz(CARS[c.car].name) + '・' + Lz(CARS[c.car].colors[c.col].n);
-  const b = $('#btnReady'); b.textContent = T(p.st === 'ready' ? 'pvpUnready' : 'pvpReady'); b.disabled = !opp;
+  const b = $('#btnReady'); b.textContent = T(p.st === 'ready' ? 'pvpUnready' : 'pvpReady'); b.disabled = !rpReadyOk({ opp: !!opp, dirOk: p.dirOk, gbOk: p.gbOk, st: p.st });
+  const miss = p.st === 'ready' ? [] : rpMissing(p); // what is still to choose before Ready
+  $('#rpNeed').textContent = miss.length ? T('rpNeed', miss.map(k => T(k === 'dir' ? 'rpNeedDir' : 'rpNeedGb'))) : '';
   // the pickers: state only (the buttons are built by rpBuild, so a d-pad / keyboard focus stays where it is)
   const v = p.pick.vote, open = p.st === 'waiting' || p.st === 'ready';
   const mark = (sel, on) => { for (const x of $(sel).children) { x.setAttribute('aria-checked', String(on(x.dataset.v))); x.disabled = !open || x.dataset.off === '1'; } };
-  mark('#rpTrack', k => k === v.t); mark('#rpMode', k => k === v.m); mark('#rpGap', k => Number(k) === v.g);
+  mark('#rpTrack', k => k === v.t); for (const x of $('#rpTrack').children) x.querySelector('small').textContent = x.dataset.v === v.t && p.dirOk ? T(v.d === 'up' ? 'dirUp' : 'dirDown') : ''; // the chosen course shows its direction once picked
+  mark('#rpMode', k => k === v.m); mark('#rpGap', k => Number(k) === v.g);
   mark('#rpCar', k => k === p.pick.car); mark('#rpCol', k => Number(k) === p.pick.col);
   $('#rpGapRow').hidden = v.m !== 'cat';
   $('#rpOpp').textContent = opp ? T('rpOppVote', rpVoteText(opp.vote)) : '';
   const wait = p.phase === 'wait' ? (p.gb ? 'rpWaitTrans' : 'rpWaitSeed') : '';
-  $('#roomNote').textContent = p.note ? T(p.note) : wait ? T(wait) : ''; // p.note is an i18n key
+  $('#roomNote').textContent = [p.match ? T('rpMatch', rpMatchText(p.match)) : '', p.note ? T(p.note) : wait ? T(wait) : ''].filter(Boolean).join(' '); // p.note is an i18n key; the draw result (course, direction, mode) stays up until the countdown
 }
 const rpModeName = m => T(m === 'cat' ? 'modeCat' : 'modeFirst');
-const rpVoteText = v => Lz(TRACKS[v.t].name) + '・' + rpModeName(v.m) + (v.m === 'cat' ? '・' + T('rpGapV', v.g) : '');
-const rpMatchText = r => Lz(TRACKS[r.t].name) + (r.dt ? T('rpDraw') : '') + '・' + rpModeName(r.m) + (r.dm ? T('rpDraw') : '') + (r.m === 'cat' ? '・' + T('rpGapV', r.g) + (r.dg ? T('rpDraw') : '') : '');
+const rpDirName = d => T(d === 'up' ? 'dirUp' : 'dirDown');
+const rpVoteText = v => Lz(TRACKS[v.t].name) + '・' + rpDirName(v.d) + '・' + rpModeName(v.m) + (v.m === 'cat' ? '・' + T('rpGapV', v.g) : '');
+const rpMatchText = r => Lz(TRACKS[r.t].name) + '・' + rpDirName(r.d) + (r.dt ? T('rpDraw') : '') + '・' + rpModeName(r.m) + (r.dm ? T('rpDraw') : '') + (r.m === 'cat' ? '・' + T('rpGapV', r.g) + (r.dg ? T('rpDraw') : '') : '');
 // Cat and mouse can be picked (set false to show it as "coming soon" again).
 const RP_CAT_OPEN = true;
 // (Re)build the room's pick buttons: on entering the room, a language change and a car change (each car has its own colour names).
@@ -5771,21 +5869,21 @@ function rpBuild() {
       const b = document.createElement('button'); b.type = 'button'; b.className = it.dot ? 'swatch' : 'rpbtn'; b.setAttribute('role', 'radio'); b.dataset.v = String(it.v);
       if (it.dot) { const i = document.createElement('i'); i.style.background = it.dot; b.append(i); }
       b.append(it.label);
-      if (it.sub) { const sm = document.createElement('small'); sm.textContent = it.sub; b.append(sm); }
+      if (it.sub || it.slot) { const sm = document.createElement('small'); sm.textContent = it.sub || ''; b.append(sm); }
       if (it.off) b.dataset.off = '1';
       b.addEventListener('click', it.go); el.append(b);
     }
   };
-  fill('#rpTrack', Object.keys(TRACKS).map(t => ({ v: t, label: Lz(TRACKS[t].name), go: () => rpSet({ vote: { t } }) })));
+  fill('#rpTrack', Object.keys(TRACKS).map(t => ({ v: t, label: Lz(TRACKS[t].name), slot: true, go: () => rpPickTrack(t) })));
   fill('#rpMode', RP.MODES.map(m => ({ v: m, label: rpModeName(m), sub: m === 'cat' && !RP_CAT_OPEN ? T('rpSoon') : '', off: m === 'cat' && !RP_CAT_OPEN, go: () => rpSet({ vote: { m } }) })));
   fill('#rpGap', RP.GAPS.map(g => ({ v: g, label: T('rpGapV', g), go: () => rpSet({ vote: { g } }) })));
-  fill('#rpCar', Object.keys(CARS).map(k => ({ v: k, label: Lz(CARS[k].name), go: () => rpSet({ car: k }) })));
+  fill('#rpCar', Object.keys(CARS).map(k => ({ v: k, label: Lz(CARS[k].name), go: () => rpPickCar(k) })));
   const hex = n => '#' + n.toString(16).padStart(6, '0');
   fill('#rpCol', CARS[p.pick.car].colors.map((c, i) => ({ c, i })).filter(({ i }) => colorOpen(p.pick.car, i, sakeUnlocked)).map(({ c, i }) => ({ v: i, label: Lz(c.n), dot: c.low !== undefined && c.low !== c.top ? `linear-gradient(180deg, ${hex(c.top)} 50%, ${hex(c.low)} 50%)` : hex(c.top), go: () => rpSet({ col: i }) })));
 }
 // One pick changed in the room. Never saved: the title's car and course stay as they are. A ready player goes back to waiting.
 function rpSet(o) {
-  const p = pvp; if (!p || (p.st !== 'waiting' && p.st !== 'ready') || transOpen) return;
+  const p = pvp; if (!p || (p.st !== 'waiting' && p.st !== 'ready') || transOpen || dirOpen) return;
   const car = o.car || p.pick.car, next = { car, col: o.col ?? (car !== p.pick.car ? 0 : p.pick.col), vote: { ...p.pick.vote, ...(o.vote || {}) } };
   if (!validVote(next.vote) || !NET.CARS.includes(next.car) || !(next.col >= 0 && next.col < RP.COLS[next.car]) || !colorOpen(next.car, next.col, sakeUnlocked) || (next.vote.m === 'cat' && !RP_CAT_OPEN)) return;
   if (pickSig(next) === pickSig(p.pick)) return;
@@ -5794,23 +5892,37 @@ function rpSet(o) {
   if (carChanged) { choice = { car: next.car, color: next.col }; pvpBuildCars(); if (newCar) rpBuild(); }
   if (p.st === 'ready') { p.note = 'rpChanged'; pvpSetSt('waiting'); } else { p.note = ''; pvpPublish(); renderRoom(); }
 }
+// Clicking a course asks the direction first: the vote (course + direction) only changes once one is chosen; cancel leaves the vote as it was
+function rpPickTrack(t) {
+  const p = pvp; if (!p || (p.st !== 'waiting' && p.st !== 'ready') || transOpen || dirOpen) return;
+  const back = `#rpTrack [data-v="${t}"]`;
+  askDir(d => { if (pvp !== p || (p.st !== 'waiting' && p.st !== 'ready')) return; p.dirOk = true; rpSet({ vote: { t, d } }); renderRoom(); $(back).focus(); }, back, null, p.pick.vote.d);
+}
+// Clicking a car asks AT / MT first: the car only counts as picked once a gearbox is chosen; cancel keeps the old car
+function rpPickCar(k) {
+  const p = pvp; if (!p || (p.st !== 'waiting' && p.st !== 'ready') || transOpen || dirOpen) return;
+  const back = `#rpCar [data-v="${k}"]`;
+  askTrans(() => { if (pvp !== p || (p.st !== 'waiting' && p.st !== 'ready')) return; p.gbOk = true; rpSet({ car: k }); renderRoom(); $(back).focus(); }, back);
+}
 // our car rebuilt in the room; the other player's car is put back at once (buildCars would leave the single-player rival there)
 function pvpBuildCars() {
   const p = pvp; buildCars(); syncKxUI();
   if (p && p.opp) { scene.remove(rivalCar.g); disposeCar(rivalCar); rivalCar = makeCar(p.opp.car, p.opp.col); rivalCar.g.visible = false; p.oppKey = p.opp.car + ':' + p.opp.col; }
 }
-// The draw: host vote first on both sides, with the host's seed. The course is built now, while the gearbox question is open.
+// The draw: host vote first on both sides, with the host's seed. The drawn course (with its direction) is built now.
 function rpResolve() {
   const p = pvp, other = p.opp; if (!other) return;
   const r = resolveVote(p.host ? p.pick.vote : other.vote, p.host ? other.vote : p.pick.vote, p.host ? p.sd : other.sd);
   if (!r) return;
   p.match = r;
-  if (r.t !== p.track) { pvpSetTrack(r.t); p.track = r.t; pvpPublish(); }
+  const cid = courseId(r.t, r.d);
+  if (cid !== p.track) { pvpSetTrack(cid); p.track = cid; pvpPublish(); }
   renderRoom();
 }
 function pvpLeave() {
   const p = pvp; if (!p) return;
   if (transOpen) closeTrans();
+  if (dirOpen) closeDir();
   pvp = null; clearInterval(p.hbT); if (p.unsub) p.unsub(); if (p.unsubConn) p.unsubConn(); chatReset();
   p.rm.leave().catch(() => {});
   room.presence({ lobby: null }).catch(netFail);
@@ -5824,7 +5936,7 @@ function pvpLeave() {
 }
 function leaveToLobby(noteKey) { const n = nick, k = rpLast; pvpLeave(); nick = n; rpLast = k; openLobby(); lobbyNote(noteKey); } // still the same online session
 function pvpToRoom() {
-  const p = pvp;
+  const p = pvp; closeRoomDialogs();
   state = 'title'; startS = 0; resetRace();
   for (const s of ['#hud', '#result']) $(s).hidden = true;
   $('#count').textContent = ''; goUntil = 0; $('#pop').classList.remove('show');
@@ -5834,10 +5946,10 @@ function pvpToRoom() {
 }
 function pvpBackToRoom() { const p = pvp; if (!p) return; if (!p.host && !p.oppPeer) leaveToLobby('pvpHostLeft'); else pvpToRoom(); }
 function beginCountdown(go) {
-  const p = pvp;
-  if (!p.match) rpResolve(); // normally done when the gearbox was asked
-  // p.match: { t, m, g } of this match. Cat and mouse ('cat') runs rounds on the same course (catBegin); the leader starts CAT.LEAD m ahead.
-  if (!p.match) p.match = { t: p.track, m: 'first', g: null, dt: false, dm: false, dg: false };
+  const p = pvp; closeRoomDialogs();
+  if (!p.match) rpResolve(); // normally done in the 'trans' phase
+  // p.match: { t, d, m, g } of this match. Cat and mouse ('cat') runs rounds on the same course (catBegin); the leader starts CAT.LEAD m ahead.
+  if (!p.match) p.match = { t: baseId(p.track), d: isUp(p.track) ? 'up' : 'down', m: 'first', g: null, dt: false, dm: false, dg: false };
   if (p.match.m === 'cat') catBegin(); else Object.assign(p, { cat: null, ck: null });
   Object.assign(p, { go, st: 'countdown', oppFt: null, ft: null, note: '', dnfLocked: false }); // each round is judged on its own: a "did not finish" from an earlier round must not turn later ones into wins
   startLat = p.host ? 2.2 : -2.2; startS = p.cat ? catStart(p.cat.L, catMe(p)) : 0; p.goAt = performance.now();
@@ -5846,7 +5958,7 @@ function beginCountdown(go) {
 }
 // the opponent we locked on is no longer in the room
 function oppGone() {
-  const p = pvp, was = p.st;
+  const p = pvp, was = p.st; closeRoomDialogs();
   Object.assign(p, { oppPeer: null, opp: null, buf: [], pose: null, oppLeft: true, lastPres: null, oppKey: '', oppSig: null });
   if (catLive(p)) { catOppLeft(); return; } // a cat-and-mouse match still on: leaving (or forfeiting) gives the other player the win
   if (!p.host && was !== 'racing' && was !== 'finished') { leaveToLobby('pvpHostLeft'); return; }
@@ -5905,18 +6017,14 @@ function pvpPoll(now = performance.now()) {
   else if (r.start) beginCountdown(r.go);
   else if (r.st !== p.st) pvpSetSt(r.st);
 }
-// Room phase (see roomPhase): the host draws a seed; with the result known each side asks AT / MT (the result is shown above it).
+// Room phase (see roomPhase): the host draws a seed; with the result known each side sends the gearbox it chose when picking its car (no question here).
 function rpStep(other) {
   const p = pvp, ph = roomPhase({ host: p.host, me: p, other });
   if (ph !== p.phase) { p.phase = ph; renderRoom(); }
   if (ph === 'pick' && (p.gb || p.sd !== null || p.match)) { rpReset(p); pvpPublish(); renderRoom(); return; }
   if (ph === 'seed') { p.sd = rand4().reduce((a, b) => a * 256 + b, 0); pvpPublish(); return; } // 0 .. 2^32 - 1
   if (ph === 'trans' && !p.match) rpResolve();
-  if (ph === 'trans' && p.match && !p.asking && !transOpen) {
-    p.asking = true;
-    $('#transMatch').textContent = T('rpMatch', rpMatchText(p.match)); $('#transMatch').hidden = false;
-    askTrans(() => { const q = pvp; if (q !== p) return; q.asking = false; initAudio(); q.gb = 1; pvpPublish(); renderRoom(); pvpPoll(); }, '#btnReady', () => { if (pvp === p) { p.asking = false; pvpSetSt('waiting'); } });
-  }
+  if (ph === 'trans' && p.match) { p.gb = 1; pvpPublish(); renderRoom(); } // the phase becomes wait / go on the next poll
 }
 function pvpFrame() {
   const p = pvp, now = performance.now();
@@ -6480,16 +6588,55 @@ function askTrans(cb, back = '#btnStart', no = null) { // no: called on cancel
   for (const b of document.querySelectorAll('#trans .transbtn')) b.classList.toggle('sel', b.dataset.t === trans);
   $('#trans').hidden = false; $(trans === 'manual' ? '#transMT' : '#transAT').focus();
 }
-function closeTrans() { transOpen = false; transCb = transBack = transNo = null; $('#trans').hidden = true; $('#transMatch').hidden = true; for (const id of TRANS_SCREENS) $(id).inert = false; }
+function closeTrans() { transOpen = false; transCb = transBack = transNo = null; $('#trans').hidden = true; for (const id of TRANS_SCREENS) $(id).inert = false; }
 function transPick(m) { trans = m; store.set('yatouge-trans', m); const cb = transCb; closeTrans(); if (cb) cb(); }
 function transCancel() { const b = transBack, no = transNo; closeTrans(); if (no) no(); if (b) $(b).focus(); }
 for (const b of document.querySelectorAll('#trans .transbtn')) b.addEventListener('click', () => transPick(b.dataset.t));
 $('#transCancel').addEventListener('click', transCancel);
-$('#trans').addEventListener('keydown', e => {
+// a held key must not carry on into the next question (Enter held on one dialog would pick on the next): repeats are swallowed
+function transKeydown(e) {
+  if (e.repeat) { e.preventDefault(); e.stopPropagation(); return; }
   if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); transCancel(); return; }
   const f = [...$('#trans').querySelectorAll('button')], i = f.indexOf(document.activeElement), n = f.length;
   if (e.key === 'Tab' || e.key.startsWith('Arrow')) { e.preventDefault(); const back = e.key === 'ArrowLeft' || e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey); f[(i + (back ? n - 1 : 1)) % n].focus(); }
-});
+}
+$('#trans').addEventListener('keydown', transKeydown);
+/* direction question: asked after Start (single player, not Sake Run, not "run again") and when a course is clicked in the online room */
+let dirCb = null, dirBack = null, dirNo = null;
+function askDir(cb, back = '#btnStart', no = null, cur = trackDir) { // cb(direction); no: called on cancel
+  if (dirOpen || transOpen) return;
+  dirCb = cb; dirBack = back; dirNo = no; dirOpen = true;
+  for (const id of TRANS_SCREENS) $(id).inert = true;
+  for (const b of document.querySelectorAll('#dirq .transbtn')) b.classList.toggle('sel', b.dataset.d === cur);
+  $('#dirq').hidden = false; $(cur === 'up' ? '#dirUp' : '#dirDown').focus();
+}
+function closeDir() {
+  dirOpen = false; dirCb = dirBack = dirNo = null; $('#dirq').hidden = true;
+  for (const id of TRANS_SCREENS) $(id).inert = false;
+}
+function dirPick(d) {
+  const cb = dirCb; closeDir();
+  if (cb) cb(d);
+}
+function dirCancel() {
+  const b = dirBack, no = dirNo; closeDir();
+  if (no) no();
+  if (b) $(b).focus();
+}
+for (const b of document.querySelectorAll('#dirq .transbtn')) b.addEventListener('click', () => dirPick(b.dataset.d));
+$('#dirCancel').addEventListener('click', dirCancel);
+function dirKeydown(e) {
+  if (e.repeat) { e.preventDefault(); e.stopPropagation(); return; }
+  if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); dirCancel(); return; }
+  const f = [...$('#dirq').querySelectorAll('button')], i = f.indexOf(document.activeElement);
+  if (e.key === 'Tab' || e.key.startsWith('Arrow')) { e.preventDefault(); f[focusStep(i, f.length, e.key === 'ArrowLeft' || e.key === 'ArrowUp' || (e.key === 'Tab' && e.shiftKey))].focus(); }
+}
+$('#dirq').addEventListener('keydown', dirKeydown);
+// Start: direction first, then AT / MT, then the race. The direction (course rebuild, yatouge-dir) only takes effect once AT / MT is picked; cancelling either leaves the old one.
+function askStart(cb, back = '#btnStart', again = false) {
+  if (!startAsksDir(mode, again)) { askTrans(cb, back); return; }
+  askDir(d => askTrans(() => { setDir(d); cb(); }, back), back);
+}
 for (const b of document.querySelectorAll('#shiftPad button')) {
   b.addEventListener('pointerdown', e => { e.preventDefault(); shiftGear(Number(b.dataset.s)); b.classList.add('on'); });
   for (const t of ['pointerup', 'pointercancel', 'pointerleave']) b.addEventListener(t, () => b.classList.remove('on'));
@@ -6503,8 +6650,8 @@ $('#codeForm').addEventListener('submit', e => { e.preventDefault(); joinByCode(
 $('#btnRoomLeave').addEventListener('click', pvpLeave);
 $('#btnLeave').addEventListener('click', pvpLeave);
 $('#btnReady').addEventListener('click', () => {
-  const p = pvp; if (!p || !p.opp || !p.oppPeer || (p.st !== 'waiting' && p.st !== 'ready')) return;
-  initAudio(); p.note = ''; pvpSetSt(p.st === 'ready' ? 'waiting' : 'ready'); pvpPoll(); // the gearbox is asked once both are ready and the draw is shown
+  const p = pvp; if (!p || !p.opp || !p.oppPeer || (p.st !== 'waiting' && p.st !== 'ready') || !rpReadyOk({ opp: true, dirOk: p.dirOk, gbOk: p.gbOk, st: p.st })) return;
+  initAudio(); p.note = ''; pvpSetSt(p.st === 'ready' ? 'waiting' : 'ready'); pvpPoll(); // the gearbox was chosen with the car: once both are ready the draw is shown and the countdown follows
 });
 initOnline();
 
@@ -6568,7 +6715,8 @@ const KB_DRIVE = ['gas', 'brake', 'left', 'right', 'hb']; // held while down (in
 window.addEventListener('keydown', e => {
   if (clOpen) { clKeydown(e); return; } // the update-log window owns the keyboard
   if (kbOpen) { kbKeydown(e); return; } // the key-binding page owns the keyboard: no hotkey fires there
-  if (nickOpen || transOpen || e.target.id === 'codeInput' || e.target.classList.contains('chatin')) return; // typing a nickname, a room code or a chat message must not drive the car, toggle music or start a race
+  if (tmOpen) { tmKeydown(e); return; } // a title settings window owns the keyboard too
+  if (nickOpen || transOpen || dirOpen || e.target.id === 'codeInput' || e.target.classList.contains('chatin')) return; // typing a nickname, a room code or a chat message must not drive the car, toggle music or start a race
   if (e.key === 'Escape') {
     if (e.repeat) return;
     const a = menuEscAction(menuOpen, menuView, state, nickOpen);
@@ -6594,7 +6742,7 @@ window.addEventListener('keydown', e => {
   if (e.code === 'KeyR' && (state === 'race')) resetCar();
   if (act === 'music') setMusic(!musicOn);
   if (act === 'cam' && !e.repeat && !kbModHeld(e.code, e) && !hudEl.hidden) setCamMode(nextCam(camMode), true);
-  if (e.code === 'Enter' && !e.repeat && state === 'title' && !onlineUI && enterStartsRace(e.target)) { e.preventDefault(); askTrans(startRace); } // Enter on any control (music, options, online, pickers, key bindings, what's new) activates that control; only Start or a non-control starts the race
+  if (e.code === 'Enter' && !e.repeat && state === 'title' && !onlineUI && enterStartsRace(e.target, tmOpen !== null || dirOpen)) { e.preventDefault(); askStart(startRace); } // Enter on any control (music, options, online, pickers, key bindings, what's new) activates that control; only Start or a non-control starts the race
 });
 window.addEventListener('keyup', e => {
   if (kbOpen && kbSwallow === e.code) { kbSwallow = null; e.preventDefault(); } // the key just bound must not also press the focused slot (Space clicks on keyup)
@@ -6690,7 +6838,7 @@ const shiftBuzz = ({ on, ok, dir, vf, top }) => {
 const GP_IDLE = { gas: false, brake: false, hb: false, steer: null }, GP_DPAD = [12, 13, 14, 15], SPEC_VIEWS = ['a', 'b', 'top'];
 const gp = { btn: Array(GP.N).fill(false), down: {}, held: {}, last: { ...GP_IDLE }, pad: null };
 function gpScope() {
-  if (clOpen) return $('#clog'); if (kbOpen) return $('#kbs'); if (transOpen) return $('#trans'); if (nickOpen) return $('#nick'); if (menuOpen) return $('#igmenu'); if (spec) return $('#spec');
+  if (clOpen) return $('#clog'); if (kbOpen) return $('#kbs'); if (transOpen) return $('#trans'); if (dirOpen) return $('#dirq'); if (tmOpen) return $(tmOpen); if (nickOpen) return $('#nick'); if (menuOpen) return $('#igmenu'); if (spec) return $('#spec');
   return ['#result', '#room', '#lobby', '#title'].map(s => $(s)).find(el => !el.hidden) || null;
 }
 const gpFocusables = root => [...root.querySelectorAll('button, input, select')].filter(el => !el.disabled && el.getAttribute('aria-disabled') !== 'true' && el.tabIndex >= 0 && !el.closest('[hidden], [inert]') && el.getClientRects().length);
@@ -6718,7 +6866,7 @@ function gpOk() {
   else gpNav('down'); // nothing focused yet: the first press only shows where focus is
 }
 function gpBack() {
-  if (clOpen) clClose(); else if (kbOpen) { if (kbCap) kbCancel(); else kbClose(); } else if (transOpen) transCancel(); else if (nickOpen) nickCancel();
+  if (clOpen) clClose(); else if (kbOpen) { if (kbCap) kbCancel(); else kbClose(); } else if (transOpen) transCancel(); else if (dirOpen) dirCancel(); else if (nickOpen) nickCancel(); else if (tmOpen) tmClose();
   else if (menuOpen) menuEsc(menuEscAction(menuOpen, menuView, state, nickOpen));
   else if (!$('#lobby').hidden) closeLobby();
 }
@@ -6729,7 +6877,7 @@ function gpDo(act) {
     case 'ok': gpOk(); break;
     case 'back': gpBack(); break;
     case 'menu': if (clOpen) clClose(); else if (kbOpen) kbClose(); else if (menuOpen) closeMenu(); else if (!transOpen && !nickOpen) openMenu(); break;
-    case 'music': if (!transOpen && !nickOpen && !kbOpen && !clOpen) { setMusic(!musicOn); if (menuOpen) syncMenuUI(); } break;
+    case 'music': if (!transOpen && !dirOpen && !nickOpen && !kbOpen && !clOpen) { setMusic(!musicOn); if (menuOpen) syncMenuUI(); } break;
     case 'cam': if (!hudEl.hidden) setCamMode(nextCam(camMode), true); break;
     case 'shiftUp': shiftGear(1); break;
     case 'shiftDown': shiftGear(-1); break;
@@ -6737,7 +6885,7 @@ function gpDo(act) {
     case 'viewPrev': case 'viewNext': if (spec) specView(SPEC_VIEWS[gpCycle(SPEC_VIEWS.indexOf(spec.view), SPEC_VIEWS.length, act === 'viewNext' ? 1 : -1)]); break;
   }
 }
-const gpCtx = () => gpContext({ spec: !!spec, overlay: menuOpen || transOpen || nickOpen || kbOpen || clOpen, hud: !hudEl.hidden });
+const gpCtx = () => gpContext({ spec: !!spec, overlay: menuOpen || transOpen || dirOpen || !!tmOpen || nickOpen || kbOpen || clOpen, hud: !hudEl.hidden });
 function gamepadTick(now) {
   let pad = null;
   try { pad = gpPick(navigator.getGamepads ? navigator.getGamepads() : null); } catch (_) { pad = null; } // blocked by permissions policy (e.g. an iframe): no pad
@@ -6925,8 +7073,8 @@ function tryLandscape() {
 }
 $('#btnStart').addEventListener('click', tryLandscape);
 $('#btnOnline').addEventListener('click', () => { if ($('#btnOnline').getAttribute('aria-disabled') !== 'true') tryLandscape(); });
-$('#btnStart').addEventListener('click', () => askTrans(startRace));
-$('#btnAgain').addEventListener('click', () => pvp ? (catOn(pvp) && pvp.ck.between ? catConfirm() : pvpBackToRoom()) : askTrans(startRace, '#btnAgain'));
+$('#btnStart').addEventListener('click', () => askStart(startRace));
+$('#btnAgain').addEventListener('click', () => pvp ? (catOn(pvp) && pvp.ck.between ? catConfirm() : pvpBackToRoom()) : askStart(startRace, '#btnAgain', true));
 function returnToTitle() {
   taEnd(); sakeEnd(); resetRace(); camOrbit = 0; $('#count').textContent = ''; goUntil = 0; $('#pop').classList.remove('show');
   $('#result').hidden = true; $('#hud').hidden = true; $('#title').hidden = false; renderPicker(); $('#btnStart').focus();
@@ -7011,6 +7159,37 @@ $('#igMusicVol').addEventListener('input', e => { setVolume('music', volFromPct(
 $('#igSfxVol').addEventListener('input', e => { setVolume('sfx', volFromPct(e.target.value)); syncMenuUI(); });
 $('#igCam').addEventListener('change', e => { if (CAM_MODES.includes(e.target.value)) setCamMode(e.target.value, true); });
 $('#igLang').addEventListener('change', e => { if (!validLang(e.target.value, I18N)) return; lang = e.target.value; store.set('yatouge-lang', lang); applyLang(); renderOnline(); });
+
+/* ---------- title settings windows: car, sound, game (Esc, Done or a click on the backdrop closes; focus goes back to the button) ---------- */
+function tmOpenModal(id, opener) {
+  if (tmOpen || dirOpen || transOpen) return;
+  tmOpen = id; tmOpener = opener;
+  for (const k in input) input[k] = k === 'steerAxis' ? null : false;
+  releaseTouch();
+  $('#title').inert = true; $(id).hidden = false;
+  const f = gpFocusables($(id)); if (f[0]) f[0].focus();
+}
+function tmClose() {
+  if (!tmOpen) return;
+  const id = tmOpen, back = tmOpener; tmOpen = tmOpener = null;
+  $(id).hidden = true; $('#title').inert = false;
+  if (back) $(back).focus();
+}
+function tmKeydown(e) {
+  if (e.key === 'Escape') { e.preventDefault(); if (!e.repeat) tmClose(); return; }
+  if (e.key === 'Tab') { // keep focus inside the window
+    const f = gpFocusables($(tmOpen)), n = f.length;
+    e.preventDefault(); if (n) f[focusStep(f.indexOf(document.activeElement), n, e.shiftKey)].focus();
+  } else if (kbKeyAction(kb, e.code) === 'music' && !e.repeat && e.target.tagName !== 'SELECT') setMusic(!musicOn); // M works here like in the in-game menu
+}
+for (const [btn, id] of [['#btnCarSet', '#mCar'], ['#btnSndSet', '#mSnd'], ['#btnGameSet', '#mGame']]) {
+  $(btn).addEventListener('click', () => tmOpenModal(id, btn));
+  let down = null;
+  $(id).addEventListener('pointerdown', e => { down = e.target; });
+  $(id).addEventListener('click', e => { const d = down; down = null; if (backdropHit(d, e.target, e.currentTarget)) tmClose(); });
+  $(id + 'Done').addEventListener('click', tmClose);
+}
+$('#tMusic').addEventListener('click', () => setMusic(!musicOn));
 
 /* ---------- key bindings page: from the title settings or the in-game menu settings ---------- */
 function kbName(a) { return T('kbA_' + a); }
@@ -7100,14 +7279,14 @@ function kbOpenPage() {
   kbOpen = true; kbFrom = menuOpen ? 'menu' : 'title'; kbCap = null; kbSwallow = null;
   for (const k in input) input[k] = k === 'steerAxis' ? null : false; // nothing keeps driving under the page
   releaseTouch();
-  $(kbFrom === 'menu' ? '#igmenu' : '#title').inert = true;
+  if (kbFrom === 'menu') $('#igmenu').inert = true; else { $('#title').inert = true; if (tmOpen) $(tmOpen).inert = true; }
   $('#kbs').hidden = false; kbNote(''); kbRender(kbSel(KB.ACTIONS[0], 0));
 }
 function kbClose() {
   if (!kbOpen) return;
   kbOpen = false; kbCap = null; $('#kbs').hidden = true;
   const from = kbFrom; kbFrom = 'title';
-  $(from === 'menu' ? '#igmenu' : '#title').inert = false;
+  if (from === 'menu') $('#igmenu').inert = false; else { $('#title').inert = !!tmOpen; if (tmOpen) $(tmOpen).inert = false; } // opened from the game-settings window: the window is back, the title stays inert
   if (from === 'menu' ? menuOpen : !$('#title').hidden) $(from === 'menu' ? '#igKeys' : '#tKeys').focus();
 }
 $('#tKeys').addEventListener('click', kbOpenPage);
@@ -7130,11 +7309,11 @@ function clShow(entries, fromButton) {
   clOpen = true; clFocus = fromButton; clShown = entries;
   for (const k in input) input[k] = k === 'steerAxis' ? null : false;
   releaseTouch();
-  $('#title').inert = true; $('#clog').hidden = false; clRender(); $('#clList').scrollTop = 0; $('#clOk').focus();
+  $('#title').inert = true; if (tmOpen) $(tmOpen).inert = true; $('#clog').hidden = false; clRender(); $('#clList').scrollTop = 0; $('#clOk').focus();
 }
 function clClose() {
   if (!clOpen) return;
-  clOpen = false; $('#clog').hidden = true; $('#title').inert = false;
+  clOpen = false; $('#clog').hidden = true; $('#title').inert = !!tmOpen; if (tmOpen) $(tmOpen).inert = false;
   store.set('yatouge-log-seen', CHANGELOG[0].date);
   const back = clFocus ? '#tLog' : '#btnStart'; // opened by the button: back to it; opened automatically: the start button, so the keyboard / pad never lands on body
   if (!$('#title').hidden && !nickOpen && !kbOpen && !transOpen && !menuOpen) $(back).focus();

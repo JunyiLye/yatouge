@@ -189,20 +189,20 @@ test('起點門文字：上坡版是「上坡起點」，下坡版逐字不變',
   }
 });
 
-test('主畫面有下坡／上坡切換（#dirPick），文字有中英文，方向存在 yatouge-dir', () => {
-  assert.match(html, /id="dirPick"[^>]*role="radiogroup"/);
-  assert.ok(html.indexOf('id="dirPick"') > html.indexOf('id="trackPick"') && html.indexOf('id="dirPick"') < html.indexOf('id="pick"'), '切換放在賽道選擇與選車之間');
-  for (const k of ['dirLbl', 'dirAria', 'dirDown', 'dirUp', 'dirDownD', 'dirUpD']) assert.equal((html.match(new RegExp(`\\b${k}:`, 'g')) || []).length, 2, `${k} 中英文各一`);
+test('下坡／上坡改在按「開始」後的方向視窗（#dirq）選，文字有中英文，方向存在 yatouge-dir（主畫面不再有 #dirPick）', () => {
+  assert.ok(!html.includes('id="dirPick"') && !/function renderDirPicker\(/.test(html), '主畫面的方向切換已移除');
+  assert.match(html, /<div id="dirq"[^>]*role="dialog"/);
+  for (const k of ['dirDown', 'dirUp', 'dirDownD', 'dirUpD']) assert.equal((html.match(new RegExp(`\\b${k}:`, 'g')) || []).length, 2, `${k} 中英文各一`);
   assert.match(html, /dirDown: '下坡'/); assert.match(html, /dirUp: '上坡'/);
   assert.match(html, /dirDown: 'Downhill'/); assert.match(html, /dirUp: 'Uphill'/);
   assert.ok(html.includes("store.get('yatouge-dir')") && html.includes("store.set('yatouge-dir'"));
   const setDir = fn('setDir');
   assert.ok(/mode === 'sake'/.test(setDir), '送酒模式不能切換方向');
   assert.ok(!html.includes("store.set('yatouge-track', courseId"), 'yatouge-track 只存賽道，不存方向');
-  assert.ok(/function renderDirPicker\(\)/.test(html) && /b\.disabled = mode === 'sake'/.test(fn('renderDirPicker')), '送酒模式下按鈕停用');
+  assert.ok(/startAsksDir\(mode, again\)/.test(fn('askStart')), '送酒模式不問方向（startAsksDir）');
 });
 
-test('線上對戰只用下坡：進房間前一律換成下坡 id，離開再回到原本的方向', () => {
+test('線上對戰：進房間前先換成平常的（下坡）id，抽籤後才依方向換課程；離開再回到原本的方向', () => {
   const sm = fn('startMatch');
   assert.ok(/baseId\(trackId\)/.test(sm), 'startMatch 要用 baseId(trackId)');
   assert.ok(/prevTrack: trackId/.test(sm), '離開時要回到原本的（可能是上坡）賽道');
@@ -338,7 +338,7 @@ test('更新內容：2026-11-14 那一版有上坡玩法的玩家向說明（中
   assert.ok(!v.zh.some(l => l.includes('圖標') || l.includes('倒後鏡')), '不道地用語');
 });
 
-test('結果畫面與換語言用同一個 relabelI18n：上坡時「山頂終點」「開始上坡」等方向相關文字不會被下坡文字蓋掉（中英文）', () => {
+test('結果畫面與換語言用同一個 relabelI18n：上坡時「山頂終點」等方向相關文字不會被下坡文字蓋掉（中英文）', () => {
   const i0 = html.indexOf('const I18N = {'), i1 = html.indexOf('\nlet lang = ');
   assert.ok(i0 > 0 && i1 > i0);
   const src = html.slice(i0, i1) + '\n' + html.slice(html.indexOf('const T = (k, ...a)'), html.indexOf('\n', html.indexOf('const Lz = '))) + '\n' + fn('relabelI18n');
@@ -351,8 +351,8 @@ test('結果畫面與換語言用同一個 relabelI18n：上坡時「山頂終�
   const zhUp = run('zh', 'seiran_up'), zhDown = run('zh', 'seiran'), enUp = run('en', 'seiran_up'), enDown = run('en', 'seiran');
   assert.equal(zhUp.resEyebrow, '山頂終點'); assert.equal(zhDown.resEyebrow, '山腳終點');
   assert.equal(enUp.resEyebrow, 'Finish at the summit'); assert.equal(enDown.resEyebrow, 'Finish at the foot of the mountain');
-  assert.equal(zhUp.start, '開始上坡'); assert.equal(zhDown.start, '開始下坡');
-  assert.equal(enUp.start, 'Start the climb'); assert.equal(enDown.start, 'Start the run');
+  assert.equal(zhUp.start, '開始'); assert.equal(zhDown.start, '開始'); // the direction is chosen after Start now, so the button no longer names it
+  assert.equal(enUp.start, 'Start'); assert.equal(enDown.start, 'Start');
   assert.ok(zhUp.lead.includes('山頂') && zhUp.lead.includes('青嵐峠') && !zhUp.lead.includes('山腳'));
   assert.ok(enUp.lead.includes('top') && enUp.lead.includes('Seiran Pass'));
   assert.ok(zhDown.lead.includes('山腳'));

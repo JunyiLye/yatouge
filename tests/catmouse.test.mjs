@@ -15,7 +15,7 @@ return { NET, RP, CAT, catOther, catFirstLeader, catInit, catRole, catStart, cat
 const { RP, CAT, catOther, catFirstLeader, catInit, catRole, catStart, catSure, judgeRound, catRecord, catResult, catWinner, catNext, catNextGap, validCat, validGapVote, catState, trailAt, catMsg } = M;
 
 const BOUNDS = { x0: -100, x1: 100, z0: -500, z1: 100, s1: 4000 };
-const R = (o = {}) => ({ v: RP.V, st: 'racing', car: 'coupe', col: 2, trk: 'kurosagi', go: 1, nk: 'Bob', vote: { t: 'kurosagi', m: 'cat', g: 50 }, gb: 1, ...o });
+const R = (o = {}) => ({ v: RP.V, st: 'racing', car: 'coupe', col: 2, trk: 'kurosagi', go: 1, nk: 'Bob', vote: { t: 'kurosagi', d: 'down', m: 'cat', g: 50 }, gb: 1, ...o });
 const J = (o = {}) => judgeRound({ ftL: null, ftF: null, gap: null, g: 50, sure: false, ...o });
 
 /* ---------- 常數、角色、起跑 ---------- */
